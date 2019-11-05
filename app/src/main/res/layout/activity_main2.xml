@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/img_gas_pump"
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        android:layout_alignParentTop="true"
+        android:contentDescription="@string/description_image"
+        android:onClick="bla"
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/gas_pump" />
+
+    <Button
+        android:id="@+id/btn_car_brand"
+        style="@android:style/Widget.Holo.Button"
+        android:layout_width="223dp"
+        android:layout_height="45dp"
+        android:layout_alignBottom="@id/img_gas_pump"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="-59dp"
+        android:drawableEnd="@android:drawable/arrow_down_float"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:onClick="selectFromList"
+        android:text="@string/car_brand" />
+
+    <Button
+        android:id="@+id/btn_car_model"
+        style="@android:style/Widget.Holo.Button"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@id/btn_car_brand"
+        android:layout_marginBottom="-50dp"
+        android:layout_width="222dp"
+        android:layout_height="44dp"
+        android:drawableEnd="@android:drawable/arrow_down_float"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:onClick="selectFromList"
+        android:text="@string/car_model"
+         />
+
+    <Button
+        android:id="@+id/btn_car_year"
+        style="@android:style/Widget.Holo.Button"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@id/btn_car_model"
+        android:layout_marginBottom="-50dp"
+        android:layout_width="222dp"
+        android:layout_height="44dp"
+        android:drawableEnd="@android:drawable/arrow_down_float"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:onClick="selectFromList"
+        android:text="@string/car_year"
+         />
+
+    <TextView
+        android:id="@+id/txt_tank_contents"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@id/btn_car_year"
+        android:layout_marginBottom="-40dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tank_contents"
+        />
+    <SeekBar
+        android:id="@+id/seek_gas_contents"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@id/txt_tank_contents"
+        android:layout_marginBottom="-30dp"
+        android:layout_width="224dp"
+        android:layout_height="29dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="@android:integer/config_longAnimTime"
+         />
+
+
+    <EditText
+        android:id="@+id/edit_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@id/seek_gas_contents"
+        android:layout_marginBottom="-50dp"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:hint="@string/location_start"
+        android:inputType="textPersonName"
+
+        android:autofillHints="@string/hint_edit_start" />
+
+    <EditText
+        android:id="@+id/edit_destination"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@id/edit_start"
+        android:layout_marginBottom="-50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/location_dest"
+        android:inputType="textPersonName"
+        android:autofillHints="@string/hint_edit_dest" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
+        android:layout_alignRight="@id/edit_start"
+        android:layout_alignBottom="@id/edit_start"
+        android:layout_width="34dp"
+        android:layout_height="31dp"
+        android:background="@android:drawable/ic_menu_mylocation"
+         />
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
+        android:layout_alignRight="@id/edit_destination"
+        android:layout_alignBottom="@id/edit_destination"
+        android:layout_width="34dp"
+        android:layout_height="31dp"
+        android:background="@android:drawable/ic_menu_mylocation"
+         />
+
+    <Button
+        android:id="@+id/btn_find"
+        android:layout_width="251dp"
+        android:layout_height="40dp"
+        android:layout_alignBottom="@id/edit_destination"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="-50dp"
+        android:background="@color/colorAccent"
+        android:drawableEnd="@android:drawable/ic_menu_search"
+        android:drawableRight="@android:drawable/ic_menu_search"
+        android:onClick="selectFromList"
+        android:text="@string/btn_find" />
+
+
+</RelativeLayout>

@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">CheapTrip</string>
+    <string name="description_image">Cheap Trip Image</string>
+    <string name="car_brand">Select Car Brand</string>
+    <string name="car_model">Select Car Model</string>
+    <string name="car_year">Select Year</string>
+    <string name="tank_contents">Tank Contents</string>
+    <string name="location_start">Start Location</string>
+    <string name="location_dest">Destination</string>
+    <string name="btn_find">Find</string>
+    <string name="hint_edit_start">The Location to start</string>
+    <string name="hint_edit_dest">The trip\'s Destination</string>
+
+
+</resources>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <ImageView
+        android:id="@+id/img_gas_pump"
+        android:layout_width="534dp"
+        android:layout_height="256dp"
+
+        android:contentDescription="@string/description_image"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.504"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/gas_pump" />
+
+    <Button
+        android:id="@+id/btn_car_brand"
+        style="@android:style/Widget.Holo.Button"
+        android:layout_width="223dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="8dp"
+        android:drawableEnd="@android:drawable/arrow_down_float"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:onClick="selectFromList"
+        android:text="@string/car_brand"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/img_gas_pump"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/btn_car_model"
+        style="@android:style/Widget.Holo.Button"
+        android:layout_width="222dp"
+        android:layout_height="44dp"
+        android:drawableEnd="@android:drawable/arrow_down_float"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:onClick="selectFromList"
+        android:text="@string/car_model"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/btn_car_brand"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/btn_car_brand"
+        app:layout_constraintTop_toBottomOf="@+id/btn_car_brand"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/btn_car_year"
+        style="@android:style/Widget.Holo.Button"
+        android:layout_width="222dp"
+        android:layout_height="44dp"
+        android:drawableEnd="@android:drawable/arrow_down_float"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:onClick="selectFromList"
+        android:text="@string/car_year"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/btn_car_model"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/btn_car_brand"
+        app:layout_constraintTop_toBottomOf="@+id/btn_car_model"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <SeekBar
+        android:id="@+id/seek_gas_contents"
+        android:layout_width="224dp"
+        android:layout_height="29dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="@android:integer/config_longAnimTime"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/btn_car_year"
+        app:layout_constraintStart_toStartOf="@+id/btn_car_year"
+        app:layout_constraintTop_toBottomOf="@+id/btn_car_year"
+        app:layout_constraintVertical_bias="0.128" />
+
+    <TextView
+        android:id="@+id/txt_tank_contents"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tank_contents"
+        app:layout_constraintBottom_toTopOf="@+id/seek_gas_contents"
+        app:layout_constraintEnd_toEndOf="@+id/seek_gas_contents"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/seek_gas_contents" />
+
+    <EditText
+        android:id="@+id/edit_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:hint="@string/location_start"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/seek_gas_contents"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/seek_gas_contents"
+        app:layout_constraintTop_toBottomOf="@+id/seek_gas_contents"
+        app:layout_constraintVertical_bias="0.0"
+        android:autofillHints="@string/hint_edit_start" />
+
+    <EditText
+        android:id="@+id/edit_destination"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/location_dest"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/edit_start"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/edit_start"
+        app:layout_constraintTop_toBottomOf="@+id/edit_start"
+        app:layout_constraintVertical_bias="0.0"
+        android:autofillHints="@string/hint_edit_dest" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="34dp"
+        android:layout_height="31dp"
+        android:background="@android:drawable/ic_menu_mylocation"
+        app:layout_constraintBottom_toBottomOf="@+id/edit_start"
+        app:layout_constraintStart_toEndOf="@+id/edit_start"
+        app:layout_constraintTop_toTopOf="@+id/edit_start" />
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="34dp"
+        android:layout_height="31dp"
+        android:background="@android:drawable/ic_menu_mylocation"
+        app:layout_constraintBottom_toBottomOf="@+id/edit_destination"
+        app:layout_constraintStart_toEndOf="@+id/edit_destination"
+        app:layout_constraintTop_toBottomOf="@+id/edit_start" />
+
+    <Button
+        android:id="@+id/btn_find"
+        android:layout_width="251dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/colorAccent"
+        android:drawableEnd="@android:drawable/ic_menu_search"
+        android:text="@string/btn_find"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/button4"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/edit_destination"
+        app:layout_constraintTop_toBottomOf="@+id/edit_destination"
+        app:layout_constraintVertical_bias="0.0"
+        android:drawableRight="@android:drawable/ic_menu_search" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
