@@ -10,7 +10,6 @@
         android:layout_height="230dp"
         android:layout_alignParentTop="true"
         android:contentDescription="@string/description_image"
-        android:onClick="bla"
         android:scaleType="fitXY"
         app:srcCompat="@drawable/gas_pump" />
 

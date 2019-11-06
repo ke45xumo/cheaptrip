@@ -1,9 +1,11 @@
-package com.example.cheaptrip;
+package com.example.cheaptrip.activities;
 
 import android.os.Bundle;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.cheaptrip.R;
 
 
 public class CalculationActivity extends AppCompatActivity {

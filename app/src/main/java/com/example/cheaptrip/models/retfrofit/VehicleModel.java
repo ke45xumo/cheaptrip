@@ -1,12 +1,9 @@
-package com.example.cheaptrip;
+package com.example.cheaptrip.models.retfrofit;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-//http://www.jsonschema2pojo.org/
-//https://android.jlelse.eu/rest-api-on-android-made-simple-or-how-i-learned-to-stop-worrying-and-love-the-rxjava-b3c2c949cad4
-
-public class CarBrand {
+public class VehicleModel {
 
     @SerializedName("Make_ID")
     @Expose
@@ -14,6 +11,12 @@ public class CarBrand {
     @SerializedName("Make_Name")
     @Expose
     private String makeName;
+    @SerializedName("Model_ID")
+    @Expose
+    private Integer modelID;
+    @SerializedName("Model_Name")
+    @Expose
+    private String modelName;
 
     public Integer getMakeID() {
         return makeID;
@@ -30,4 +33,21 @@ public class CarBrand {
     public void setMakeName(String makeName) {
         this.makeName = makeName;
     }
+
+    public Integer getModelID() {
+        return modelID;
+    }
+
+    public void setModelID(Integer modelID) {
+        this.modelID = modelID;
+    }
+
+    public String getModelName() {
+        return modelName;
+    }
+
+    public void setModelName(String modelName) {
+        this.modelName = modelName;
+    }
+
 }

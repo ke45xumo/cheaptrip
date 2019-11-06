@@ -1,20 +1,23 @@
-package com.example.cheaptrip;
+package com.example.cheaptrip.activities;
 
-import android.app.ActivityOptions;
 import android.content.Intent;
-import android.graphics.Picture;
+
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
+
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.Room;
 
+import com.example.cheaptrip.R;
+import com.example.cheaptrip.database.AppDatabase;
 
+//TODO:https://github.com/Q42/AndroidScrollingImageView
 public class MainActivity extends AppCompatActivity {
     Button btn_carBrand;
     Button btn_carModel;
@@ -29,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
 
     ImageView pic;
 
+    AppDatabase appDatabase;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
 
         edit_start = findViewById(R.id.edit_start);
         edit_end = findViewById(R.id.edit_destination);
+
+        appDatabase = initDatabase();
     }
 
     public void selectFromList(View view){
@@ -50,11 +57,15 @@ public class MainActivity extends AppCompatActivity {
 
         switch(view.getId()){
             case R.id.btn_car_brand:    intent = new Intent(this, CarBrandActivity.class);
+                                        btn_carModel.setEnabled(true);
                                         requestCode = 1;
                                         break;
 
-            case R.id.btn_car_model:    intent = new Intent (this, CarModelActivity.class);
+            case R.id.btn_car_model:    // TODO Check for str_carBrand
+                                        intent = new Intent(this, CarModelActivity.class);
+                                        intent.putExtra("brand",str_Brand);
                                         requestCode = 2;
+
                                         break;
 
             case R.id.btn_car_year:     intent = new Intent(this, CarYearActivity.class);
@@ -68,6 +79,10 @@ public class MainActivity extends AppCompatActivity {
                                         intent.putExtra("start", txt_start);
                                         intent.putExtra("end",txt_end);
 
+                                        intent.putExtra("brand",str_Brand);
+                                        intent.putExtra("model",str_Brand);
+                                        intent.putExtra("year",str_Brand);
+
                                         requestCode = 4;
                                         break;
 
@@ -75,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             // Apply activity transition
             /*
@@ -147,5 +163,10 @@ public class MainActivity extends AppCompatActivity {
 
         startActivity(intent);
     }
+    private AppDatabase initDatabase(){
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                AppDatabase.class, "database-name").build();
 
+        return db;
+    }
 }
