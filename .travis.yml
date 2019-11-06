@@ -2,6 +2,8 @@ language: android
 dist: trusty
 before_install:
   - chmod +x gradlew
+  - yes | sdkmanager "build-tools;29.0.2"
+  - yes | sdkmanager "platforms;android-29"
 android:
   components:
     # Uncomment the lines below if you want to
@@ -24,9 +26,3 @@ android:
     # if you need to run emulator(s) during your tests
     - sys-img-x86-android-26
     - sys-img-armeabi-v7a-android-17
-  licenses:
-    - 'android-sdk-preview-license-52d11cd2'
-    - 'android-sdk-license-.+'
-    - 'google-gdk-license-.+'
-    - 'build-tools;29.0.2'
-    - 'platforms;android-29'
