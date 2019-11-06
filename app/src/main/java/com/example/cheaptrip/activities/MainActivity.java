@@ -19,6 +19,7 @@ import com.example.cheaptrip.database.AppDatabase;
 
 //TODO:https://github.com/Q42/AndroidScrollingImageView
 public class MainActivity extends AppCompatActivity {
+
     Button btn_carBrand;
     Button btn_carModel;
     Button btn_carYear;
