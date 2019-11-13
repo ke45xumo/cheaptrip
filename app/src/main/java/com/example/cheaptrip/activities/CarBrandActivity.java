@@ -13,8 +13,10 @@ import android.widget.Toast;
 
 import com.example.cheaptrip.dao.CarSpecClient;
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.models.retfrofit.VehicleBrand;
-import com.example.cheaptrip.models.retfrofit.VehicleBrandResponse;
+import com.example.cheaptrip.dao.DAOVehicleBrand;
+import com.example.cheaptrip.database.VehicleDatabase;
+import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleBrand;
+import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleBrandResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +57,7 @@ public class CarBrandActivity extends ListActivity {
 
         CarSpecClient carSpecClient = retrofit.create(CarSpecClient.class);
         Call<VehicleBrandResponse> carResponseCall = carSpecClient.getBrands("car","json");
+
 
 
         carResponseCall.enqueue(new Callback<VehicleBrandResponse>() {
@@ -98,8 +101,8 @@ public class CarBrandActivity extends ListActivity {
      * @return
      */
     private List<String> getCarBrands(){
-
         List<String> carBrandList = new ArrayList<>();
+
         for(int i =0 ; i < 30; i++){
             carBrandList.add("Brand " + i);
         }

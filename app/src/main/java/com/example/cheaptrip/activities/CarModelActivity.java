@@ -14,8 +14,8 @@ import android.widget.Toast;
 
 import com.example.cheaptrip.dao.CarSpecClient;
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.models.retfrofit.VehicleModel;
-import com.example.cheaptrip.models.retfrofit.VehicleModelResponse;
+import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleModel;
+import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleModelResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.example.cheaptrip.models.retfrofit.VehicleBrand;
+import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleBrand;
 import com.example.cheaptrip.R;
 
 import java.util.List;
