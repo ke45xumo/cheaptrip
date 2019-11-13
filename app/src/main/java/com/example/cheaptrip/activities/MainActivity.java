@@ -29,10 +29,12 @@ import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 
 import com.example.cheaptrip.models.retfrofit.photon.Feature;
+import com.example.cheaptrip.models.retfrofit.photon.Geometry;
 import com.example.cheaptrip.models.retfrofit.photon.PhotonResponse;
 import com.example.cheaptrip.models.retfrofit.photon.Properties;
 import com.example.cheaptrip.services.GPSService;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
     protected double currLongitude;
     protected String location_name;
 
+    Retrofit retrofit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
         appDatabase = initDatabase();
 
-        Retrofit retrofit = new Retrofit.Builder()
+        retrofit = new Retrofit.Builder()
                 .baseUrl("http://photon.komoot.de/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -124,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                    getGeoLocations(geoCompletionClient, s, currLatitude, currLongitude,edit_start);
+                getGeoLocations(geoCompletionClient, s, currLatitude, currLongitude,edit_start);
             }
         });
 
@@ -142,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                    getGeoLocations(geoCompletionClient, s, currLatitude, currLongitude, edit_end);
+                getGeoLocations(geoCompletionClient, s, currLatitude, currLongitude, edit_end);
             }
         });
 
@@ -162,47 +166,52 @@ public class MainActivity extends AppCompatActivity {
 
         switch(view.getId()){
             case R.id.btn_car_brand:    intent = new Intent(this, CarBrandActivity.class);
-                                        btn_carModel.setEnabled(true);
-                                        requestCode = 1;
-                                        break;
+                btn_carModel.setEnabled(true);
+                requestCode = 1;
+                break;
 
             case R.id.btn_car_model:    // TODO Check for str_carBrand
-                                        intent = new Intent(this, CarModelActivity.class);
-                                        intent.putExtra("brand",str_Brand);
-                                        requestCode = 2;
+                intent = new Intent(this, CarModelActivity.class);
+                intent.putExtra("brand",str_Brand);
+                requestCode = 2;
 
-                                        break;
+                break;
 
             case R.id.btn_car_year:     intent = new Intent(this, CarYearActivity.class);
-                                        requestCode = 3;
-                                        break;
+                requestCode = 3;
+                break;
 
             case R.id.btn_find:         intent = new Intent(this, CalculationActivity.class);
 
 
-                                        intent.putExtra("start", txt_start);
-                                        intent.putExtra("end",txt_end);
+                intent.putExtra("start", txt_start);
+                intent.putExtra("end",txt_end);
 
-                                        intent.putExtra("brand",str_Brand);
-                                        intent.putExtra("model",str_Brand);
-                                        intent.putExtra("year",str_Brand);
+                intent.putExtra("brand",str_Brand);
+                intent.putExtra("model",str_Brand);
+                intent.putExtra("year",str_Brand);
 
-                                        requestCode = 4;
-            break;
+                requestCode = 4;
+                break;
 
             case R.id.btn_start_location:   intent = new Intent(this, MapActivity.class);
-                                            intent.putExtra("lat", currLatitude);
-                                            intent.putExtra("lon", currLongitude);
-                                            intent.putExtra("location_name",txt_start);
-                                            requestCode = 5;
-                                            break;
+                final GeoCompletionClient geoCompletionClient = retrofit.create(GeoCompletionClient.class);
+
+                intent.putExtra("lat", currLatitude);
+                intent.putExtra("lon", currLongitude);
+                intent.putExtra("location_name",txt_start);
+
+
+                requestCode = 5;
+                break;
 
             case R.id.btn_end_location:     intent = new Intent(this, MapActivity.class);
-                                            intent.putExtra("lat", currLatitude);
-                                            intent.putExtra("lon", currLongitude);
-                                            intent.putExtra("location_name",txt_end);
-                                            requestCode = 6;
-                                            break;
+                intent.putExtra("lat", currLatitude);
+                intent.putExtra("lon", currLongitude);
+                intent.putExtra("location_name",txt_end);
+
+                requestCode = 6;
+                break;
 
             default:                    return;
 
@@ -238,17 +247,17 @@ public class MainActivity extends AppCompatActivity {
 
         switch (requestCode){
             case 1:     str_Brand = str_listSelection;
-                        btn_carBrand.setText(str_Brand);
-                        break;
+                btn_carBrand.setText(str_Brand);
+                break;
 
 
             case 2:     str_Model = str_listSelection;
-                        btn_carModel.setText(str_Model);
-                        break;
+                btn_carModel.setText(str_Model);
+                break;
 
             case 3:     str_Year = str_listSelection;
-                        btn_carYear.setText(str_Year);
-                        break;
+                btn_carYear.setText(str_Year);
+                break;
 
             default:    break;
         }
@@ -293,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
      * @param client
      * @param enteredText
      */
-    private void getGeoLocations(GeoCompletionClient client, Editable enteredText , double lat, double lon, final AutoCompleteTextView completeTextView){
+    private void getGeoLocations(GeoCompletionClient client, Editable enteredText , double lat, double lon, final AutoCompleteTextView completeTextView ){
         Call<PhotonResponse> carResponseCall = client.geoPos(enteredText.toString(),lat,lon);
 
 
@@ -306,6 +315,7 @@ public class MainActivity extends AppCompatActivity {
                 List<String> locationNames = new ArrayList();
 
                 for (Feature feature : features){
+                    Geometry geometry = feature.getGeometry();
                     Properties properties = feature.getProperties();
 
                     String name = properties.getName();
@@ -318,9 +328,13 @@ public class MainActivity extends AppCompatActivity {
 
                 completeAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.select_dialog_item, locationNames);
 
-                completeTextView.setAdapter(completeAdapter);
-                suggestions = locationNames;
-                completeAdapter.notifyDataSetChanged();
+                if (completeTextView != null) {
+                    completeTextView.setAdapter(completeAdapter);
+                    suggestions = locationNames;
+                    completeAdapter.notifyDataSetChanged();
+                }else{
+
+                }
             }
 
             @Override
@@ -330,6 +344,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+
+
 
 
 
