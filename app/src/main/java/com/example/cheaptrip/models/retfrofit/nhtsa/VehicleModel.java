@@ -1,4 +1,4 @@
-package com.example.cheaptrip.models.retfrofit;
+package com.example.cheaptrip.models.retfrofit.nhtsa;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

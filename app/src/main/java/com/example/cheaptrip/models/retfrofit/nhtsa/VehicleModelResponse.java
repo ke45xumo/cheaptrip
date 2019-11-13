@@ -1,16 +1,16 @@
-package com.example.cheaptrip.models.retfrofit;
+package com.example.cheaptrip.models.retfrofit.nhtsa;
+
+import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleModel;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.cheaptrip.models.retfrofit.VehicleBrand;
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 
 //http://www.jsonschema2pojo.org/
 //https://android.jlelse.eu/rest-api-on-android-made-simple-or-how-i-learned-to-stop-worrying-and-love-the-rxjava-b3c2c949cad4
-public class VehicleBrandResponse {
+public class VehicleModelResponse {
 
     @SerializedName("Count")
     @Expose
@@ -23,7 +23,7 @@ public class VehicleBrandResponse {
     private Object searchCriteria;
     @SerializedName("Results")
     @Expose
-    private List<VehicleBrand> results = new ArrayList<VehicleBrand>();
+    private List<VehicleModel> results = new ArrayList<VehicleModel>();
 
     public Integer getCount() {
         return count;
@@ -49,11 +49,11 @@ public class VehicleBrandResponse {
         this.searchCriteria = searchCriteria;
     }
 
-    public List<VehicleBrand> getResults() {
+    public List<VehicleModel> getResults() {
         return results;
     }
 
-    public void setResults(List<VehicleBrand> results) {
+    public void setResults(List<VehicleModel> results) {
         this.results = results;
     }
 

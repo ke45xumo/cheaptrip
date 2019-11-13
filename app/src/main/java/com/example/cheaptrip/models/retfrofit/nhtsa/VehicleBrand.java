@@ -1,5 +1,5 @@
 
-package com.example.cheaptrip.models.retfrofit;
+package com.example.cheaptrip.models.retfrofit.nhtsa;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;

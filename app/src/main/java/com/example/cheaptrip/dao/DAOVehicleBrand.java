@@ -7,7 +7,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 
-import com.example.cheaptrip.models.retfrofit.VehicleBrand;
+import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleBrand;
 
 import java.util.List;
 
@@ -24,6 +24,9 @@ public interface DAOVehicleBrand {
     @Query("SELECT * FROM VehicleBrand WHERE makeName LIKE :first AND " +
             "makeName LIKE :last LIMIT 1")
     VehicleBrand findByName(String first, String last);
+
+    @Insert
+    void insert(VehicleBrand brand);
 
     @Insert
     void insertAll(VehicleBrand... brands);

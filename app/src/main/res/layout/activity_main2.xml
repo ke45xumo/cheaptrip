@@ -24,7 +24,7 @@
         android:layout_marginBottom="-59dp"
         android:drawableEnd="@android:drawable/arrow_down_float"
         android:drawableRight="@android:drawable/arrow_down_float"
-        android:onClick="selectFromList"
+        android:onClick="viewClickHandler"
         android:text="@string/car_brand" />
 
     <Button
@@ -37,7 +37,7 @@
         android:layout_height="44dp"
         android:drawableEnd="@android:drawable/arrow_down_float"
         android:drawableRight="@android:drawable/arrow_down_float"
-        android:onClick="selectFromList"
+        android:onClick="viewClickHandler"
         android:text="@string/car_model"
          />
 
@@ -51,7 +51,7 @@
         android:layout_height="44dp"
         android:drawableEnd="@android:drawable/arrow_down_float"
         android:drawableRight="@android:drawable/arrow_down_float"
-        android:onClick="selectFromList"
+        android:onClick="viewClickHandler"
         android:text="@string/car_year"
          />
 
@@ -77,7 +77,7 @@
          />
 
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/edit_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -91,7 +91,7 @@
 
         android:autofillHints="@string/hint_edit_start" />
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/edit_destination"
         android:layout_centerHorizontal="true"
         android:layout_alignBottom="@id/edit_start"
@@ -104,7 +104,7 @@
         android:autofillHints="@string/hint_edit_dest" />
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/btn_start_location"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
         android:layout_alignRight="@id/edit_start"
@@ -112,10 +112,11 @@
         android:layout_width="34dp"
         android:layout_height="31dp"
         android:background="@android:drawable/ic_menu_mylocation"
+        android:onClick="viewClickHandler"
          />
 
     <Button
-        android:id="@+id/button4"
+        android:id="@+id/btn_end_location"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
         android:layout_alignRight="@id/edit_destination"
@@ -123,6 +124,7 @@
         android:layout_width="34dp"
         android:layout_height="31dp"
         android:background="@android:drawable/ic_menu_mylocation"
+        android:onClick="viewClickHandler"
          />
 
     <Button
@@ -136,7 +138,7 @@
         android:background="@color/colorAccent"
         android:drawableEnd="@android:drawable/ic_menu_search"
         android:drawableRight="@android:drawable/ic_menu_search"
-        android:onClick="selectFromList"
+        android:onClick="viewClickHandler"
         android:text="@string/btn_find" />
 
 

@@ -1,7 +1,7 @@
 package com.example.cheaptrip.dao;
 
-import com.example.cheaptrip.models.retfrofit.VehicleBrandResponse;
-import com.example.cheaptrip.models.retfrofit.VehicleModelResponse;
+import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleBrandResponse;
+import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleModelResponse;
 
 
 import retrofit2.Call;
