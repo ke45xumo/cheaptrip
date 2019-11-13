@@ -2,6 +2,8 @@ package com.example.cheaptrip.activities;
 
 import android.content.Intent;
 
+import android.location.Location;
+import android.location.LocationListener;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         final GeoCompletionClient carSpecClient = retrofit.create(GeoCompletionClient.class);
+
 
         /*=================================================
          * Auto Completion

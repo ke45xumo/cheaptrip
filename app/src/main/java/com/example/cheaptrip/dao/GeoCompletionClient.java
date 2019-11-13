@@ -9,19 +9,19 @@ import retrofit2.http.Query;
 
 public interface GeoCompletionClient {
     //https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=json
-    @GET("?limit=4")
+    @GET("api")
     Call<PhotonResponse> geoPos(@Query("q") String location,
                                 @Query("lat") int latitude,
                                 @Query("long") int longitude,
-                                @Query("lang") int language);
+                                @Query("lang") String language);
     @GET("api")
     Call<PhotonResponse> geoPos(@Query("q") String location);
 
-    @GET("?limit=4")
+    @GET("api")
     Call<PhotonResponse> geoPos(@Query("q") String location,
-                                @Query("lang") int language);
+                                @Query("lang") String language);
 
-    @GET("?limit=4")
+    @GET("api")
     Call<PhotonResponse> geoPos(@Query("q") String location,
                                 @Query("lat") int latitude,
                                 @Query("long") int longitude);
