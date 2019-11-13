@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected double currLatitude;
     protected double currLongitude;
+    protected String location_name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,6 +145,8 @@ public class MainActivity extends AppCompatActivity {
                     getGeoLocations(geoCompletionClient, s, currLatitude, currLongitude, edit_end);
             }
         });
+
+
     }
 
     /**
@@ -153,6 +156,9 @@ public class MainActivity extends AppCompatActivity {
     public void viewClickHandler(View view){
         Intent intent;
         int requestCode;
+
+        String txt_start  = edit_start.getText().toString();
+        String txt_end  = edit_end.getText().toString();
 
         switch(view.getId()){
             case R.id.btn_car_brand:    intent = new Intent(this, CarBrandActivity.class);
@@ -172,8 +178,7 @@ public class MainActivity extends AppCompatActivity {
                                         break;
 
             case R.id.btn_find:         intent = new Intent(this, CalculationActivity.class);
-                                        String txt_start  = edit_start.getText().toString();
-                                        String txt_end  = edit_end.getText().toString();
+
 
                                         intent.putExtra("start", txt_start);
                                         intent.putExtra("end",txt_end);
@@ -188,12 +193,14 @@ public class MainActivity extends AppCompatActivity {
             case R.id.btn_start_location:   intent = new Intent(this, MapActivity.class);
                                             intent.putExtra("lat", currLatitude);
                                             intent.putExtra("lon", currLongitude);
+                                            intent.putExtra("location_name",txt_start);
                                             requestCode = 5;
                                             break;
 
             case R.id.btn_end_location:     intent = new Intent(this, MapActivity.class);
                                             intent.putExtra("lat", currLatitude);
                                             intent.putExtra("lon", currLongitude);
+                                            intent.putExtra("location_name",txt_end);
                                             requestCode = 6;
                                             break;
 
@@ -358,6 +365,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 edit_start.setText(textField);
+                location_name = textField;
             }
 
             @Override
