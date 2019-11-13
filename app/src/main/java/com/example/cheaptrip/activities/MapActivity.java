@@ -3,6 +3,7 @@ package com.example.cheaptrip.activities;
 import android.app.Activity;
 import android.content.Context;
 
+import android.content.Intent;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 
 public class MapActivity extends Activity {
     protected LocationManager locationManager;
@@ -45,11 +47,28 @@ public class MapActivity extends Activity {
 
         //map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
+        Intent intent = getIntent();
+
+        Bundle extras = intent.getExtras();
+
+        double latitude = (Double) extras.get("lat");
+        double longitude = (Double) extras.get("lon");
+        String location_name = (String) extras.get("location_name");
 
         IMapController mapController = map.getController();
-        mapController.setZoom(9.5);
-        GeoPoint startPoint = new GeoPoint(48.8583, 2.2944);
+        mapController.setZoom(20.0);
+        GeoPoint startPoint = new GeoPoint(latitude, longitude);
         mapController.setCenter(startPoint);
+
+        Marker marker = new Marker(map);
+
+        marker.setPosition(new GeoPoint(latitude,longitude));
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        map.getOverlays().add(marker);
+
+        marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
+        marker.setTitle(location_name);
+        marker.showInfoWindow();
     }
 
     public void onResume(){

@@ -1,7 +1,9 @@
 package com.example.cheaptrip.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Build;
@@ -17,6 +19,7 @@ import android.widget.ImageView;
 
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.room.Room;
 
@@ -26,9 +29,12 @@ import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 
 import com.example.cheaptrip.models.retfrofit.photon.Feature;
+import com.example.cheaptrip.models.retfrofit.photon.Geometry;
 import com.example.cheaptrip.models.retfrofit.photon.PhotonResponse;
 import com.example.cheaptrip.models.retfrofit.photon.Properties;
+import com.example.cheaptrip.services.GPSService;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,6 +65,12 @@ public class MainActivity extends AppCompatActivity {
     ArrayAdapter<String> completeAdapter;
     List<String> suggestions;
 
+    protected double currLatitude;
+    protected double currLongitude;
+    protected String location_name;
+
+    Retrofit retrofit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,14 +89,25 @@ public class MainActivity extends AppCompatActivity {
 
         appDatabase = initDatabase();
 
-        Retrofit retrofit = new Retrofit.Builder()
+        retrofit = new Retrofit.Builder()
                 .baseUrl("http://photon.komoot.de/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
 
-        final GeoCompletionClient carSpecClient = retrofit.create(GeoCompletionClient.class);
+        final GeoCompletionClient geoCompletionClient = retrofit.create(GeoCompletionClient.class);
 
+        GPSService gpsService = new GPSService(this);
+
+        if (gpsService.canGetLocation()) {
+            currLatitude = gpsService.getLatitude();
+            currLongitude = gpsService.getLongitude();
+
+            getLocationName(geoCompletionClient,currLatitude,currLongitude,edit_start);
+
+        }else{
+            gpsService.showSettingsAlert();
+        }
 
         /*=================================================
          * Auto Completion
@@ -96,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
         edit_start.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
@@ -106,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                    getGeoLocations(carSpecClient, s, edit_start);
+                getGeoLocations(geoCompletionClient, s, currLatitude, currLongitude,edit_start);
             }
         });
 
@@ -124,9 +146,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                    getGeoLocations(carSpecClient, s, edit_end);
+                getGeoLocations(geoCompletionClient, s, currLatitude, currLongitude, edit_end);
             }
         });
+
+
     }
 
     /**
@@ -137,44 +161,57 @@ public class MainActivity extends AppCompatActivity {
         Intent intent;
         int requestCode;
 
+        String txt_start  = edit_start.getText().toString();
+        String txt_end  = edit_end.getText().toString();
+
         switch(view.getId()){
             case R.id.btn_car_brand:    intent = new Intent(this, CarBrandActivity.class);
-                                        btn_carModel.setEnabled(true);
-                                        requestCode = 1;
-                                        break;
+                btn_carModel.setEnabled(true);
+                requestCode = 1;
+                break;
 
             case R.id.btn_car_model:    // TODO Check for str_carBrand
-                                        intent = new Intent(this, CarModelActivity.class);
-                                        intent.putExtra("brand",str_Brand);
-                                        requestCode = 2;
+                intent = new Intent(this, CarModelActivity.class);
+                intent.putExtra("brand",str_Brand);
+                requestCode = 2;
 
-                                        break;
+                break;
 
             case R.id.btn_car_year:     intent = new Intent(this, CarYearActivity.class);
-                                        requestCode = 3;
-                                        break;
+                requestCode = 3;
+                break;
 
             case R.id.btn_find:         intent = new Intent(this, CalculationActivity.class);
-                                        String txt_start  = edit_start.getText().toString();
-                                        String txt_end  = edit_end.getText().toString();
 
-                                        intent.putExtra("start", txt_start);
-                                        intent.putExtra("end",txt_end);
 
-                                        intent.putExtra("brand",str_Brand);
-                                        intent.putExtra("model",str_Brand);
-                                        intent.putExtra("year",str_Brand);
+                intent.putExtra("start", txt_start);
+                intent.putExtra("end",txt_end);
 
-                                        requestCode = 4;
-            break;
+                intent.putExtra("brand",str_Brand);
+                intent.putExtra("model",str_Brand);
+                intent.putExtra("year",str_Brand);
+
+                requestCode = 4;
+                break;
 
             case R.id.btn_start_location:   intent = new Intent(this, MapActivity.class);
-                                            requestCode = 5;
-                                            break;
+                final GeoCompletionClient geoCompletionClient = retrofit.create(GeoCompletionClient.class);
+
+                intent.putExtra("lat", currLatitude);
+                intent.putExtra("lon", currLongitude);
+                intent.putExtra("location_name",txt_start);
+
+
+                requestCode = 5;
+                break;
 
             case R.id.btn_end_location:     intent = new Intent(this, MapActivity.class);
-                                            requestCode = 6;
-                                            break;
+                intent.putExtra("lat", currLatitude);
+                intent.putExtra("lon", currLongitude);
+                intent.putExtra("location_name",txt_end);
+
+                requestCode = 6;
+                break;
 
             default:                    return;
 
@@ -210,17 +247,17 @@ public class MainActivity extends AppCompatActivity {
 
         switch (requestCode){
             case 1:     str_Brand = str_listSelection;
-                        btn_carBrand.setText(str_Brand);
-                        break;
+                btn_carBrand.setText(str_Brand);
+                break;
 
 
             case 2:     str_Model = str_listSelection;
-                        btn_carModel.setText(str_Model);
-                        break;
+                btn_carModel.setText(str_Model);
+                break;
 
             case 3:     str_Year = str_listSelection;
-                        btn_carYear.setText(str_Year);
-                        break;
+                btn_carYear.setText(str_Year);
+                break;
 
             default:    break;
         }
@@ -265,10 +302,8 @@ public class MainActivity extends AppCompatActivity {
      * @param client
      * @param enteredText
      */
-    private void getGeoLocations(GeoCompletionClient client, Editable enteredText , final AutoCompleteTextView completeTextView){
-        String a = enteredText.toString();
-        a = a+"";
-        Call<PhotonResponse> carResponseCall = client.geoPos(enteredText.toString());
+    private void getGeoLocations(GeoCompletionClient client, Editable enteredText , double lat, double lon, final AutoCompleteTextView completeTextView ){
+        Call<PhotonResponse> carResponseCall = client.geoPos(enteredText.toString(),lat,lon);
 
 
         carResponseCall.enqueue(new Callback<PhotonResponse>() {
@@ -280,6 +315,7 @@ public class MainActivity extends AppCompatActivity {
                 List<String> locationNames = new ArrayList();
 
                 for (Feature feature : features){
+                    Geometry geometry = feature.getGeometry();
                     Properties properties = feature.getProperties();
 
                     String name = properties.getName();
@@ -292,9 +328,13 @@ public class MainActivity extends AppCompatActivity {
 
                 completeAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.select_dialog_item, locationNames);
 
-                completeTextView.setAdapter(completeAdapter);
-                suggestions = locationNames;
-                completeAdapter.notifyDataSetChanged();
+                if (completeTextView != null) {
+                    completeTextView.setAdapter(completeAdapter);
+                    suggestions = locationNames;
+                    completeAdapter.notifyDataSetChanged();
+                }else{
+
+                }
             }
 
             @Override
@@ -303,5 +343,86 @@ public class MainActivity extends AppCompatActivity {
                 t.printStackTrace();
             }
         });
+    }
+
+
+
+
+
+
+    private void getLocationName(GeoCompletionClient client, double lat , double lon,final AutoCompleteTextView completeTextView){
+        Call<PhotonResponse> carResponseCall = client.getLocationName(lat,lon);
+
+
+        carResponseCall.enqueue(new Callback<PhotonResponse>() {
+            @Override
+            public void onResponse(Call<PhotonResponse> call, Response<PhotonResponse> response) {
+                PhotonResponse photonResponse = response.body();
+                List<Feature> features = photonResponse.getFeatures();
+                String textField = "";
+                List<String> locationNames = new ArrayList();
+
+                for (Feature feature : features){
+                    Properties properties = feature.getProperties();
+                    String city = properties.getCity();
+                    if (city == null){
+                        city = "";
+                    }
+
+                    String name = properties.getName();
+                    if (name == null){
+                        name = "";
+                    }
+
+                    String country = properties.getCountry();
+
+                    textField = city + "," + name + "(" + country + ")";
+
+                    locationNames.add(textField);
+                }
+
+                edit_start.setText(textField);
+                location_name = textField;
+            }
+
+            @Override
+            public void onFailure(Call<PhotonResponse> call, Throwable t) {
+                Toast.makeText(getApplicationContext(),"An Error Occurred", Toast.LENGTH_LONG).show();
+                t.printStackTrace();
+            }
+        });
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults)
+    {
+        super
+                .onRequestPermissionsResult(requestCode,
+                        permissions,
+                        grantResults);
+
+        if (requestCode == 4711) {
+
+            // Checking whether user granted the permission or not.
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                // Showing the toast message
+                Toast.makeText(MainActivity.this,
+                        "Camera Permission Granted",
+                        Toast.LENGTH_SHORT)
+                        .show();
+            }
+            else {
+                Toast.makeText(MainActivity.this,
+                        "Camera Permission Denied",
+                        Toast.LENGTH_SHORT)
+                        .show();
+            }
+        }
+
     }
 }

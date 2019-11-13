@@ -11,19 +11,28 @@ public interface GeoCompletionClient {
     //https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=json
     @GET("api")
     Call<PhotonResponse> geoPos(@Query("q") String location,
-                                @Query("lat") int latitude,
-                                @Query("long") int longitude,
+                                @Query("lat") double latitude,
+                                @Query("lon") double longitude,
                                 @Query("lang") String language);
     @GET("api")
     Call<PhotonResponse> geoPos(@Query("q") String location);
 
     @GET("api")
     Call<PhotonResponse> geoPos(@Query("q") String location,
-                                @Query("lang") String language);
+                                @Query("lat") double latitude,
+                                @Query("lon") double longitude);
 
     @GET("api")
     Call<PhotonResponse> geoPos(@Query("q") String location,
-                                @Query("lat") int latitude,
-                                @Query("long") int longitude);
+                                @Query("lang") String language);
+
+    @GET("reverse/")
+    Call<PhotonResponse> getLocationName(@Query("lat") double latitude,
+                                @Query("lon") double longitude);
+
+    @GET("api")
+    Call<PhotonResponse> geoPosandWait(@Query("q") String location);
+
+
 
 }
