@@ -3,7 +3,6 @@ package com.example.cheaptrip.services;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,21 +17,19 @@ import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.content.Context.LOCATION_SERVICE;
-
-
-
 
 public class GPSService implements LocationListener{
     private final Context mContext;
-    private static final int INITIAL_REQUEST = 4711;
-    private static final String[] INITIAL_PERMS={
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-    };
+
+    final static int MY_PERMISSIONS_REQUEST_LOCATION = 1345;
 
     boolean checkGPS = false;
+
+
     boolean checkNetwork = false;
+
     boolean canGetLocation = false;
 
     Location loc;
@@ -72,7 +69,8 @@ public class GPSService implements LocationListener{
 
                 // if GPS Enabled get lat/long using GPS Services
                 if (checkGPS) {
-                    if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+                    if (ActivityCompat.checkSelfPermission(mContext, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         // TODO: Consider calling
                         //    ActivityCompat#requestPermissions
                         // here to request the missing permissions, and then overriding
@@ -80,7 +78,10 @@ public class GPSService implements LocationListener{
                         //                                          int[] grantResults)
                         // to handle the case where the user grants the permission. See the documentation
                         // for ActivityCompat#requestPermissions for more details.
-                        ActivityCompat.requestPermissions((Activity)mContext, INITIAL_PERMS, INITIAL_REQUEST);
+                        ActivityCompat.requestPermissions( (Activity) mContext,
+                                new String[]{ACCESS_FINE_LOCATION},
+                                MY_PERMISSIONS_REQUEST_LOCATION);
+
                     }
                     locationManager.requestLocationUpdates(
                             LocationManager.GPS_PROVIDER,
@@ -98,8 +99,8 @@ public class GPSService implements LocationListener{
 
                 }
 
-                /*
-                if (checkNetwork) {
+
+                /*if (checkNetwork) {
 
 
                     if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -110,10 +111,6 @@ public class GPSService implements LocationListener{
                         //                                          int[] grantResults)
                         // to handle the case where the user grants the permission. See the documentation
                         // for ActivityCompat#requestPermissions for more details.
-
-                        ActivityCompat.requestPermissions((Activity)mContext, INITIAL_PERMS, INITIAL_REQUEST);
-
-
                     }
                     locationManager.requestLocationUpdates(
                             LocationManager.NETWORK_PROVIDER,
@@ -141,6 +138,7 @@ public class GPSService implements LocationListener{
 
         return loc;
     }
+
     public double getLongitude() {
         if (loc != null) {
             longitude = loc.getLongitude();
@@ -190,7 +188,7 @@ public class GPSService implements LocationListener{
     public void stopListener() {
         if (locationManager != null) {
 
-            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(mContext, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
                 // here to request the missing permissions, and then overriding

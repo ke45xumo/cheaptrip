@@ -19,14 +19,20 @@ public interface GeoCompletionClient {
 
     @GET("api")
     Call<PhotonResponse> geoPos(@Query("q") String location,
-                                @Query("lang") String language);
-
-    @GET("api")
-    Call<PhotonResponse> geoPos(@Query("q") String location,
                                 @Query("lat") double latitude,
                                 @Query("lon") double longitude);
 
-    @GET("reverse")
-    Call<PhotonResponse> getLocationName(   @Query("lat") double latitude,
-                                            @Query("lon") double longitude);
+    @GET("api")
+    Call<PhotonResponse> geoPos(@Query("q") String location,
+                                @Query("lang") String language);
+
+    @GET("reverse/")
+    Call<PhotonResponse> getLocationName(@Query("lat") double latitude,
+                                @Query("lon") double longitude);
+
+    @GET("api")
+    Call<PhotonResponse> geoPosandWait(@Query("q") String location);
+
+
+
 }

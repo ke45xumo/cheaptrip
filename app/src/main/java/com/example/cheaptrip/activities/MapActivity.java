@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -30,6 +29,7 @@ public class MapActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         //handle permissions first, before map is created. not depicted here
+
         //load/initialize the osmdroid configuration, this can be done
         Context ctx = getApplicationContext();
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
@@ -39,14 +39,6 @@ public class MapActivity extends Activity {
         //see also StorageUtils
         //note, the load method also sets the HTTP User Agent to your application's package name, abusing osm's tile servers will get you banned based on this string
 
-        Intent intent = getIntent();
-        Bundle extras = getIntent().getExtras();
-
-        double lat = (double) extras.get("lat");
-        double lon = (double) extras.get("lon");
-        String location_name = (String)extras.get("location_name");
-
-
         //inflate and create the map
         setContentView(R.layout.map);
 
@@ -55,35 +47,30 @@ public class MapActivity extends Activity {
 
         //map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
+        Intent intent = getIntent();
+
+        Bundle extras = intent.getExtras();
+
+        double latitude = (Double) extras.get("lat");
+        double longitude = (Double) extras.get("lon");
+        String location_name = (String) extras.get("location_name");
 
         IMapController mapController = map.getController();
         mapController.setZoom(20.0);
-        GeoPoint startPoint = new GeoPoint(lat, lon);
+        GeoPoint startPoint = new GeoPoint(latitude, longitude);
         mapController.setCenter(startPoint);
 
-        setMarker(map,location_name,lat,lon);
+        Marker marker = new Marker(map);
 
+        marker.setPosition(new GeoPoint(latitude,longitude));
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        map.getOverlays().add(marker);
 
-
+        marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
+        marker.setTitle(location_name);
+        marker.showInfoWindow();
     }
-    public void setMarker(MapView map,String location_name,double lat, double lon){
-        Marker m = new Marker(map);
-        m.setPosition(new GeoPoint(lat,lon));
-        m.setTextLabelBackgroundColor(
-                Color.WHITE
-        );
-        m.setTextLabelForegroundColor(
-                Color.BLACK
-        );
-        m.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
-        m.setTitle(location_name);
-        m.showInfoWindow();
-        //m.setTextLabelFontSize(40);
-        //m.setTextIcon(location_name);
-        m.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        map.getOverlays()
-                .add(m);
-    }
+
     public void onResume(){
         super.onResume();
         //this will refresh the osmdroid configuration on resuming.

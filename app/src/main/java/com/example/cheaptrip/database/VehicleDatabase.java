@@ -6,9 +6,8 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-
-import com.example.cheaptrip.dao.DAOVehicleBrand;
 import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleBrand;
+import com.example.cheaptrip.dao.DAOVehicleBrand;
 
 @Database(entities = {VehicleBrand.class}, version = 1)
 public abstract class VehicleDatabase extends RoomDatabase {
