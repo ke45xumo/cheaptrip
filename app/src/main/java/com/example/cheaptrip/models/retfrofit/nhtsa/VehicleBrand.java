@@ -9,7 +9,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 @Entity
-public class VehicleBrand {
+public class VehicleBrand extends VehicleProperty{
 
     @SerializedName("MakeId")
     @Expose

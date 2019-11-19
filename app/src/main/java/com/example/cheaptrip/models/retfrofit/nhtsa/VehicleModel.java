@@ -3,7 +3,7 @@ package com.example.cheaptrip.models.retfrofit.nhtsa;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class VehicleModel {
+public class VehicleModel extends VehicleProperty{
 
     @SerializedName("Make_ID")
     @Expose

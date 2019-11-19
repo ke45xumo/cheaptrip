@@ -11,38 +11,27 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-
-import com.example.cheaptrip.dao.CarSpecClient;
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.dao.DAOVehicleBrand;
-import com.example.cheaptrip.database.VehicleDatabase;
-import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleBrand;
-import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleBrandResponse;
-import com.example.cheaptrip.services.VehicleRestService;
-
+import com.example.cheaptrip.services.rest.VehicleRestService;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
-
 
 
 //https://www.codeproject.com/Articles/5165136/Retrofit-A-REST-Client-for-Android-Retrofit-2-X
 //TODO: https://stackoverflow.com/questions/29380844/how-to-set-timeout-in-retrofit-library
 //TODO: Search for Vehicle in Edit Text
 /**
- *
+ * TODO: Document
  */
 public class CarBrandActivity extends ListActivity {
 
     ProgressBar progressBar;
 
+    /**
+     * Gets Called when CarBrandActivity will be created.
+     * Starts Asynchronious Call of the Webservice-Rest-API
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,46 +40,7 @@ public class CarBrandActivity extends ListActivity {
         progressBar = findViewById(R.id.progress_brand);
         VehicleRestService vehicleRestService = new VehicleRestService();
 
-        vehicleRestService.startGetVehicleBrands(this);
-/*
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://vpic.nhtsa.dot.gov/api/vehicles/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build();
-
-        CarSpecClient carSpecClient = retrofit.create(CarSpecClient.class);
-        Call<VehicleBrandResponse> carResponseCall = carSpecClient.getBrands("car","json");
-
-
-
-        carResponseCall.enqueue(new Callback<VehicleBrandResponse>() {
-            @Override
-            public void onResponse(Call<VehicleBrandResponse> call, Response<VehicleBrandResponse> response) {
-                VehicleBrandResponse vehicleResponseSingle = response.body();
-                List<VehicleBrand> vehicleBrands = vehicleResponseSingle.getResults();
-
-
-                List<String> brandList = new ArrayList<>();
-
-                for (VehicleBrand brand: vehicleBrands){
-                    brandList.add(brand.getMakeName().trim());
-                }
-
-                Collections.sort(brandList);
-                ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(getApplicationContext(),R.layout.selection_list_row, R.id.listText,brandList);
-                setListAdapter(listDataAdapter);
-
-                progressBar.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void onFailure(Call<VehicleBrandResponse> call, Throwable t) {
-                progressBar.setVisibility(View.INVISIBLE);
-                Toast.makeText(getApplicationContext(),"An Error Occurred", Toast.LENGTH_LONG).show();
-                t.printStackTrace();
-            }
-        });*/
+        vehicleRestService.startLoadProperties(this);
         setList();
     }
     private void setList(){
@@ -114,6 +64,13 @@ public class CarBrandActivity extends ListActivity {
         return carBrandList;
     }
 
+    /**
+     * TODO: Document
+     * @param l
+     * @param v
+     * @param position
+     * @param id
+     */
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
@@ -126,10 +83,11 @@ public class CarBrandActivity extends ListActivity {
         finish();
     }
 
-    private void startSpinner(){
-
-    }
-
+    /**
+     * TODO: Document
+     * @param context
+     * @param vehicleBrands
+     */
     public static void OnCarListLoadSuccess(Context context, List<String> vehicleBrands){
 
         ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(context,R.layout.selection_list_row, R.id.listText,vehicleBrands);
@@ -139,8 +97,14 @@ public class CarBrandActivity extends ListActivity {
         carBrandActivity.progressBar.setVisibility(View.INVISIBLE);
     }
 
-    public static void OnCarListLoadFail(List<String> vehicleBrands){
-
+    /**
+     * TODO:Document
+     * @param context
+     */
+    public static void OnCarListLoadFail(Context context){
+        CarBrandActivity carBrandActivity = (CarBrandActivity)context;
+        carBrandActivity.progressBar.setVisibility(View.INVISIBLE);
+        Toast.makeText(context,"An Error Occurred", Toast.LENGTH_LONG).show();
     }
 
 }

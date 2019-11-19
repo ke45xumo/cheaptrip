@@ -1,15 +1,13 @@
 package com.example.cheaptrip.activities;
 
-import android.app.Activity;
+
 import android.content.Intent;
 
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
+
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -28,8 +26,9 @@ import com.example.cheaptrip.R;
 import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 
+import com.example.cheaptrip.handlers.LocationTextHandler;
 import com.example.cheaptrip.models.retfrofit.photon.Feature;
-import com.example.cheaptrip.models.retfrofit.photon.Geometry;
+
 import com.example.cheaptrip.models.retfrofit.photon.PhotonResponse;
 import com.example.cheaptrip.models.retfrofit.photon.Properties;
 import com.example.cheaptrip.services.GPSService;
@@ -75,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
+        //getActionBar().hide();
         /*===============================================
          * Assign Views
          *===============================================*/
@@ -113,43 +113,9 @@ public class MainActivity extends AppCompatActivity {
          * Auto Completion
          *=================================================*/
         suggestions =  new ArrayList<>(); //autocomplete Suggestions
-
-
-        // Listener for the start AutoCompletionTextField
-        edit_start.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                //retrieveData(s);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                getGeoLocations(geoCompletionClient, s, currLatitude, currLongitude,edit_start);
-            }
-        });
-
-        // Listener for the end AutoCompletionTextField
-        edit_end.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                //retrieveData(s);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                getGeoLocations(geoCompletionClient, s, currLatitude, currLongitude, edit_end);
-            }
-        });
-
+        LocationTextHandler locationTextHandler = new LocationTextHandler(currLatitude,currLongitude);
+        locationTextHandler.addTextChangedListener(edit_start);
+        locationTextHandler.addTextChangedListener(edit_end);
 
     }
 
@@ -296,60 +262,6 @@ public class MainActivity extends AppCompatActivity {
 
         return db;
     }
-
-    /**
-     * Gets the Location Name (City) for Auto-Completion
-     * @param client
-     * @param enteredText
-     */
-    private void getGeoLocations(GeoCompletionClient client, Editable enteredText , double lat, double lon, final AutoCompleteTextView completeTextView ){
-        Call<PhotonResponse> carResponseCall = client.geoPos(enteredText.toString(),lat,lon);
-
-
-        carResponseCall.enqueue(new Callback<PhotonResponse>() {
-            @Override
-            public void onResponse(Call<PhotonResponse> call, Response<PhotonResponse> response) {
-                PhotonResponse photonResponse = response.body();
-                List<Feature> features = photonResponse.getFeatures();
-
-                List<String> locationNames = new ArrayList();
-
-                for (Feature feature : features){
-                    Geometry geometry = feature.getGeometry();
-                    Properties properties = feature.getProperties();
-
-                    String name = properties.getName();
-                    String country = properties.getCountry();
-
-                    String textField = name + "(" + country + ")";
-
-                    locationNames.add(textField);
-                }
-
-                completeAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.select_dialog_item, locationNames);
-
-                if (completeTextView != null) {
-                    completeTextView.setAdapter(completeAdapter);
-                    suggestions = locationNames;
-                    completeAdapter.notifyDataSetChanged();
-                }else{
-
-                }
-            }
-
-            @Override
-            public void onFailure(Call<PhotonResponse> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),"An Error Occurred", Toast.LENGTH_LONG).show();
-                t.printStackTrace();
-            }
-        });
-    }
-
-
-
-
-
-
     private void getLocationName(GeoCompletionClient client, double lat , double lon,final AutoCompleteTextView completeTextView){
         Call<PhotonResponse> carResponseCall = client.getLocationName(lat,lon);
 
