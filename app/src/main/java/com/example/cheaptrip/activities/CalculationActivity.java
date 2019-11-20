@@ -26,6 +26,8 @@ public class CalculationActivity extends AppCompatActivity {
         String start = (String) extras.get("start");
         String end = (String) extras.get("end");
 
+
+
         txt_start.setText(start);
         txt_end.setText(end);
 

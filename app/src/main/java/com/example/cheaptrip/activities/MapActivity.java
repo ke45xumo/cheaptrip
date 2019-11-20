@@ -14,6 +14,7 @@ import com.example.cheaptrip.handlers.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoFeatureRestHandler;
 import com.example.cheaptrip.handlers.rest.geo.GeoLocationRestHandler;
 import com.example.cheaptrip.models.rest.photon.Feature;
+import com.example.cheaptrip.models.rest.photon.Properties;
 import com.example.cheaptrip.services.gps.GPSService;
 
 import org.osmdroid.api.IMapController;
@@ -21,6 +22,7 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapController;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 
@@ -31,7 +33,7 @@ public class MapActivity extends Activity {
     protected LocationListener locationListener;
 
     MapView mMapView = null;
-
+    IMapController mMapController = null;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,10 +98,10 @@ public class MapActivity extends Activity {
             double latitude = gpsService.getLatitude();
             double longitude = gpsService.getLongitude();
 
-            IMapController mapController = mMapView.getController();
-            mapController.setZoom(20.0);
+            mMapController = mMapView.getController();
+            mMapController.setZoom(20.0);
             GeoPoint startPoint = new GeoPoint(latitude, longitude);
-            mapController.setCenter(startPoint);
+            mMapController.setCenter(startPoint);
 
             Marker marker = new Marker(mMapView);
 
@@ -107,7 +109,7 @@ public class MapActivity extends Activity {
             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
             mMapView.getOverlays().add(marker);
 
-            marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
+            marker.setIcon(getResources().getDrawable(R.drawable.marker_default));
             marker.setTitle(locationName);
         }
 
@@ -125,7 +127,9 @@ public class MapActivity extends Activity {
             @Override
             public void OnRestSuccess( List<Feature> featureList) {
 
-
+                if (featureList == null || featureList.size() <= 0){
+                    return;
+                }
                 minLon = featureList.get(0).getCoordinates().get(0);
                 maxLon = featureList.get(0).getCoordinates().get(0);
 
@@ -134,10 +138,33 @@ public class MapActivity extends Activity {
 
                 for(Feature feature: featureList){
                     List<Double> coordinates = feature.getCoordinates();
-                    String city = feature.getCity();
-                    String locationName = feature.getName();
 
-                    String labelText = locationName + "\nCity: " + city;
+                    //String locationName = feature.getName();
+                    Properties properties = feature.getProperties();
+
+                    String city = properties.getCity();
+                    if (city == null){
+                        city = "";
+                    }
+
+                    String locationName = properties.getName();
+                    if (locationName == null){
+                        locationName = "";
+                    }
+
+                    String street = properties.getStreet();
+
+                    if (street == null){
+                        street = "";
+                    }
+
+                    String housenumber = properties.getHousenumber();
+                    if (housenumber == null){
+                        housenumber = "";
+                    }
+
+
+                    String labelText = locationName + "\nCity: " + city + "\nStreet: " + street + " " + housenumber;
 
                     Marker marker = new Marker(mMapView);
 
@@ -169,9 +196,12 @@ public class MapActivity extends Activity {
                     marker.showInfoWindow();
                 }
 
-
-                //BoundingBoxE6 boundingBox = new BoundingBoxE6(north, east, south, west);
-                mMapView.zoomToBoundingBox(new BoundingBox(maxLat + 0.1,maxLon+ 0.1,minLat -0.1,minLon - 0.1),true);
+                if (featureList.size() > 1) {
+                    //BoundingBoxE6 boundingBox = new BoundingBoxE6(north, east, south, west);
+                    mMapView.zoomToBoundingBox(new BoundingBox(maxLat, maxLon, minLat, minLon), true);
+                }else{
+                    mMapController.setCenter(new GeoPoint(minLat,minLon));
+                }
             }
 
             @Override

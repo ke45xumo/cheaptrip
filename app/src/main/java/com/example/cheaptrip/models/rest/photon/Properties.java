@@ -18,6 +18,15 @@ public class Properties {
     @Expose
     private String postcode;
 
+    @SerializedName("street")
+    @Expose
+    private String street;
+
+    @SerializedName("housenumber")
+    @Expose
+    private String housenumber;
+
+
     public String getCity() {
         return city;
     }
@@ -50,4 +59,19 @@ public class Properties {
         this.postcode = postcode;
     }
 
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getHousenumber() {
+        return housenumber;
+    }
+
+    public void setHousenumber(String housenumber) {
+        this.housenumber = housenumber;
+    }
 }

@@ -47,10 +47,21 @@ public class GeoNameRestHandler extends RestHandler<String,PhotonResponse> {
             name = "";
         }
 
+        String street = properties.getStreet();
+
+        if (street == null){
+            street = "";
+        }
+
+        String housenumber = properties.getHousenumber();
+        if (housenumber == null){
+            housenumber = "";
+        }
+
 //        String country = properties.getCountry();
 //        locationName  = city + "," + name + "(" + country + ")";
 
-        locationName = city + "," + name;
+        locationName = city + ", " + street + " " + housenumber;
 
         return locationName;
     }
