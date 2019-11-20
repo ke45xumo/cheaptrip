@@ -9,7 +9,6 @@ import android.os.Build;
 import android.os.Bundle;
 
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 
@@ -27,22 +26,11 @@ import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 
 import com.example.cheaptrip.handlers.LocationTextHandler;
-import com.example.cheaptrip.models.retfrofit.photon.Feature;
 
-import com.example.cheaptrip.models.retfrofit.photon.PhotonResponse;
-import com.example.cheaptrip.models.retfrofit.photon.Properties;
-import com.example.cheaptrip.services.GPSService;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 //TODO:https://github.com/Q42/AndroidScrollingImageView
 public class MainActivity extends AppCompatActivity {
@@ -60,13 +48,10 @@ public class MainActivity extends AppCompatActivity {
     ImageView pic;
 
     VehicleDatabase appDatabase;
-
-    ArrayAdapter<String> completeAdapter;
     List<String> suggestions;
 
     protected double currLatitude;
     protected double currLongitude;
-    protected String location_name;
 
     Retrofit retrofit;
 
@@ -88,35 +73,15 @@ public class MainActivity extends AppCompatActivity {
         edit_end = findViewById(R.id.edit_destination);
 
         appDatabase = initDatabase();
-
-        retrofit = new Retrofit.Builder()
-                .baseUrl("http://photon.komoot.de/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build();
-
-        final GeoCompletionClient geoCompletionClient = retrofit.create(GeoCompletionClient.class);
-
-        GPSService gpsService = new GPSService(this);
-
-        if (gpsService.canGetLocation()) {
-            currLatitude = gpsService.getLatitude();
-            currLongitude = gpsService.getLongitude();
-
-            getLocationName(geoCompletionClient,currLatitude,currLongitude,edit_start);
-
-        }else{
-            gpsService.showSettingsAlert();
-        }
-
         /*=================================================
          * Auto Completion
          *=================================================*/
-        suggestions =  new ArrayList<>(); //autocomplete Suggestions
+        //suggestions =  new ArrayList<>(); //autocomplete Suggestions
         LocationTextHandler locationTextHandler = new LocationTextHandler(currLatitude,currLongitude);
+        locationTextHandler.setCurrentLocation(this,edit_start);
+
         locationTextHandler.addTextChangedListener(edit_start);
         locationTextHandler.addTextChangedListener(edit_end);
-
     }
 
     /**
@@ -132,54 +97,46 @@ public class MainActivity extends AppCompatActivity {
 
         switch(view.getId()){
             case R.id.btn_car_brand:    intent = new Intent(this, CarBrandActivity.class);
-                btn_carModel.setEnabled(true);
-                requestCode = 1;
-                break;
+                                        btn_carModel.setEnabled(true);
+                                        requestCode = 1;
+                                        break;
 
             case R.id.btn_car_model:    // TODO Check for str_carBrand
-                intent = new Intent(this, CarModelActivity.class);
-                intent.putExtra("brand",str_Brand);
-                requestCode = 2;
-
-                break;
+                                        intent = new Intent(this, CarModelActivity.class);
+                                        intent.putExtra("brand",str_Brand);
+                                        requestCode = 2;
+                                        break;
 
             case R.id.btn_car_year:     intent = new Intent(this, CarYearActivity.class);
-                requestCode = 3;
-                break;
+                                        requestCode = 3;
+                                        break;
 
             case R.id.btn_find:         intent = new Intent(this, CalculationActivity.class);
+                                        intent.putExtra("start", txt_start);
+                                        intent.putExtra("end",txt_end);
+                                        intent.putExtra("brand",str_Brand);
+                                        intent.putExtra("model",str_Brand);
+                                        intent.putExtra("year",str_Brand);
 
-
-                intent.putExtra("start", txt_start);
-                intent.putExtra("end",txt_end);
-
-                intent.putExtra("brand",str_Brand);
-                intent.putExtra("model",str_Brand);
-                intent.putExtra("year",str_Brand);
-
-                requestCode = 4;
-                break;
+                                        requestCode = 4;
+                                        break;
 
             case R.id.btn_start_location:   intent = new Intent(this, MapActivity.class);
-                final GeoCompletionClient geoCompletionClient = retrofit.create(GeoCompletionClient.class);
-
-                intent.putExtra("lat", currLatitude);
-                intent.putExtra("lon", currLongitude);
-                intent.putExtra("location_name",txt_start);
-
-
-                requestCode = 5;
-                break;
+                                            //intent.putExtra("lat", currLatitude);
+                                            //intent.putExtra("lon", currLongitude);
+                                            intent.putExtra("location_name",txt_start);
+                                            requestCode = 5;
+                                            break;
 
             case R.id.btn_end_location:     intent = new Intent(this, MapActivity.class);
-                intent.putExtra("lat", currLatitude);
-                intent.putExtra("lon", currLongitude);
-                intent.putExtra("location_name",txt_end);
+                                            intent.putExtra("lat", currLatitude);
+                                            intent.putExtra("lon", currLongitude);
+                                            intent.putExtra("location_name",txt_end);
 
-                requestCode = 6;
-                break;
+                                            requestCode = 6;
+                                            break;
 
-            default:                    return;
+            default:                        return;
 
 
         }
@@ -209,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String str_listSelection = data.getStringExtra("selection");
-
 
         switch (requestCode){
             case 1:     str_Brand = str_listSelection;
@@ -262,49 +218,6 @@ public class MainActivity extends AppCompatActivity {
 
         return db;
     }
-    private void getLocationName(GeoCompletionClient client, double lat , double lon,final AutoCompleteTextView completeTextView){
-        Call<PhotonResponse> carResponseCall = client.getLocationName(lat,lon);
-
-
-        carResponseCall.enqueue(new Callback<PhotonResponse>() {
-            @Override
-            public void onResponse(Call<PhotonResponse> call, Response<PhotonResponse> response) {
-                PhotonResponse photonResponse = response.body();
-                List<Feature> features = photonResponse.getFeatures();
-                String textField = "";
-                List<String> locationNames = new ArrayList();
-
-                for (Feature feature : features){
-                    Properties properties = feature.getProperties();
-                    String city = properties.getCity();
-                    if (city == null){
-                        city = "";
-                    }
-
-                    String name = properties.getName();
-                    if (name == null){
-                        name = "";
-                    }
-
-                    String country = properties.getCountry();
-
-                    textField = city + "," + name + "(" + country + ")";
-
-                    locationNames.add(textField);
-                }
-
-                edit_start.setText(textField);
-                location_name = textField;
-            }
-
-            @Override
-            public void onFailure(Call<PhotonResponse> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),"An Error Occurred", Toast.LENGTH_LONG).show();
-                t.printStackTrace();
-            }
-        });
-    }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode,

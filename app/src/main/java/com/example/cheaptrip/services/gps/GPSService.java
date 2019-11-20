@@ -1,4 +1,4 @@
-package com.example.cheaptrip.services;
+package com.example.cheaptrip.services.gps;
 
 import android.Manifest;
 import android.app.Activity;
@@ -11,7 +11,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.widget.Toast;
 

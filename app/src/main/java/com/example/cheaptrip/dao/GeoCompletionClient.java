@@ -1,10 +1,9 @@
 package com.example.cheaptrip.dao;
 
-import com.example.cheaptrip.models.retfrofit.photon.PhotonResponse;
+import com.example.cheaptrip.models.rest.photon.PhotonResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
-import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface GeoCompletionClient {

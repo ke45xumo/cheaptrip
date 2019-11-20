@@ -1,4 +1,4 @@
-package com.example.cheaptrip.models.retfrofit.photon;
+package com.example.cheaptrip.models.rest.photon;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

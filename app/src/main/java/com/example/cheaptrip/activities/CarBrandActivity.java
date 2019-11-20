@@ -2,7 +2,6 @@ package com.example.cheaptrip.activities;
 
 import android.app.Activity;
 import android.app.ListActivity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -12,7 +11,8 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.services.rest.VehicleRestService;
+import com.example.cheaptrip.handlers.RestListener;
+import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandRestHandler;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,10 +38,8 @@ public class CarBrandActivity extends ListActivity {
         setContentView(R.layout.activity_car_brand);
 
         progressBar = findViewById(R.id.progress_brand);
-        VehicleRestService vehicleRestService = new VehicleRestService();
-
-        vehicleRestService.startLoadProperties(this);
-        setList();
+        setBrandListView();
+        //setList();
     }
     private void setList(){
         List<String> carBrandList = getCarBrands();
@@ -83,28 +81,23 @@ public class CarBrandActivity extends ListActivity {
         finish();
     }
 
-    /**
-     * TODO: Document
-     * @param context
-     * @param vehicleBrands
-     */
-    public static void OnCarListLoadSuccess(Context context, List<String> vehicleBrands){
 
-        ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(context,R.layout.selection_list_row, R.id.listText,vehicleBrands);
-        CarBrandActivity carBrandActivity = (CarBrandActivity)context;
-        carBrandActivity.setListAdapter(listDataAdapter);
+    public void setBrandListView(){
+        VehicleBrandRestHandler vehicleBrandRestHandler = new VehicleBrandRestHandler();
 
-        carBrandActivity.progressBar.setVisibility(View.INVISIBLE);
+        vehicleBrandRestHandler.startLoadProperties(new RestListener<List<String>>() {
+            @Override
+            public void OnRestSuccess(List<String> brandList) {
+                ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(getApplicationContext(),R.layout.selection_list_row, R.id.listText,brandList);
+                setListAdapter(listDataAdapter);
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void OnRestFail() {
+                progressBar.setVisibility(View.INVISIBLE);
+                Toast.makeText(getApplicationContext(),"An Error Occurred", Toast.LENGTH_LONG).show();
+            }
+        });
     }
-
-    /**
-     * TODO:Document
-     * @param context
-     */
-    public static void OnCarListLoadFail(Context context){
-        CarBrandActivity carBrandActivity = (CarBrandActivity)context;
-        carBrandActivity.progressBar.setVisibility(View.INVISIBLE);
-        Toast.makeText(context,"An Error Occurred", Toast.LENGTH_LONG).show();
-    }
-
 }

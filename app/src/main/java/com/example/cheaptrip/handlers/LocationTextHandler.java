@@ -5,17 +5,22 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Toast;
 
-import com.example.cheaptrip.services.GPSService;
-import com.example.cheaptrip.services.rest.GeoRestService;
+import com.example.cheaptrip.handlers.rest.geo.GeoNameRestHandler;
+import com.example.cheaptrip.services.gps.GPSService;
+import com.example.cheaptrip.handlers.rest.geo.GeoNameListRestHandler;
 
 import java.util.List;
 
+/**
+ * TODO: Document
+ */
 public class LocationTextHandler {
     private double currLatitude;
     private double currLongitude;
 
-    private GeoRestService geoRestService = null;
+    private GeoNameListRestHandler geoNameListRestHandler = null;
 
     public LocationTextHandler(double latitude, double longitude){
         currLatitude = latitude;
@@ -42,8 +47,27 @@ public class LocationTextHandler {
 
             @Override
             public void afterTextChanged(Editable s) {
-                geoRestService = new GeoRestService(s,currLongitude,currLongitude, completeTextView);
-                geoRestService.startLoadProperties(context);
+                geoNameListRestHandler = new GeoNameListRestHandler(s,currLongitude,currLongitude);
+
+                geoNameListRestHandler.startLoadProperties(new RestListener<List<String>>() {
+                    @Override
+                    public void OnRestSuccess(List<String> locationNames) {
+                        ArrayAdapter<String> completeAdapter = new ArrayAdapter<>(completeTextView.getContext(), android.R.layout.select_dialog_item, locationNames);
+
+                        if (completeTextView != null) {
+                            completeTextView.setAdapter(completeAdapter);
+                            List<String> suggestions = locationNames;
+                            completeAdapter.notifyDataSetChanged();
+                        }else{
+                            Toast.makeText(completeTextView.getContext(),"An Error Occured",Toast.LENGTH_LONG).show();
+                        }
+                    }
+
+                    @Override
+                    public void OnRestFail() {
+                        Toast.makeText(completeTextView.getContext(),"An Error Occured",Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         });
     }
@@ -52,13 +76,28 @@ public class LocationTextHandler {
      * TODO: Document
      * @param autoCompleteTextView
      */
-    public void setCurrentLocation(Context context,AutoCompleteTextView autoCompleteTextView){
+    public void setCurrentLocation(Context context, final AutoCompleteTextView autoCompleteTextView){
         GPSService gpsService = new GPSService(context);
 
         if (gpsService.canGetLocation()) {
             currLatitude = gpsService.getLatitude();
             currLongitude = gpsService.getLongitude();
-            GeoRestService geoRestService = new GeoRestService(null,currLatitude,currLongitude,autoCompleteTextView);
+            GeoNameRestHandler geoNameRestHandler = new GeoNameRestHandler(currLatitude,currLongitude);
+            geoNameRestHandler.startLoadProperties(new RestListener<String>() {
+                @Override
+                public void OnRestSuccess(String locationName) {
+                    if (autoCompleteTextView != null){
+                        autoCompleteTextView.setText(locationName);
+                    }else{
+                        Toast.makeText(autoCompleteTextView.getContext(),"An Error Occured", Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void OnRestFail() {
+                    Toast.makeText(autoCompleteTextView.getContext(),"An Error Occured", Toast.LENGTH_LONG).show();
+                }
+            });
 
         }else{
             gpsService.showSettingsAlert();
@@ -70,7 +109,7 @@ public class LocationTextHandler {
      * @param locationNames
      * @param completeTextView
      */
-    public static void onLoadLocationNameSuccess(List<String> locationNames, AutoCompleteTextView completeTextView){
+    public static void onLoadLocationSuggestionsSuccess(List<String> locationNames, AutoCompleteTextView completeTextView){
         ArrayAdapter<String> completeAdapter = new ArrayAdapter<>(completeTextView.getContext(), android.R.layout.select_dialog_item, locationNames);
 
         if (completeTextView != null) {
@@ -78,7 +117,20 @@ public class LocationTextHandler {
             List<String> suggestions = locationNames;
             completeAdapter.notifyDataSetChanged();
         }else{
+            Toast.makeText(completeTextView.getContext(),"An Error Occured",Toast.LENGTH_LONG).show();
+        }
+    }
 
+    /**
+     * Todo: Document
+     * @param locationName
+     * @param autoCompleteTextView
+     */
+    public static void onLoadLocationNameSuccess(String locationName, AutoCompleteTextView autoCompleteTextView){
+        if (autoCompleteTextView != null){
+            autoCompleteTextView.setText(locationName);
+        }else{
+            Toast.makeText(autoCompleteTextView.getContext(),"An Error Occured", Toast.LENGTH_LONG).show();
         }
     }
 }

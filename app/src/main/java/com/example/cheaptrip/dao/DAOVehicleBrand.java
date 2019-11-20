@@ -7,7 +7,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 
-import com.example.cheaptrip.models.retfrofit.nhtsa.VehicleBrand;
+import com.example.cheaptrip.models.rest.nhtsa.VehicleBrand;
 
 import java.util.List;
 

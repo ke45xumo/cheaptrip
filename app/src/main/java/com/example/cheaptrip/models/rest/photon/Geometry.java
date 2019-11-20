@@ -1,4 +1,4 @@
-package com.example.cheaptrip.models.retfrofit.photon;
+package com.example.cheaptrip.models.rest.photon;
 
 import java.util.ArrayList;
 import java.util.List;

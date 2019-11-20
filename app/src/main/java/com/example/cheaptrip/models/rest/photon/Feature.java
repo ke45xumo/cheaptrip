@@ -1,8 +1,10 @@
-package com.example.cheaptrip.models.retfrofit.photon;
+package com.example.cheaptrip.models.rest.photon;
 
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
 
 public class Feature {
 
@@ -38,6 +40,26 @@ public class Feature {
 
     public void setProperties(Properties properties) {
         this.properties = properties;
+    }
+
+    public List<Double> getCoordinates(){
+        return getGeometry().getCoordinates();
+    }
+
+    public String getCountry(){
+        return getProperties().getCountry();
+    }
+
+    public String getCity(){
+        return getProperties().getCity();
+    }
+
+    public String getPostcode(){
+        return getProperties().getPostcode();
+    }
+
+    public String getName(){
+        return getProperties().getName();
     }
 
 }
