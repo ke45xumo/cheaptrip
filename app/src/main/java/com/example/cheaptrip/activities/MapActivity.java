@@ -11,7 +11,9 @@ import android.preference.PreferenceManager;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.handlers.RestListener;
+import com.example.cheaptrip.handlers.rest.geo.GeoFeatureRestHandler;
 import com.example.cheaptrip.handlers.rest.geo.GeoLocationRestHandler;
+import com.example.cheaptrip.models.rest.photon.Feature;
 import com.example.cheaptrip.services.gps.GPSService;
 
 import org.osmdroid.api.IMapController;
@@ -62,7 +64,7 @@ public class MapActivity extends Activity {
         final String locationName = (String) extras.get("location_name");
 
         initMap(locationName);
-        loadMarkers(locationName);
+        loadMarkers2(locationName);
 
 
     }
@@ -110,7 +112,74 @@ public class MapActivity extends Activity {
         }
 
     }
+    private void loadMarkers2(final String locationName){
+        GeoFeatureRestHandler geoFeatureRestHandler= new GeoFeatureRestHandler(locationName);
 
+        geoFeatureRestHandler.startLoadProperties(new RestListener< List<Feature>>() {
+            Double minLon;
+            Double maxLon;
+
+            Double minLat;
+            Double maxLat;
+
+            @Override
+            public void OnRestSuccess( List<Feature> featureList) {
+
+
+                minLon = featureList.get(0).getCoordinates().get(0);
+                maxLon = featureList.get(0).getCoordinates().get(0);
+
+                minLat = featureList.get(0).getCoordinates().get(1);
+                maxLat = featureList.get(0).getCoordinates().get(1);
+
+                for(Feature feature: featureList){
+                    List<Double> coordinates = feature.getCoordinates();
+                    String city = feature.getCity();
+                    String locationName = feature.getName();
+
+                    String labelText = locationName + "\nCity: " + city;
+
+                    Marker marker = new Marker(mMapView);
+
+                    Double longitude = coordinates.get(0);
+                    Double latitude = coordinates.get(1);
+
+                    if(latitude < minLat){
+                        minLat = latitude;
+                    }
+                    if (latitude > maxLat){
+                        maxLat = latitude;
+                    }
+
+                    if (longitude < minLon){
+                        minLon = longitude;
+                    }
+
+                    if (longitude > maxLon){
+                        maxLon = longitude;
+                    }
+
+
+                    marker.setPosition(new GeoPoint(latitude,longitude));
+                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                    mMapView.getOverlays().add(marker);
+
+                    marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
+                    marker.setTitle(labelText);
+                    marker.showInfoWindow();
+                }
+
+
+                //BoundingBoxE6 boundingBox = new BoundingBoxE6(north, east, south, west);
+                mMapView.zoomToBoundingBox(new BoundingBox(maxLat + 0.1,maxLon+ 0.1,minLat -0.1,minLon - 0.1),true);
+            }
+
+            @Override
+            public void OnRestFail() {
+
+            }
+        });
+    }
     private void loadMarkers(final String locationName){
         GeoLocationRestHandler geoLocationRestHandler = new GeoLocationRestHandler(locationName);
 
