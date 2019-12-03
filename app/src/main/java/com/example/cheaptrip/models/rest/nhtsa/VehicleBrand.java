@@ -15,14 +15,17 @@ public class VehicleBrand extends VehicleProperty{
     @Expose
     @PrimaryKey
     private Integer makeId;
+
     @SerializedName("MakeName")
     @Expose
     @ColumnInfo
     private String makeName;
+
     @SerializedName("VehicleTypeId")
     @Expose
     @ColumnInfo
     private Integer vehicleTypeId;
+
     @SerializedName("VehicleTypeName")
     @Expose
     @ColumnInfo

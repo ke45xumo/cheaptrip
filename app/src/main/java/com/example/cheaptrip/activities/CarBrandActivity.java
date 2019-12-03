@@ -10,7 +10,10 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.room.Room;
+
 import com.example.cheaptrip.R;
+import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.RestListener;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandRestHandler;
 import java.util.ArrayList;

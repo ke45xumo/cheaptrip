@@ -15,7 +15,7 @@ public abstract class VehicleDatabase extends RoomDatabase {
     public abstract DAOVehicleBrand DAOVehicleBrand();
     private static VehicleDatabase INSTANCE;
 
-    static VehicleDatabase getDatabase(final Context context) {
+    public static VehicleDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (VehicleDatabase.class) {
                 if (INSTANCE == null) {

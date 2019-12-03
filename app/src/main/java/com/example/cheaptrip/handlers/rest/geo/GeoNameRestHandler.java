@@ -61,7 +61,14 @@ public class GeoNameRestHandler extends RestHandler<String,PhotonResponse> {
 //        String country = properties.getCountry();
 //        locationName  = city + "," + name + "(" + country + ")";
 
-        locationName = city + ", " + street + " " + housenumber;
+
+        if (name.equals("")) {
+            locationName = city + ", " + street + " " + housenumber;
+        }else{
+            locationName = city + ", " + name;
+        }
+
+
 
         return locationName;
     }
