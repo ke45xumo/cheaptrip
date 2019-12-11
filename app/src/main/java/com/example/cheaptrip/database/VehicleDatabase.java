@@ -6,7 +6,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.example.cheaptrip.models.rest.nhtsa.VehicleBrand;
+import com.example.cheaptrip.models.nhtsa.VehicleBrand;
 import com.example.cheaptrip.dao.DAOVehicleBrand;
 
 @Database(entities = {VehicleBrand.class}, version = 1)

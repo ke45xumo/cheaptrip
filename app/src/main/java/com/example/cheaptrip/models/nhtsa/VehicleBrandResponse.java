@@ -1,15 +1,15 @@
-package com.example.cheaptrip.models.rest.nhtsa;
-
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+package com.example.cheaptrip.models.nhtsa;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 
 //http://www.jsonschema2pojo.org/
 //https://android.jlelse.eu/rest-api-on-android-made-simple-or-how-i-learned-to-stop-worrying-and-love-the-rxjava-b3c2c949cad4
-public class VehicleModelResponse extends VehicleProperty{
+public class VehicleBrandResponse extends VehicleProperty{
 
     @SerializedName("Count")
     @Expose
@@ -22,7 +22,7 @@ public class VehicleModelResponse extends VehicleProperty{
     private Object searchCriteria;
     @SerializedName("Results")
     @Expose
-    private List<VehicleModel> results = new ArrayList<VehicleModel>();
+    private List<VehicleBrand> results = new ArrayList<VehicleBrand>();
 
     public Integer getCount() {
         return count;
@@ -48,11 +48,11 @@ public class VehicleModelResponse extends VehicleProperty{
         this.searchCriteria = searchCriteria;
     }
 
-    public List<VehicleModel> getResults() {
+    public List<VehicleBrand> getResults() {
         return results;
     }
 
-    public void setResults(List<VehicleModel> results) {
+    public void setResults(List<VehicleBrand> results) {
         this.results = results;
     }
 

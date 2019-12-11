@@ -13,16 +13,15 @@ import com.example.cheaptrip.R;
 import com.example.cheaptrip.handlers.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoFeatureRestHandler;
 import com.example.cheaptrip.handlers.rest.geo.GeoLocationRestHandler;
-import com.example.cheaptrip.models.rest.photon.Feature;
-import com.example.cheaptrip.models.rest.photon.Properties;
-import com.example.cheaptrip.services.gps.GPSService;
+import com.example.cheaptrip.models.photon.Feature;
+import com.example.cheaptrip.models.photon.Properties;
+import com.example.cheaptrip.services.GPSService;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapController;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 

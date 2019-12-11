@@ -1,5 +1,5 @@
 
-package com.example.cheaptrip.models.rest.nhtsa;
+package com.example.cheaptrip.models.nhtsa;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;

@@ -8,9 +8,10 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
 import com.example.cheaptrip.handlers.rest.geo.GeoNameRestHandler;
-import com.example.cheaptrip.services.gps.GPSService;
+import com.example.cheaptrip.services.GPSService;
 import com.example.cheaptrip.handlers.rest.geo.GeoNameListRestHandler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
