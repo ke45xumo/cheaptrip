@@ -3,8 +3,8 @@ package com.example.cheaptrip.handlers.rest.vehicle;
 import com.example.cheaptrip.dao.CarSpecClient;
 
 import com.example.cheaptrip.handlers.rest.RestHandler;
-import com.example.cheaptrip.models.rest.nhtsa.VehicleModel;
-import com.example.cheaptrip.models.rest.nhtsa.VehicleModelResponse;
+import com.example.cheaptrip.models.nhtsa.VehicleModel;
+import com.example.cheaptrip.models.nhtsa.VehicleModelResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;

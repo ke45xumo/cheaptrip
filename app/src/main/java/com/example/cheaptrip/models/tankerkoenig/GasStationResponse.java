@@ -1,4 +1,4 @@
-package com.example.cheaptrip.models.rest.tankerkoenig;
+package com.example.cheaptrip.models.tankerkoenig;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,7 @@
 package com.example.cheaptrip.activities;
 
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 
 import android.content.pm.PackageManager;
@@ -14,6 +15,7 @@ import android.widget.Button;
 
 import android.widget.ImageView;
 
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -40,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
     AutoCompleteTextView edit_start;
     AutoCompleteTextView edit_end;
+
+    SeekBar seek_tankContents;
 
     String str_Brand;
     String str_Model;
@@ -72,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
         edit_start = findViewById(R.id.edit_start);
         edit_end = findViewById(R.id.edit_destination);
 
+        seek_tankContents = findViewById(R.id.seek_gas_contents);
+
         appDatabase = initDatabase();
         /*=================================================
          * Auto Completion
@@ -95,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
         String txt_start  = edit_start.getText().toString();
         String txt_end  = edit_end.getText().toString();
 
+        double tankPercent = (double)seek_tankContents.getProgress()/ (double)seek_tankContents.getMax();
+
         switch(view.getId()){
             case R.id.btn_car_brand:    intent = new Intent(this, CarBrandActivity.class);
                                         btn_carModel.setEnabled(true);
@@ -117,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
                                         intent.putExtra("brand",str_Brand);
                                         intent.putExtra("model",str_Brand);
                                         intent.putExtra("year",str_Brand);
+                                        intent.putExtra("content", tankPercent);
 
                                         requestCode = 4;
                                         break;
@@ -143,11 +152,11 @@ public class MainActivity extends AppCompatActivity {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             // Apply activity transition
-            /*
+/*
             ActivityOptions options = ActivityOptions
                     .makeSceneTransitionAnimation(this, btn_carBrand, "robot");
             startActivityForResult(intent, requestCode,  options.toBundle());
-             */
+  */
             startActivityForResult(intent, requestCode);
         } else {
             // Swap without transition

@@ -3,9 +3,9 @@ package com.example.cheaptrip.handlers.rest.geo;
 import android.text.Editable;
 
 import com.example.cheaptrip.dao.GeoCompletionClient;
-import com.example.cheaptrip.models.rest.photon.Feature;
-import com.example.cheaptrip.models.rest.photon.PhotonResponse;
-import com.example.cheaptrip.models.rest.photon.Properties;
+import com.example.cheaptrip.models.photon.Feature;
+import com.example.cheaptrip.models.photon.PhotonResponse;
+import com.example.cheaptrip.models.photon.Properties;
 import com.example.cheaptrip.handlers.rest.RestHandler;
 
 import java.util.ArrayList;
@@ -50,8 +50,9 @@ public class GeoNameListRestHandler extends RestHandler<List<String>,PhotonRespo
 
             String name = properties.getName();
             String country = properties.getCountry();
-
-            String textField = name + "(" + country + ")";
+            String city = properties.getCity();
+            //String textField = name + "(" + country + ")";
+            String textField = city + ", " + name;
 
             locationNames.add(textField);
         }

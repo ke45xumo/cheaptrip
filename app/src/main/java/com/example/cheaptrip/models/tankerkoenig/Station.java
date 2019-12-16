@@ -1,4 +1,4 @@
-package com.example.cheaptrip.models.rest.tankerkoenig;
+package com.example.cheaptrip.models.tankerkoenig;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

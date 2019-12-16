@@ -1,4 +1,4 @@
-package com.example.cheaptrip.models.rest.nhtsa;
+package com.example.cheaptrip.models.nhtsa;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

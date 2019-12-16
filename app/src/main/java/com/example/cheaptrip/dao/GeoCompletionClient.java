@@ -1,6 +1,6 @@
 package com.example.cheaptrip.dao;
 
-import com.example.cheaptrip.models.rest.photon.PhotonResponse;
+import com.example.cheaptrip.models.photon.PhotonResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

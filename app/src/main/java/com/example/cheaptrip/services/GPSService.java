@@ -1,4 +1,4 @@
-package com.example.cheaptrip.services.gps;
+package com.example.cheaptrip.services;
 
 import android.Manifest;
 import android.app.Activity;
@@ -99,9 +99,7 @@ public class GPSService implements LocationListener{
                 }
 
 
-                /*if (checkNetwork) {
-
-
+                if (checkNetwork) {
                     if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         // TODO: Consider calling
                         //    ActivityCompat#requestPermissions
@@ -119,14 +117,13 @@ public class GPSService implements LocationListener{
                     if (locationManager != null) {
                         loc = locationManager
                                 .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
                     }
 
                     if (loc != null) {
                         latitude = loc.getLatitude();
                         longitude = loc.getLongitude();
                     }
-                }*/
+                }
 
             }
 

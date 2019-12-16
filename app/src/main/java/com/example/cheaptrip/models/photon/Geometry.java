@@ -1,4 +1,4 @@
-package com.example.cheaptrip.models.rest.photon;
+package com.example.cheaptrip.models.photon;
 
 import java.util.ArrayList;
 import java.util.List;

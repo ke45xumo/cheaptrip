@@ -2,8 +2,8 @@ package com.example.cheaptrip.handlers.rest.geo;
 
 import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
-import com.example.cheaptrip.models.rest.photon.Feature;
-import com.example.cheaptrip.models.rest.photon.PhotonResponse;
+import com.example.cheaptrip.models.photon.Feature;
+import com.example.cheaptrip.models.photon.PhotonResponse;
 
 import java.util.List;
 
