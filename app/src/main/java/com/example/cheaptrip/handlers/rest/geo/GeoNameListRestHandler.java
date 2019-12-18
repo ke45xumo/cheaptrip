@@ -3,7 +3,7 @@ package com.example.cheaptrip.handlers.rest.geo;
 import android.text.Editable;
 
 import com.example.cheaptrip.dao.GeoCompletionClient;
-import com.example.cheaptrip.models.photon.Feature;
+import com.example.cheaptrip.models.photon.Location;
 import com.example.cheaptrip.models.photon.PhotonResponse;
 import com.example.cheaptrip.models.photon.Properties;
 import com.example.cheaptrip.handlers.rest.RestHandler;
@@ -40,13 +40,12 @@ public class GeoNameListRestHandler extends RestHandler<List<String>,PhotonRespo
     @Override
     public List<String> extractDataFromResponse(Response<PhotonResponse> response) {
         PhotonResponse photonResponse = response.body();
-        List<Feature> features = photonResponse.getFeatures();
-
+        List<Location> locations = photonResponse.getLocations();
         List<String> locationNames = new ArrayList<>();
 
-        for (Feature feature : features){
-            //Geometry geometry = feature.getGeometry();
-            Properties properties = feature.getProperties();
+        for (Location location : locations){
+            //Geometry geometry = location.getGeometry();
+            Properties properties = location.getProperties();
 
             String name = properties.getName();
             String country = properties.getCountry();

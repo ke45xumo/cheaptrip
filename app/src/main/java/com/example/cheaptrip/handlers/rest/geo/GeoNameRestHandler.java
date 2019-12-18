@@ -2,7 +2,7 @@ package com.example.cheaptrip.handlers.rest.geo;
 
 import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
-import com.example.cheaptrip.models.photon.Feature;
+import com.example.cheaptrip.models.photon.Location;
 import com.example.cheaptrip.models.photon.PhotonResponse;
 import com.example.cheaptrip.models.photon.Properties;
 
@@ -28,15 +28,15 @@ public class GeoNameRestHandler extends RestHandler<String,PhotonResponse> {
     @Override
     public String extractDataFromResponse(Response<PhotonResponse> response) {
         PhotonResponse photonResponse = response.body();
-        Feature feature = photonResponse.getFeatures().get(0);
+        Location location = photonResponse.getLocations().get(0);
 
         String locationName;
 
-        if (feature == null) {
+        if (location == null) {
             return null;
         }
 
-        Properties properties = feature.getProperties();
+        Properties properties = location.getProperties();
         String city = properties.getCity();
         if (city == null){
             city = "";

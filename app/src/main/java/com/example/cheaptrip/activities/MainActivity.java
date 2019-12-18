@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 
+import android.util.Pair;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -28,6 +29,8 @@ import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 
 import com.example.cheaptrip.handlers.LocationTextHandler;
+import com.example.cheaptrip.handlers.rest.geo.GeoJsonHandler;
+import com.example.cheaptrip.models.TripLocation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
     String str_Brand;
     String str_Model;
     String str_Year;
+
+    TripLocation  startLocation;
+    TripLocation  endLocation;
 
     ImageView pic;
 
@@ -84,10 +90,16 @@ public class MainActivity extends AppCompatActivity {
          *=================================================*/
         //suggestions =  new ArrayList<>(); //autocomplete Suggestions
         LocationTextHandler locationTextHandler = new LocationTextHandler(currLatitude,currLongitude);
-        locationTextHandler.setCurrentLocation(this,edit_start);
+
+        startLocation = new TripLocation();
+        endLocation= new TripLocation();
+
+        locationTextHandler.setCurrentLocation(this,edit_start, startLocation );
+        locationTextHandler.setCurrentLocation(this,edit_end, endLocation );
 
         locationTextHandler.addTextChangedListener(edit_start);
         locationTextHandler.addTextChangedListener(edit_end);
+
     }
 
     /**
@@ -120,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
                                         break;
 
             case R.id.btn_find:         intent = new Intent(this, CalculationActivity.class);
-                                        intent.putExtra("start", txt_start);
-                                        intent.putExtra("end",txt_end);
+                                        intent.putExtra("start", startLocation);
+                                        intent.putExtra("end", endLocation);
                                         intent.putExtra("brand",str_Brand);
                                         intent.putExtra("model",str_Brand);
                                         intent.putExtra("year",str_Brand);
@@ -174,21 +186,31 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        String str_listSelection = data.getStringExtra("selection");
 
         switch (requestCode){
-            case 1:     str_Brand = str_listSelection;
-                btn_carBrand.setText(str_Brand);
-                break;
+
+            case 1:     str_Brand = data.getStringExtra("selection");
+                        btn_carBrand.setText(str_Brand);
+                        break;
 
 
-            case 2:     str_Model = str_listSelection;
-                btn_carModel.setText(str_Model);
-                break;
+            case 2:     str_Model = data.getStringExtra("selection");
+                        btn_carModel.setText(str_Model);
+                        break;
 
-            case 3:     str_Year = str_listSelection;
-                btn_carYear.setText(str_Year);
-                break;
+            case 3:     str_Year = data.getStringExtra("selection");
+                        btn_carYear.setText(str_Year);
+                        break;
+
+            case 5:     startLocation = (TripLocation) data.getSerializableExtra("Location");
+                        String strStart= startLocation.getLocationName();
+                        edit_start.setText(strStart);
+                        break;
+
+            case 6:     endLocation = (TripLocation) data.getSerializableExtra("Location");
+                        String strEnd = endLocation.getLocationName();
+                        edit_end.setText(strEnd);
+                        break;
 
             default:    break;
         }
@@ -219,6 +241,9 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("model",str_Brand);
         intent.putExtra("year",str_Brand);
 
+        intent.putExtra("StartLocation",startLocation);
+        intent.putExtra("EndLocation", endLocation);
+
         startActivity(intent);
     }
     private VehicleDatabase initDatabase(){
@@ -229,14 +254,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults)
+    public void onRequestPermissionsResult(int requestCode,@NonNull String[] permissions, @NonNull int[] grantResults)
     {
-        super
-                .onRequestPermissionsResult(requestCode,
-                        permissions,
-                        grantResults);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == 4711) {
 
@@ -246,13 +266,13 @@ public class MainActivity extends AppCompatActivity {
 
                 // Showing the toast message
                 Toast.makeText(MainActivity.this,
-                        "Camera Permission Granted",
+                        "Location Permission Granted",
                         Toast.LENGTH_SHORT)
                         .show();
             }
             else {
                 Toast.makeText(MainActivity.this,
-                        "Camera Permission Denied",
+                        "Location Permission Denied",
                         Toast.LENGTH_SHORT)
                         .show();
             }

@@ -4,18 +4,22 @@ import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.room.Room;
-
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.database.VehicleDatabase;
-import com.example.cheaptrip.handlers.RestListener;
+import com.example.cheaptrip.handlers.CarBrandAdapter;
+import com.example.cheaptrip.handlers.rest.RestListener;
+import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandRestHandler;
+import com.example.cheaptrip.models.nhtsa.VehicleBrand;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +32,10 @@ import java.util.List;
  */
 public class CarBrandActivity extends ListActivity {
 
-    ProgressBar progressBar;
+    ProgressBar progressBar;    // Loading Icon until List is loaded (using REST-API)
+    EditText edit_searchBrand;  // EditText Field for Search
 
+    private static CarBrandAdapter listDataAdapter;
     /**
      * Gets Called when CarBrandActivity will be created.
      * Starts Asynchronious Call of the Webservice-Rest-API
@@ -41,29 +47,12 @@ public class CarBrandActivity extends ListActivity {
         setContentView(R.layout.activity_car_brand);
 
         progressBar = findViewById(R.id.progress_brand);
-        setBrandListView();
+        edit_searchBrand = findViewById(R.id.edit_brand);
+
+        setBrandListView2();
         //setList();
     }
-    private void setList(){
-        List<String> carBrandList = getCarBrands();
 
-        ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(this,R.layout.selection_list_row, R.id.listText,carBrandList);
-        setListAdapter(listDataAdapter);
-    }
-    /**
-     * Generates a list of Car Brands from REST-API 'https://vpic.nhtsa.dot.gov/api/'
-     *
-     * @return
-     */
-    private List<String> getCarBrands(){
-        List<String> carBrandList = new ArrayList<>();
-
-        for(int i =0 ; i < 30; i++){
-            carBrandList.add("Brand " + i);
-        }
-
-        return carBrandList;
-    }
 
     /**
      * TODO: Document
@@ -76,14 +65,54 @@ public class CarBrandActivity extends ListActivity {
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
 
-        String selectedItem = (String) getListView().getItemAtPosition(position);
-        Intent intent = new Intent(this, MainActivity.class);
+        VehicleBrand selectedItem = (VehicleBrand) getListView().getItemAtPosition(position);
 
-        intent.putExtra("selection", selectedItem);
+        Intent intent = new Intent(this, MainActivity.class);
+        //Bundle extras = new Bundle();
+
+        intent.putExtra("selection", selectedItem.getMakeName());
         setResult(Activity.RESULT_OK,intent);
         finish();
     }
 
+
+    public void setBrandListView2() {
+        VehicleBrandHandler vehicleBrandHandler = new VehicleBrandHandler();
+
+        vehicleBrandHandler.startLoadProperties(new RestListener<List<VehicleBrand>>() {
+            @Override
+            public void OnRestSuccess(List<VehicleBrand> brandList) {
+                listDataAdapter = new CarBrandAdapter(getApplicationContext(), brandList);
+                //ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(getApplicationContext(),R.layout.selection_list_row, R.id.listText,brandList);
+                setListAdapter(listDataAdapter);
+                progressBar.setVisibility(View.INVISIBLE);
+
+                edit_searchBrand.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                        listDataAdapter.getFilter().filter(s.toString());
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        listDataAdapter.getFilter().filter(s.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void OnRestFail() {
+                progressBar.setVisibility(View.INVISIBLE);
+                Toast.makeText(getApplicationContext(), "An Error Occurred", Toast.LENGTH_LONG).show();
+            }
+        });
+
+    }
 
     public void setBrandListView(){
         VehicleBrandRestHandler vehicleBrandRestHandler = new VehicleBrandRestHandler();
@@ -91,6 +120,7 @@ public class CarBrandActivity extends ListActivity {
         vehicleBrandRestHandler.startLoadProperties(new RestListener<List<String>>() {
             @Override
             public void OnRestSuccess(List<String> brandList) {
+
                 ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(getApplicationContext(),R.layout.selection_list_row, R.id.listText,brandList);
                 setListAdapter(listDataAdapter);
                 progressBar.setVisibility(View.INVISIBLE);

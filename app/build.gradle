@@ -5,7 +5,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.example.cheaptrip"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -18,7 +18,10 @@ android {
         }
     }
 }
+repositories {
+    maven { url "https://jitpack.io" }
 
+}
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.0.2'
@@ -26,6 +29,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    /*=====================================================
+     * OSMDroid BonusPack
+     *=====================================================*/
+    implementation 'com.github.MKergall:osmbonuspack:6.6.0'
+
     /*===================================================================
      * retrofit
      *===================================================================*/
@@ -34,6 +42,8 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.13'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
+    // Retrofit Scalars Converter
+    implementation'com.squareup.retrofit2:converter-scalars:2.5.0'
     /*===================================================================
      * room
      *===================================================================*/
@@ -60,6 +70,7 @@ dependencies {
      * OSMDroid (OpenStreetMap)
      *===================================================================*/
      implementation 'org.osmdroid:osmdroid-android:6.1.2'
+    implementation 'com.google.android.material:material:1.0.0'
     //implementation 'org.osmdroid:osmdroid-wms:6.1.2'
     //implementation 'org.osmdroid:osmdroid-mapsforge:6.1.2'
     //implementation 'org.osmdroid:osmdroid-geopackage:6.1.2'

@@ -3,15 +3,19 @@ package com.example.cheaptrip.handlers;
 import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Pair;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
+import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoNameRestHandler;
+import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.services.GPSService;
 import com.example.cheaptrip.handlers.rest.geo.GeoNameListRestHandler;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,12 +37,12 @@ public class LocationTextHandler {
      * @param completeTextView
      */
     public void addTextChangedListener(final AutoCompleteTextView completeTextView){
-        final Context context = completeTextView.getContext();
 
         // Listener for the start AutoCompletionTextField
         completeTextView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
             }
 
             @Override
@@ -77,18 +81,29 @@ public class LocationTextHandler {
      * TODO: Document
      * @param autoCompleteTextView
      */
-    public void setCurrentLocation(Context context, final AutoCompleteTextView autoCompleteTextView){
+    public void setCurrentLocation(Context context, final AutoCompleteTextView autoCompleteTextView, final TripLocation tripLocation){
         GPSService gpsService = new GPSService(context);
 
         if (gpsService.canGetLocation()) {
             currLatitude = gpsService.getLatitude();
             currLongitude = gpsService.getLongitude();
             GeoNameRestHandler geoNameRestHandler = new GeoNameRestHandler(currLatitude,currLongitude);
+
+
             geoNameRestHandler.startLoadProperties(new RestListener<String>() {
                 @Override
                 public void OnRestSuccess(String locationName) {
                     if (autoCompleteTextView != null){
-                        autoCompleteTextView.setText(locationName);
+                        //autoCompleteTextView.setText(locationName);
+                        autoCompleteTextView.setHint(locationName);
+                    }else{
+                        Toast.makeText(autoCompleteTextView.getContext(),"An Error Occured", Toast.LENGTH_LONG).show();
+                    }
+
+                    if (tripLocation != null){
+                        tripLocation.setLocationName(locationName);
+                        tripLocation.setLatitdue(currLatitude);
+                        tripLocation.setLongitude(currLongitude);
                     }else{
                         Toast.makeText(autoCompleteTextView.getContext(),"An Error Occured", Toast.LENGTH_LONG).show();
                     }
@@ -102,36 +117,6 @@ public class LocationTextHandler {
 
         }else{
             gpsService.showSettingsAlert();
-        }
-    }
-
-    /**
-     * TODO: Document
-     * @param locationNames
-     * @param completeTextView
-     */
-    public static void onLoadLocationSuggestionsSuccess(List<String> locationNames, AutoCompleteTextView completeTextView){
-        ArrayAdapter<String> completeAdapter = new ArrayAdapter<>(completeTextView.getContext(), android.R.layout.select_dialog_item, locationNames);
-
-        if (completeTextView != null) {
-            completeTextView.setAdapter(completeAdapter);
-            List<String> suggestions = locationNames;
-            completeAdapter.notifyDataSetChanged();
-        }else{
-            Toast.makeText(completeTextView.getContext(),"An Error Occured",Toast.LENGTH_LONG).show();
-        }
-    }
-
-    /**
-     * Todo: Document
-     * @param locationName
-     * @param autoCompleteTextView
-     */
-    public static void onLoadLocationNameSuccess(String locationName, AutoCompleteTextView autoCompleteTextView){
-        if (autoCompleteTextView != null){
-            autoCompleteTextView.setText(locationName);
-        }else{
-            Toast.makeText(autoCompleteTextView.getContext(),"An Error Occured", Toast.LENGTH_LONG).show();
         }
     }
 }

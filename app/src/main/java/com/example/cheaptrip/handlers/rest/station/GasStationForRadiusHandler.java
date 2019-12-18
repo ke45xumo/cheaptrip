@@ -12,7 +12,7 @@ import retrofit2.Response;
 public class GasStationForRadiusHandler extends RestHandler<List<Station>,GasStationResponse> {
 
     private final static String BASE_URL = "https://creativecommons.tankerkoenig.de/json/list.php";
-
+    private final static String API_KEY = "ad5b5cac-db85-4516-832d-1bc90df23946";
     /**
      * TODO: Document
      * @param lon

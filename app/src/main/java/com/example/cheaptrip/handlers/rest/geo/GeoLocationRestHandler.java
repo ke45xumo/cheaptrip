@@ -2,7 +2,7 @@ package com.example.cheaptrip.handlers.rest.geo;
 
 import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
-import com.example.cheaptrip.models.photon.Feature;
+import com.example.cheaptrip.models.photon.Location;
 import com.example.cheaptrip.models.photon.Geometry;
 import com.example.cheaptrip.models.photon.PhotonResponse;
 
@@ -38,12 +38,12 @@ public class GeoLocationRestHandler extends RestHandler<List<List<Double>> ,Phot
     @Override
     public List<List<Double>> extractDataFromResponse(Response<PhotonResponse> response) {
         PhotonResponse photonResponse = response.body();
-        List<Feature> features = photonResponse.getFeatures();
+        List<Location> locations = photonResponse.getLocations();
 
         List<List<Double>> coordinates = new ArrayList<>();
 
-        for (Feature feature : features){
-            Geometry geometry = feature.getGeometry();
+        for (Location location : locations){
+            Geometry geometry = location.getGeometry();
             List<Double> currCoordinates = geometry.getCoordinates();
 
             coordinates.add(currCoordinates);

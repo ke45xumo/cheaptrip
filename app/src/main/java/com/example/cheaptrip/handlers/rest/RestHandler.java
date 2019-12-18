@@ -1,7 +1,5 @@
 package com.example.cheaptrip.handlers.rest;
 
-import com.example.cheaptrip.handlers.RestListener;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;

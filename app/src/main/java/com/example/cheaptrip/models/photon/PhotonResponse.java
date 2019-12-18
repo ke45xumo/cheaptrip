@@ -10,9 +10,10 @@ public class PhotonResponse {
     @SerializedName("type")
     @Expose
     private String type;
+
     @SerializedName("features")
     @Expose
-    private List<Feature> features = new ArrayList<Feature>();
+    private List<Location> locations = new ArrayList<Location>();
 
     public String getType() {
         return type;
@@ -22,12 +23,12 @@ public class PhotonResponse {
         this.type = type;
     }
 
-    public List<Feature> getFeatures() {
-        return features;
+    public List<Location> getLocations() {
+        return locations;
     }
 
-    public void setFeatures(List<Feature> features) {
-        this.features = features;
+    public void setLocations(List<Location> locations) {
+        this.locations = locations;
     }
 
 }
