@@ -165,6 +165,7 @@ public class MapActivity extends Activity {
             currentMarker.setIcon(getResources().getDrawable(R.drawable.marker_default));
             currentMarker.setTitle(locationName);
 
+
             mMapView.getOverlays().add(currentMarker);
             initAutoComplete(latitude,longitude);
 
@@ -193,6 +194,7 @@ public class MapActivity extends Activity {
                             final double longitude = currentMarker.getPosition().getLongitude();
                             tripLocation = new TripLocation(locationName, latitude,longitude);
 
+                            currentMarker.showInfoWindow();
                             currentMarker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
                                 @Override
                                 public boolean onMarkerClick(Marker marker, MapView mapView) {
