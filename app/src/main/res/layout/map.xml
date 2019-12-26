@@ -24,6 +24,32 @@
         </org.osmdroid.views.MapView>
 
         <LinearLayout
+            android:id="@+id/layout_location_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginTop="50dp"
+            android:background="@android:drawable/zoom_plate"
+            android:orientation="vertical"
+            >
+
+            <TextView
+                android:id="@+id/tv_curr_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="casual"
+                android:textColor="#F5FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="@tools:sample/cities" />
+
+            <ListView
+                android:id="@+id/list_map_locations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/autocomplete_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -53,22 +79,10 @@
 
         </LinearLayout>
 
+
+
+
     </FrameLayout>
 
-   <!-- <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:orientation="vertical"
-        >
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:text="@tools:sample/cities" />
-        <ListView
-            android:id="@+id/list_map_locations"
-            android:layout_width="match_parent"
-            android:layout_height="0dp" />
-    </LinearLayout>-->
 
 </LinearLayout>

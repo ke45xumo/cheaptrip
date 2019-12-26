@@ -1,21 +1,9 @@
 package com.example.cheaptrip.handlers.rest.geo;
 
-import android.widget.Toast;
-
+import com.example.cheaptrip.activities.CalculationActivity;
 import com.example.cheaptrip.dao.ORServiceClient;
-import com.example.cheaptrip.models.orservice.ORServiceResponse;
 import com.example.cheaptrip.models.orservice.PostBody;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.osmdroid.bonuspack.kml.KmlDocument;
-import org.osmdroid.util.BoundingBox;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.FolderOverlay;
 
 import java.util.List;
 
@@ -53,7 +41,7 @@ public class GeoJsonHandler {
         return json;
     }
 
-    public String getJson(final MapView mapView){
+    public void startFindDirections(){
         ORServiceClient orServiceClient = retrofit.create(ORServiceClient.class);
 
         String body = formatToJSON();
@@ -63,28 +51,7 @@ public class GeoJsonHandler {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 String geoJSON = response.body();
-                if (geoJSON != null && geoJSON.length() > 0){
-                    System.out.println("SUCCESS");
-                    KmlDocument kmlDocument = new KmlDocument();
-                    kmlDocument.parseGeoJSON(geoJSON);
-                    FolderOverlay myOverLay = (FolderOverlay)kmlDocument.mKmlRoot.buildOverlay(mapView,null,null,kmlDocument);
-                    mapView.getOverlays().add(myOverLay );
-                    mapView.invalidate();
-
-                    Gson gson = new Gson();
-                    //JSONObject jsonObject = gson.fromJson(geoJSON,JSONObject.class);
-                    JsonElement jsonElement = gson.fromJson(geoJSON, JsonElement.class);
-                    ORServiceResponse orServiceResponse = gson.fromJson(geoJSON,ORServiceResponse.class);
-                    List<Double> responseBbox = orServiceResponse.getBbox();
-
-                    BoundingBox bbox =  new BoundingBox(responseBbox.get(3),responseBbox.get(2),responseBbox.get(1),responseBbox.get(0));
-
-
-                    mapView.zoomToBoundingBox(bbox,true,150);
-
-                    int a= 1;
-                    a++;
-                }
+                CalculationActivity.onDirectionsLoaded(geoJSON);
             }
 
             @Override
@@ -92,6 +59,7 @@ public class GeoJsonHandler {
 
             }
         });
-        return null;
     }
+
+
 }

@@ -1,7 +1,7 @@
 package com.example.cheaptrip.activities;
 
 
-import android.app.ActivityOptions;
+
 import android.content.Intent;
 
 import android.content.pm.PackageManager;
@@ -9,7 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 
-import android.util.Pair;
+
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -25,20 +25,25 @@ import androidx.room.Room;
 
 import com.example.cheaptrip.R;
 
-import com.example.cheaptrip.dao.GeoCompletionClient;
+
 import com.example.cheaptrip.database.VehicleDatabase;
-
 import com.example.cheaptrip.handlers.LocationTextHandler;
-import com.example.cheaptrip.handlers.rest.geo.GeoJsonHandler;
 import com.example.cheaptrip.models.TripLocation;
+import com.example.cheaptrip.models.TripVehicle;
 
-import java.util.ArrayList;
-import java.util.List;
 
-import retrofit2.Retrofit;
 
 //TODO:https://github.com/Q42/AndroidScrollingImageView
 public class MainActivity extends AppCompatActivity {
+    // Request Codes for the Acitivities
+    final static int ACTIVITY_REQ_CODE_BRAND    = 1;
+    final static int ACTIVITY_REQ_CODE_MODEL    = 2;
+    final static int ACTIVITY_REQ_CODE_YEAR     = 3;
+    final static int ACTIVITY_REQ_CODE_START    = 4;
+    final static int ACTIVITY_REQ_CODE_END      = 5;
+    final static int ACTIVITY_REQ_CODE_CALC     = 6;
+
+
     Button btn_carBrand;
     Button btn_carModel;
     Button btn_carYear;
@@ -58,18 +63,25 @@ public class MainActivity extends AppCompatActivity {
     ImageView pic;
 
     VehicleDatabase appDatabase;
-    List<String> suggestions;
 
     protected double currLatitude;
     protected double currLongitude;
 
-    Retrofit retrofit;
+
+    TripVehicle tripVehicle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
-        //getActionBar().hide();
+        assignViewObjects();
+        initLocationHandler();
+        appDatabase = initDatabase();
+        tripVehicle = new TripVehicle();
+
+    }
+
+    private void assignViewObjects(){
         /*===============================================
          * Assign Views
          *===============================================*/
@@ -83,12 +95,12 @@ public class MainActivity extends AppCompatActivity {
         edit_end = findViewById(R.id.edit_destination);
 
         seek_tankContents = findViewById(R.id.seek_gas_contents);
+    }
 
-        appDatabase = initDatabase();
+    private void initLocationHandler(){
         /*=================================================
          * Auto Completion
          *=================================================*/
-        //suggestions =  new ArrayList<>(); //autocomplete Suggestions
         LocationTextHandler locationTextHandler = new LocationTextHandler(currLatitude,currLongitude);
 
         startLocation = new TripLocation();
@@ -99,7 +111,6 @@ public class MainActivity extends AppCompatActivity {
 
         locationTextHandler.addTextChangedListener(edit_start);
         locationTextHandler.addTextChangedListener(edit_end);
-
     }
 
     /**
@@ -115,38 +126,29 @@ public class MainActivity extends AppCompatActivity {
 
         double tankPercent = (double)seek_tankContents.getProgress()/ (double)seek_tankContents.getMax();
 
+        tripVehicle.setRemainFuelPercent(tankPercent);
+
         switch(view.getId()){
-            case R.id.btn_car_brand:    intent = new Intent(this, CarBrandActivity.class);
-                                        btn_carModel.setEnabled(true);
-                                        requestCode = 1;
-                                        break;
+            case R.id.btn_car_brand:        intent = new Intent(this, CarBrandActivity.class);
+                                            btn_carModel.setEnabled(true);
+                                            requestCode = ACTIVITY_REQ_CODE_BRAND;
+                                            break;
 
-            case R.id.btn_car_model:    // TODO Check for str_carBrand
-                                        intent = new Intent(this, CarModelActivity.class);
-                                        intent.putExtra("brand",str_Brand);
-                                        requestCode = 2;
-                                        break;
+            case R.id.btn_car_model:        // TODO Check for str_carBrand
+                                            intent = new Intent(this, CarModelActivity.class);
+                                            intent.putExtra("brand",str_Brand);
+                                            requestCode = ACTIVITY_REQ_CODE_MODEL;
+                                            break;
 
-            case R.id.btn_car_year:     intent = new Intent(this, CarYearActivity.class);
-                                        requestCode = 3;
-                                        break;
+            case R.id.btn_car_year:         intent = new Intent(this, CarYearActivity.class);
+                                            requestCode = 3;
+                                            break;
 
-            case R.id.btn_find:         intent = new Intent(this, CalculationActivity.class);
-                                        intent.putExtra("start", startLocation);
-                                        intent.putExtra("end", endLocation);
-                                        intent.putExtra("brand",str_Brand);
-                                        intent.putExtra("model",str_Brand);
-                                        intent.putExtra("year",str_Brand);
-                                        intent.putExtra("content", tankPercent);
 
-                                        requestCode = 4;
-                                        break;
 
             case R.id.btn_start_location:   intent = new Intent(this, MapActivity.class);
-                                            //intent.putExtra("lat", currLatitude);
-                                            //intent.putExtra("lon", currLongitude);
                                             intent.putExtra("location_name",txt_start);
-                                            requestCode = 5;
+                                            requestCode = ACTIVITY_REQ_CODE_START;
                                             break;
 
             case R.id.btn_end_location:     intent = new Intent(this, MapActivity.class);
@@ -154,9 +156,14 @@ public class MainActivity extends AppCompatActivity {
                                             intent.putExtra("lon", currLongitude);
                                             intent.putExtra("location_name",txt_end);
 
-                                            requestCode = 6;
+                                            requestCode = ACTIVITY_REQ_CODE_END;
                                             break;
-
+            case R.id.btn_find:             intent = new Intent(this, CalculationActivity.class);
+                                            intent.putExtra("start", startLocation);
+                                            intent.putExtra("end", endLocation);
+                                            intent.putExtra("tripVehicle",tripVehicle);
+                                            requestCode = ACTIVITY_REQ_CODE_CALC;
+                                            break;
             default:                        return;
 
 
@@ -189,28 +196,31 @@ public class MainActivity extends AppCompatActivity {
 
         switch (requestCode){
 
-            case 1:     str_Brand = data.getStringExtra("selection");
-                        btn_carBrand.setText(str_Brand);
-                        break;
+            case ACTIVITY_REQ_CODE_BRAND:       str_Brand = data.getStringExtra("selection");
+                                                btn_carBrand.setText(str_Brand);
+                                                tripVehicle.setBrand(str_Brand);
+                                                break;
 
 
-            case 2:     str_Model = data.getStringExtra("selection");
-                        btn_carModel.setText(str_Model);
-                        break;
+            case ACTIVITY_REQ_CODE_MODEL:       str_Model = data.getStringExtra("selection");
+                                                btn_carModel.setText(str_Model);
+                                                tripVehicle.setModel(str_Model);
+                                                break;
 
-            case 3:     str_Year = data.getStringExtra("selection");
-                        btn_carYear.setText(str_Year);
-                        break;
+            case ACTIVITY_REQ_CODE_YEAR:        str_Year = data.getStringExtra("selection");
+                                                btn_carYear.setText(str_Year);
+                                                tripVehicle.setYear(str_Year);
+                                                break;
 
-            case 5:     startLocation = (TripLocation) data.getSerializableExtra("Location");
-                        String strStart= startLocation.getLocationName();
-                        edit_start.setText(strStart);
-                        break;
+            case ACTIVITY_REQ_CODE_START:       startLocation = (TripLocation) data.getSerializableExtra("Location");
+                                                String strStart = startLocation.getLocationName();
+                                                edit_start.setText(strStart);
+                                                break;
 
-            case 6:     endLocation = (TripLocation) data.getSerializableExtra("Location");
-                        String strEnd = endLocation.getLocationName();
-                        edit_end.setText(strEnd);
-                        break;
+            case ACTIVITY_REQ_CODE_END:         endLocation = (TripLocation) data.getSerializableExtra("Location");
+                                                String strEnd = endLocation.getLocationName();
+                                                edit_end.setText(strEnd);
+                                                break;
 
             default:    break;
         }

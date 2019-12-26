@@ -19,13 +19,13 @@ import java.util.ArrayList;
 
 import java.util.Comparator;
 import java.util.List;
-public class CarBrandAdapter extends BaseAdapter implements Filterable {
+public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
     private Context context;
     private List<VehicleBrand> vehicleBrandList;
 
     private List<VehicleBrand> mDisplayedBrands;    // Values to be displayed
 
-    public CarBrandAdapter(@NonNull Context context, List<VehicleBrand> vehicleBrandList) {
+    public VehicleBrandAdapter(@NonNull Context context, List<VehicleBrand> vehicleBrandList) {
         //super(context, R.layout.selection_list_row);
         sortVehicleBrands(vehicleBrandList);
         this.vehicleBrandList = vehicleBrandList;

@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -17,6 +19,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,10 +41,13 @@ import org.osmdroid.bonuspack.overlays.GroundOverlay;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.tileprovider.tilesource.XYTileSource;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.Projection;
 import org.osmdroid.views.overlay.ClickableIconOverlay;
+import org.osmdroid.views.overlay.IconOverlay;
 import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
 import org.osmdroid.views.overlay.MapEventsOverlay;
@@ -65,6 +71,8 @@ public class MapActivity extends Activity {
     TripLocation tripLocation;
     Marker currentMarker;
 
+    TextView txtView_currentLocation;
+
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -85,7 +93,7 @@ public class MapActivity extends Activity {
         mMapView = (MapView) findViewById(R.id.map);
         autoCompleteTextView =  findViewById(R.id.edit_start);
 
-
+        txtView_currentLocation = findViewById(R.id.tv_curr_location);
         //final ITileSource tileSource = new HEREWeGoTileSource(this);
         //mMapView.setTileSource(tileSource);
 
@@ -142,15 +150,24 @@ public class MapActivity extends Activity {
 
 
     }
-    private void initMap(String locationName){
-        mMapView.setTileSource(TileSourceFactory.MAPNIK);
+    private void initMap(final String locationName){
+        //mMapView.setTileSource(TileSourceFactory.MAPNIK);
+        mMapView.setTileSource(
+                new XYTileSource("HttpMapnik",
+                        0, 19, 256, ".png", new String[] {
+                        "http://a.tile.openstreetmap.org/",
+                        "http://b.tile.openstreetmap.org/",
+                        "http://c.tile.openstreetmap.org/" },
+                        "© OpenStreetMap contributors")
+        );
+
         mMapView.setMultiTouchControls(true);
 
         GPSService gpsService = new GPSService(this);
 
         if (gpsService.canGetLocation()) {
-            double latitude = gpsService.getLatitude();
-            double longitude = gpsService.getLongitude();
+            final double latitude = gpsService.getLatitude();
+            final double longitude = gpsService.getLongitude();
 
             mMapController = mMapView.getController();
             mMapController.setZoom(20.0);
@@ -176,9 +193,14 @@ public class MapActivity extends Activity {
                 public boolean singleTapConfirmedHelper(GeoPoint p) {
                     mMapView.getOverlayManager().remove(currentMarker);
                     mMapView.getOverlays().remove(currentMarker);
-                    //mMapView.getOverlayManager().remove(currentMarker);
-                    Toast.makeText(getBaseContext(),p.getLatitude() + " - "+p.getLongitude(), Toast.LENGTH_LONG).show();
+
+                    InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    in.hideSoftInputFromWindow(mMapView.getWindowToken(), 0);
+
                     currentMarker.setPosition(new GeoPoint(p.getLatitude(),p.getLongitude()));
+                    mMapView.getOverlays().add(currentMarker);
+                    mMapView.invalidate();
+
 
                     //mMapView.getOverlays().add(currentMarker);
                     final GeoNameRestHandler geoNameListRestHandler = new GeoNameRestHandler(p.getLatitude(),p.getLongitude());
@@ -187,9 +209,8 @@ public class MapActivity extends Activity {
                         @Override
                         public void OnRestSuccess(final String locationName) {
                             currentMarker.setTitle(locationName);
-                            mMapView.getOverlays().add(currentMarker);
-                            mMapView.invalidate();
 
+                            txtView_currentLocation.setText(locationName);
                             final double latitude = currentMarker.getPosition().getLatitude();
                             final double longitude = currentMarker.getPosition().getLongitude();
                             tripLocation = new TripLocation(locationName, latitude,longitude);
@@ -198,7 +219,7 @@ public class MapActivity extends Activity {
                             currentMarker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
                                 @Override
                                 public boolean onMarkerClick(Marker marker, MapView mapView) {
-
+/*
                                     //Toast.makeText(getApplicationContext(),labelText,Toast.LENGTH_LONG).show();
                                     marker.showInfoWindow();
                                     InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -208,10 +229,13 @@ public class MapActivity extends Activity {
                                     tripLocation = new TripLocation(locationName,latitude,longitude);
                                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
 
+
+
                                     intent.putExtra("Location",tripLocation);
 
                                     setResult(Activity.RESULT_OK,intent);
-                                    finish();
+                                    finish();*/
+
                                     return true;
                                 }
                             });
@@ -327,12 +351,13 @@ public class MapActivity extends Activity {
 
                             //Toast.makeText(getApplicationContext(),labelText,Toast.LENGTH_LONG).show();
                             marker.showInfoWindow();
+
                             InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                             in.hideSoftInputFromWindow(mMapView.getWindowToken(), 0);
 
-                            String locationName = marker.getTitle();
-                            double latitude = marker.getPosition().getLatitude();
-                            double longitude= marker.getPosition().getLongitude();
+                            final String locationName = marker.getTitle();
+                            final double latitude = marker.getPosition().getLatitude();
+                            final double longitude= marker.getPosition().getLongitude();
 
                             tripLocation = new TripLocation(locationName,latitude,longitude);
                             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
@@ -340,6 +365,35 @@ public class MapActivity extends Activity {
                             intent.putExtra("Location",tripLocation);
 
                             setResult(Activity.RESULT_OK,intent);
+
+
+                            IconOverlay overlay = new IconOverlay();
+
+                            Drawable myIcon = getResources().getDrawable( R.drawable.btn_moreinfo);
+
+                            double lat = marker.getPosition().getLatitude();
+                            double lon = marker.getPosition().getLongitude();
+
+                            //overlay.set(new GeoPoint(lat,lon),myIcon);
+
+                            marker.setIcon(myIcon);
+                            //locationName = marker.getTitle();
+                            txtView_currentLocation.setText(locationName);
+
+                            Projection projection  = mapView.getProjection();
+
+
+                            Point point = projection.toPixels(marker.getPosition(),null);
+                            point.offset(100,-100);
+
+                            GeoPoint geoPoint = (GeoPoint) projection.fromPixels(point.x,point.y);
+
+
+                            overlay.set(geoPoint,myIcon);
+
+                            //mMapView.getOverlays().add(overlay);
+                            mMapView.invalidate();
+
                             finish();
                             return true;
                         }

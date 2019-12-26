@@ -14,13 +14,12 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.handlers.CarBrandAdapter;
+import com.example.cheaptrip.handlers.VehicleBrandAdapter;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandRestHandler;
 import com.example.cheaptrip.models.nhtsa.VehicleBrand;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -35,7 +34,7 @@ public class CarBrandActivity extends ListActivity {
     ProgressBar progressBar;    // Loading Icon until List is loaded (using REST-API)
     EditText edit_searchBrand;  // EditText Field for Search
 
-    private static CarBrandAdapter listDataAdapter;
+    private static VehicleBrandAdapter listDataAdapter;
     /**
      * Gets Called when CarBrandActivity will be created.
      * Starts Asynchronious Call of the Webservice-Rest-API
@@ -76,13 +75,17 @@ public class CarBrandActivity extends ListActivity {
     }
 
 
+    public void setBrandListView(){
+
+    }
+
     public void setBrandListView2() {
         VehicleBrandHandler vehicleBrandHandler = new VehicleBrandHandler();
 
         vehicleBrandHandler.startLoadProperties(new RestListener<List<VehicleBrand>>() {
             @Override
             public void OnRestSuccess(List<VehicleBrand> brandList) {
-                listDataAdapter = new CarBrandAdapter(getApplicationContext(), brandList);
+                listDataAdapter = new VehicleBrandAdapter(getApplicationContext(), brandList);
                 //ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(getApplicationContext(),R.layout.selection_list_row, R.id.listText,brandList);
                 setListAdapter(listDataAdapter);
                 progressBar.setVisibility(View.INVISIBLE);
@@ -114,7 +117,7 @@ public class CarBrandActivity extends ListActivity {
 
     }
 
-    public void setBrandListView(){
+    public void setBrandListView3(){
         VehicleBrandRestHandler vehicleBrandRestHandler = new VehicleBrandRestHandler();
 
         vehicleBrandRestHandler.startLoadProperties(new RestListener<List<String>>() {

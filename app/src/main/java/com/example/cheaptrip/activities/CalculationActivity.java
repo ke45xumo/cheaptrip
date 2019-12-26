@@ -1,48 +1,47 @@
 package com.example.cheaptrip.activities;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.widget.AutoCompleteTextView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cheaptrip.R;
 
-import com.example.cheaptrip.dao.ORServiceClient;
 import com.example.cheaptrip.handlers.rest.RestListener;
+import com.example.cheaptrip.handlers.rest.VehiclePropertyHandler;
+
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsBboxRestHandler;
-import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
+
 import com.example.cheaptrip.handlers.rest.geo.GeoJsonHandler;
 import com.example.cheaptrip.models.TripLocation;
+import com.example.cheaptrip.models.TripVehicle;
+
 import com.example.cheaptrip.models.orservice.ORServiceResponse;
 import com.example.cheaptrip.services.GPSService;
 import com.google.gson.Gson;
 
+
 import org.osmdroid.api.IMapController;
+import org.osmdroid.bonuspack.kml.KmlDocument;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.FolderOverlay;
 import org.osmdroid.views.overlay.Marker;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
 public class CalculationActivity extends AppCompatActivity {
 
 
-    MapView mMapView = null;
-    IMapController mMapController = null;
+    static MapView  mMapView = null;
+    static IMapController mMapController = null;
 
     TripLocation startLocation;
     TripLocation endLocation;
 
-    String vehicleModel;
-    String vehicleBrand;
-    String vehicleYear;
+    TripVehicle tripVehicle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +54,7 @@ public class CalculationActivity extends AppCompatActivity {
         startLocation = (TripLocation) getIntent().getSerializableExtra("start");
         endLocation = (TripLocation) getIntent().getSerializableExtra("end");
 
-        vehicleModel = (String) getIntent().getStringExtra("model");
-        vehicleBrand = (String) getIntent().getStringExtra("brand");
-        vehicleYear = (String) getIntent().getStringExtra("year");
-
-
-
+        tripVehicle = (TripVehicle)getIntent().getSerializableExtra("tripVehicle");
         mMapView = (MapView) findViewById(R.id.mapView);
 
 
@@ -103,6 +97,9 @@ public class CalculationActivity extends AppCompatActivity {
             GeoPoint startPoint = new GeoPoint(startLocation.getLatitdue(), startLocation.getLongitude());
             mMapController.setCenter(startPoint);
 
+            /*=======================================
+             * Set Start Marker
+             *=======================================*/
             Marker markerStart = new Marker(mMapView);
             markerStart.setPosition(new GeoPoint(startLocation.getLatitdue(),startLocation.getLongitude()));
             markerStart.setTitle(startLocation.getLocationName());
@@ -110,7 +107,9 @@ public class CalculationActivity extends AppCompatActivity {
             markerStart.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
             mMapView.getOverlays().add(markerStart);
             markerStart.setIcon(getResources().getDrawable(R.drawable.marker_default));
-
+            /*=======================================
+             * Set Destination Marker
+             *=======================================*/
             Marker markerEnd= new Marker(mMapView);
             markerEnd.setPosition(new GeoPoint(endLocation.getLatitdue(),endLocation.getLongitude()));
             markerEnd.setTitle(endLocation.getLocationName());
@@ -140,26 +139,12 @@ public class CalculationActivity extends AppCompatActivity {
     }
     public void getDirections(){
 
-        List<List<Double>> cooridinates = new ArrayList<>();
-
-        List<Double> coordinatesStart = new ArrayList<>();
-        coordinatesStart.add(startLocation.getLongitude());
-        coordinatesStart.add(startLocation.getLatitdue());
-
-        List<Double> coordinatesEnd = new ArrayList<>();
-        coordinatesEnd.add(endLocation.getLongitude());
-        coordinatesEnd.add(endLocation.getLatitdue());
-
-        cooridinates.add(coordinatesStart);
-        cooridinates.add(coordinatesEnd);
+        List<List<Double>> cooridinates = TripLocation.getAsDoubleList(startLocation,endLocation);
 
         GeoJsonHandler geoJsonHandler = new GeoJsonHandler(cooridinates);
-        geoJsonHandler.getJson(mMapView);
-
-
-
-
-       /* GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(startLocation,endLocation);
+        geoJsonHandler.startFindDirections();
+        /*
+        GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(startLocation,endLocation);
 
         geoDirectionsHandler.startLoadProperties(new RestListener<ORServiceResponse>() {
             @Override
@@ -167,9 +152,6 @@ public class CalculationActivity extends AppCompatActivity {
                 response.getBbox();
                 Gson gson = new Gson();
                 String geoJSON = gson.toJson(response);
-
-
-
 
             }
 
@@ -182,13 +164,55 @@ public class CalculationActivity extends AppCompatActivity {
     }
 
 
-    public Double interpolateConsumption(double avgSpeed, double cityMPG, double highwayMPG){
-        double citySpeed = 50.0;
-        double highwaySpeed = 100.0;
+    private static void setDirectionOverlay(String geoJSON){
+        if (geoJSON != null && geoJSON.length() > 0) {
+            KmlDocument kmlDocument = new KmlDocument();
+            kmlDocument.parseGeoJSON(geoJSON);
+            FolderOverlay myOverLay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(mMapView, null, null, kmlDocument);
+            mMapView.getOverlays().add(myOverLay);
+            mMapView.invalidate();
+        }
+    }
 
-        double avgConsumtion = cityMPG + ( avgSpeed - citySpeed) * (highwayMPG - cityMPG)/ (highwaySpeed -citySpeed);
+    private static void setDirectionBbox(String geoJSON){
+        Gson gson = new Gson();
 
-        return avgConsumtion;
+        ORServiceResponse orServiceResponse = gson.fromJson(geoJSON,ORServiceResponse.class);
+        List<Double> responseBbox = orServiceResponse.getBbox();
+
+        BoundingBox bbox =  new BoundingBox(
+                responseBbox.get(3),
+                responseBbox.get(2),
+                responseBbox.get(1),
+                responseBbox.get(0)
+        );
+        mMapView.zoomToBoundingBox(bbox,true,150);
+
+    }
+
+    public static void onDirectionsLoaded(String geoJSON){
+        setDirectionOverlay(geoJSON);
+        setDirectionBbox(geoJSON);
+    }
+
+    private void startGetRoute(String geoJSON){
+        Gson gson = new Gson();
+        ORServiceResponse orServiceResponse = gson.fromJson(geoJSON,ORServiceResponse.class);
+
+        List<List<Double>> coordinateList = orServiceResponse.getFeatures().get(0).getGeometry().getCoordinates();
+        List<TripLocation> tripLocationList = TripLocation.getAsTripLocationList(coordinateList);
+
+
+        VehiclePropertyHandler vehiclePropertyHandler = new VehiclePropertyHandler(tripVehicle);
+
+        vehiclePropertyHandler.startGetProperties();
+
+        //TripLocation stationTripLocation = TripLocation.findPointfromDistance()
+
+    }
+
+    public static void onVehiclePropertiesLoaded(TripVehicle vehicle){
+
     }
 
 }

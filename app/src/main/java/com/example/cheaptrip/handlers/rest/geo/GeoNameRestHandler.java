@@ -58,6 +58,8 @@ public class GeoNameRestHandler extends RestHandler<String,PhotonResponse> {
             housenumber = "";
         }
 
+
+
 //        String country = properties.getCountry();
 //        locationName  = city + "," + name + "(" + country + ")";
 
@@ -68,7 +70,20 @@ public class GeoNameRestHandler extends RestHandler<String,PhotonResponse> {
             locationName = city + ", " + name;
         }
 
+/*
+        String city = location.getCity();
+        String name = location.getName();
+        String postCode = location.getPostcode();
+        String housNum = location.getProperties().getHousenumber();
+        String street = location.getProperties().getStreet();
 
+
+        String locationName =
+                        "\nName: "          + name +
+                        "\nCity: "          + city +
+                        "\nPostCode: "      + postCode +
+                        "\nStreet: "        + street +
+                        "\nHousnumber: "    + housNum;*/
 
         return locationName;
     }

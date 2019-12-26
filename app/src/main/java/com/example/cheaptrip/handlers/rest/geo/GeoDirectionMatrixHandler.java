@@ -1,12 +1,9 @@
-/*
 package com.example.cheaptrip.handlers.rest.geo;
 
 import com.example.cheaptrip.dao.ORServiceClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
-import com.example.cheaptrip.models.TripLocation;
-import com.example.cheaptrip.models.orservice.ORServiceResponse;
-import com.example.cheaptrip.models.orservice.PostBody;
-import com.example.cheaptrip.models.tankerkoenig.Station;
+import com.example.cheaptrip.models.orservice.GeoMatrixResponse;
+import com.example.cheaptrip.models.orservice.MatrixPostBody;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -14,54 +11,43 @@ import java.util.List;
 
 import retrofit2.Response;
 
-public class GeoDirectionMatrixHandler extends RestHandler<Station, ORServiceResponse> {
+public class GeoDirectionMatrixHandler extends RestHandler<List<List<Double>>,GeoMatrixResponse>{
 
     private static String BASE_URL = "https://api.openrouteservice.org/v2/";
 
-    private TripLocation tripLocationStart;
-    private TripLocation tripLocationEnd;
+    List<List<Double>> coordinates;
 
-    public GeoDirectionsHandler(TripLocation start, TripLocation destination) {
+    public GeoDirectionMatrixHandler(List<List<Double>> coordinates) {
         super(BASE_URL);
-        tripLocationStart = start;
-        tripLocationEnd = destination;
+        this.coordinates = coordinates;
+        String body = prepareBody(coordinates);
+
         ORServiceClient orServiceClient = retrofit.create(ORServiceClient.class);
-
-        String postBody = prepareBody(start,destination);
-        call = orServiceClient.getDirections(postBody);
-        //call = orServiceClient.getDirections2(getCoordinatesAsList(start,destination),"km");
-    }
-
-    private List<List<Double>> getCoordinatesAsList(TripLocation start, TripLocation end){
-        List<List<Double>> coordinates = new ArrayList<>();
-        List<Double> coordinatesStart = new ArrayList<>();
-        coordinatesStart.add(start.getLongitude());
-        coordinatesStart.add(start.getLatitdue());
-
-        List<Double> coordinatesEnd = new ArrayList<>();
-        coordinatesEnd.add(end.getLongitude());
-        coordinatesEnd.add(end.getLatitdue());
-
-        coordinates.add(coordinatesStart);
-        coordinates.add(coordinatesEnd);
-
-        return coordinates;
-    }
-
-    private String prepareBody(TripLocation start, TripLocation end){
-        List<List<Double>> coordinates = getCoordinatesAsList(start, end);
-
-        PostBody postBody = new PostBody(coordinates,"km");
-        Gson gson = new Gson();
-        String json = gson.toJson(postBody);
-
-        return json;
+        call = orServiceClient.getMatrix(body);
     }
 
     @Override
-    public ORServiceResponse extractDataFromResponse(Response<ORServiceResponse> response) {
-        ORServiceResponse orServiceResponse = response.body();
-        return orServiceResponse;
+    public List<List<Double>> extractDataFromResponse(Response<GeoMatrixResponse> response) {
+        GeoMatrixResponse geoMatrixResponse = response.body();
+        return geoMatrixResponse.getDistances();
     }
+
+    private String prepareBody(List<List<Double>> coordinates) {
+        List<Integer> sources = new ArrayList<>();
+        sources.add(0);
+
+        MatrixPostBody postBody = new MatrixPostBody(
+                coordinates,
+                sources,
+                MatrixPostBody.METRICS.DISTANCE,
+                MatrixPostBody.UNITS.KILOMETERS
+        );
+
+        Gson gson = new Gson();
+
+        String body = gson.toJson(postBody);
+
+        return body;
+    }
+
 }
-*/

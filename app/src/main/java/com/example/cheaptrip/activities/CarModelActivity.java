@@ -4,16 +4,25 @@ import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
 
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.cheaptrip.R;
+import com.example.cheaptrip.handlers.VehicleBrandAdapter;
+import com.example.cheaptrip.handlers.VehicleModelAdapter;
 import com.example.cheaptrip.handlers.rest.RestListener;
+import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandHandler;
+import com.example.cheaptrip.handlers.rest.vehicle.VehicleModelHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleModelRestHandler;
+import com.example.cheaptrip.models.nhtsa.VehicleBrand;
+import com.example.cheaptrip.models.nhtsa.VehicleModel;
 
 
 import java.util.ArrayList;
@@ -26,7 +35,12 @@ import java.util.List;
 //TODO: https://stackoverflow.com/questions/29380844/how-to-set-timeout-in-retrofit-library
 //TODO: Search for Vehicle in Edit Text
 public class CarModelActivity extends ListActivity {
-    ProgressBar progressBar;
+    private ProgressBar progressBar;
+    private EditText edit_searchModel;      // Edit Field for searching Models
+
+    private String vehicleBrand;            // Previous Selected VehicleBrand
+
+    private static VehicleModelAdapter listDataAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,59 +48,70 @@ public class CarModelActivity extends ListActivity {
         setContentView(R.layout.activity_car_model);
 
         progressBar = findViewById(R.id.progress_model);
-
-
         Bundle extras = getIntent().getExtras();
-        
-        String selectedBrand = extras.getString("brand");
 
-        VehicleModelRestHandler restHandler = new VehicleModelRestHandler(selectedBrand);
+        vehicleBrand = extras.getString("brand");
 
-        restHandler.startLoadProperties(new RestListener<List<String>>() {
+        edit_searchModel = findViewById(R.id.edit_model);
+        setModelListView();
+    }
+
+    /**
+     * TODO: Document
+     * @param l
+     * @param v
+     * @param position
+     * @param id
+     */
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+
+        VehicleModel selectedItem = (VehicleModel) getListView().getItemAtPosition(position);
+
+        Intent intent = new Intent(this, MainActivity.class);
+        //Bundle extras = new Bundle();
+
+        intent.putExtra("selection", selectedItem.getModelName());
+        setResult(Activity.RESULT_OK,intent);
+        finish();
+    }
+
+    public void setModelListView() {
+        VehicleModelHandler vehicleBrandHandler = new VehicleModelHandler(vehicleBrand);
+
+        vehicleBrandHandler.startLoadProperties(new RestListener<List<VehicleModel>>() {
             @Override
-            public void OnRestSuccess(List<String> carModelList) {
-                ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(getApplicationContext(),R.layout.selection_list_row, R.id.listText, carModelList);
+            public void OnRestSuccess(List<VehicleModel> modelList) {
+                listDataAdapter = new VehicleModelAdapter(getApplicationContext(), modelList);
+                //ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(getApplicationContext(),R.layout.selection_list_row, R.id.listText,brandList);
                 setListAdapter(listDataAdapter);
                 progressBar.setVisibility(View.INVISIBLE);
+
+                edit_searchModel.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                        listDataAdapter.getFilter().filter(s.toString());
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        listDataAdapter.getFilter().filter(s.toString());
+                    }
+                });
             }
 
             @Override
             public void OnRestFail() {
                 progressBar.setVisibility(View.INVISIBLE);
-                Toast.makeText(getApplicationContext(),"An Error Occurred", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "An Error Occurred", Toast.LENGTH_LONG).show();
             }
         });
-    }
-    private void setList(){
-        List<String> carModelList = getCarModels();
 
-        ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(this,R.layout.selection_list_row, R.id.listText,carModelList);
-        setListAdapter(listDataAdapter);
-    }
-    /**
-     * Generates a list of Car Models from REST-API 'https://vpic.nhtsa.dot.gov/api/'
-     *
-     * @return
-     */
-    private List<String> getCarModels(){
-
-        List<String> carModelList = new ArrayList<>();
-
-        for(int i =0 ; i < 30; i++){
-            carModelList.add("Model " + i);
-        }
-        return carModelList;
-    }
-
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-
-        String selectedItem = (String) getListView().getItemAtPosition(position);
-        Intent intent = new Intent(this, MainActivity.class);
-
-        intent.putExtra("selection", selectedItem);
-        setResult(Activity.RESULT_OK,intent);
-        finish();
     }
 }
