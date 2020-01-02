@@ -5,20 +5,17 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cheaptrip.R;
-
-import com.example.cheaptrip.handlers.rest.RestListener;
-import com.example.cheaptrip.handlers.rest.VehiclePropertyHandler;
-
-import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsBboxRestHandler;
-
+import com.example.cheaptrip.dao.GasStationClient;
 import com.example.cheaptrip.handlers.rest.geo.GeoJsonHandler;
+import com.example.cheaptrip.handlers.rest.station.GasStationForRadiusHandler;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripVehicle;
-
 import com.example.cheaptrip.models.orservice.ORServiceResponse;
+import com.example.cheaptrip.models.tankerkoenig.Station;
 import com.example.cheaptrip.services.GPSService;
-import com.google.gson.Gson;
+import com.example.cheaptrip.services.RouteService;
 
+import com.google.gson.Gson;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.kml.KmlDocument;
@@ -29,6 +26,10 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.FolderOverlay;
 import org.osmdroid.views.overlay.Marker;
 
+import org.osmdroid.views.overlay.OverlayItem;
+import org.osmdroid.views.overlay.Polygon;
+
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -60,9 +61,9 @@ public class CalculationActivity extends AppCompatActivity {
 
         initMap();
         getDirections();
-        //txt_start.setText(start);
-        //txt_end.setText(end);
 
+        RouteService routeService = new RouteService(this,tripVehicle);
+        routeService.execute(startLocation,endLocation);
     }
 
     public void onResume() {
@@ -122,45 +123,12 @@ public class CalculationActivity extends AppCompatActivity {
 
     }
 
-    public void setBoundingBox(){
-        GeoDirectionsBboxRestHandler geoDirectionsBboxRestHandler = new GeoDirectionsBboxRestHandler(startLocation,endLocation);
-
-        geoDirectionsBboxRestHandler.startLoadProperties(new RestListener<BoundingBox>() {
-            @Override
-            public void OnRestSuccess(BoundingBox bbox) {
-                mMapView.zoomToBoundingBox(bbox,true);
-            }
-
-            @Override
-            public void OnRestFail() {
-
-            }
-        });
-    }
     public void getDirections(){
 
         List<List<Double>> cooridinates = TripLocation.getAsDoubleList(startLocation,endLocation);
 
         GeoJsonHandler geoJsonHandler = new GeoJsonHandler(cooridinates);
         geoJsonHandler.startFindDirections();
-        /*
-        GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(startLocation,endLocation);
-
-        geoDirectionsHandler.startLoadProperties(new RestListener<ORServiceResponse>() {
-            @Override
-            public void OnRestSuccess(ORServiceResponse response) {
-                response.getBbox();
-                Gson gson = new Gson();
-                String geoJSON = gson.toJson(response);
-
-            }
-
-            @Override
-            public void OnRestFail() {
-
-            }
-        });
-        //setBoundingBox();*/
     }
 
 
@@ -195,24 +163,85 @@ public class CalculationActivity extends AppCompatActivity {
         setDirectionBbox(geoJSON);
     }
 
-    private void startGetRoute(String geoJSON){
-        Gson gson = new Gson();
-        ORServiceResponse orServiceResponse = gson.fromJson(geoJSON,ORServiceResponse.class);
+    public void onVehiclePropertiesLoaded(TripLocation start, TripLocation end, TripLocation location, final double radius){
+        /*-------------------------------------------------------------------------
+         * Draw the a circle for the max Radius to reach with current tank contents
+         *-------------------------------------------------------------------------*/
+        ArrayList <OverlayItem> overlayItems = new ArrayList<>();
+        OverlayItem overlayCircle = new OverlayItem("Radius",null,new GeoPoint(location.getLatitdue(),location.getLongitude()));
+        overlayItems.add(overlayCircle);
 
-        List<List<Double>> coordinateList = orServiceResponse.getFeatures().get(0).getGeometry().getCoordinates();
-        List<TripLocation> tripLocationList = TripLocation.getAsTripLocationList(coordinateList);
+        GeoPoint startIGeoPoint = new GeoPoint(start.getLatitdue(),start.getLongitude());
 
+        double radiusInMeters = radius * 1000;
+        List<GeoPoint>  circle = Polygon.pointsAsCircle(startIGeoPoint,radiusInMeters);
 
-        VehiclePropertyHandler vehiclePropertyHandler = new VehiclePropertyHandler(tripVehicle);
+        Polygon polygon = new Polygon();
+        polygon.setPoints(circle);
 
-        vehiclePropertyHandler.startGetProperties();
+        mMapView.getOverlays().add(polygon);
+        /*-------------------------------------------------------------------
+         * Draw the marker (where to start search fo gas stations nearby)
+         *-------------------------------------------------------------------*/
+        Marker markerFind = new Marker(mMapView);
 
-        //TripLocation stationTripLocation = TripLocation.findPointfromDistance()
+        markerFind.setPosition(new GeoPoint(location.getLatitdue(),location.getLongitude()));
+        markerFind.setTitle(startLocation.getLocationName());
 
+        markerFind.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        mMapView.getOverlays().add(markerFind);
+        markerFind.setIcon(getResources().getDrawable(R.drawable.marker_default));
+
+        mMapView.invalidate();
     }
 
-    public static void onVehiclePropertiesLoaded(TripVehicle vehicle){
+    public void onSetCalculationMarker(TripLocation calcLocation){
+        Marker markerStart = new Marker(mMapView);
+        markerStart.setPosition(new GeoPoint(calcLocation.getLatitdue(),calcLocation.getLongitude()));
+        markerStart.setTitle(startLocation.getLocationName());
 
+        markerStart.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        mMapView.getOverlays().add(markerStart);
+        markerStart.setIcon(getResources().getDrawable(R.drawable.person));
+        mMapView.invalidate();
+    }
+
+
+
+    public void onCalculationPointDetermined(TripLocation calcLocation){
+        double lat = calcLocation.getLatitdue();
+        double lon = calcLocation.getLongitude();
+
+        GasStationForRadiusHandler gasStationHandler = new GasStationForRadiusHandler(lat,lon, GasStationClient.FuelType.E10);
+
+        List<Station> stations = gasStationHandler.getStations();
+        gasStationHandler.getJsonResponse();
+
+        /*--------------------------------------------------------
+         * DRAW the Search Radius for the stations (25km)
+         *--------------------------------------------------------*/
+        GeoPoint geoPoint = new GeoPoint(lat,lon);
+        List<GeoPoint>  circle = Polygon.pointsAsCircle(geoPoint,25000);
+
+        Polygon polygon = new Polygon();
+        polygon.setPoints(circle);
+
+        mMapView.getOverlays().add(polygon);
+        mMapView.invalidate();
+        /*--------------------------------------------------------
+         * Set the Markers for the Gas Stations
+         *--------------------------------------------------------*/
+        for (Station station : stations){
+
+            Marker stationMarker = new Marker(mMapView);
+
+            stationMarker.setPosition(new GeoPoint(station.getLat(),station.getLng()));
+            stationMarker.setTitle(station.getName() + "\nDiesel:" + station.getDiesel() + "\nE10" + station.getE10() + "\nE5:" + station.getE5());
+            stationMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+
+            mMapView.getOverlays().add(stationMarker);
+            mMapView.invalidate();
+        }
     }
 
 }

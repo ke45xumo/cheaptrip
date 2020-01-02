@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -21,16 +22,16 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.room.Room;
 
 import com.example.cheaptrip.R;
 
 
 import com.example.cheaptrip.database.VehicleDatabase;
-import com.example.cheaptrip.handlers.LocationTextHandler;
+import com.example.cheaptrip.handlers.view.LocationTextHandler;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripVehicle;
-
 
 
 //TODO:https://github.com/Q42/AndroidScrollingImageView
@@ -80,6 +81,15 @@ public class MainActivity extends AppCompatActivity {
         tripVehicle = new TripVehicle();
 
     }
+
+
+    public void showPopup(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        MenuInflater inflater = popup.getMenuInflater();
+        inflater.inflate(R.menu.menu, popup.getMenu());
+        popup.show();
+    }
+
 
     private void assignViewObjects(){
         /*===============================================

@@ -1,5 +1,13 @@
 package com.example.cheaptrip.handlers.rest;
 
+import android.util.Log;
+
+import com.example.cheaptrip.handlers.converter.MultiConverterFactory;
+import com.example.cheaptrip.models.nhtsa.VehicleBrandResponse;
+import com.example.cheaptrip.models.tankerkoenig.Station;
+
+import java.io.IOException;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -13,28 +21,52 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * @param <RestResponse>
  */
 public abstract class RestHandler<RestContent, RestResponse> {
-    protected Retrofit retrofit = null; // Refrofit Client
-    protected Call<RestResponse> call;             // REST-Api Call to be called
-
+    private Retrofit retrofit; // Refrofit Client
+    private Call call;
     /**
      * TODO: Document
+     *
      * @param BASE_URL
      */
-    public RestHandler(String BASE_URL){
+    public RestHandler(String BASE_URL) {
         retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(new MultiConverterFactory<RestResponse>(Station.class))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
 
     }
 
+    protected Call getCall(){
+        return call;
+    }
+
+    protected void setCall(Call call){
+        this.call = call;
+    }
+
+    protected Retrofit getRetrofit(){
+        return retrofit;
+    }
+    protected void setRetrofit(Retrofit retrofit){
+        this.retrofit = retrofit;
+    }
     /**
      * Starts the Rest-API Call and waits asynchroniously for the Response
-     * @param context Context from which the Method is called.
-     *                (This is for calling some Callback methods as soon the Response got received).
+     *
+     * @param restListener
      */
-    public void startLoadProperties(final RestListener restListener){
+    public void makeAsyncRequest(final RestListener restListener) {
+        if (restListener == null) {
+            Log.e("CHEAPTRIP", "Cannot make asynchronious Rest Request: RestListener is null.");
+            return;
+        }
+
+        if (call == null) {
+            Log.e("CHEAPTRIP", "Cannot make asynchronious Rest Request: Call is null.");
+            return;
+        }
+
         call.enqueue(new Callback<RestResponse>() {
             @Override
             public void onResponse(Call<RestResponse> call, Response<RestResponse> response) {
@@ -48,6 +80,29 @@ public abstract class RestHandler<RestContent, RestResponse> {
                 t.printStackTrace();
             }
         });
+    }
+
+    /**
+     * @return
+     */
+    public RestContent makeSyncRequest() {
+        if (call == null) {
+            Log.e("CHEAPTRIP", "Cannot make synchronious Rest Request: Call is null.");
+            return null;
+        }
+
+        RestContent restContent = null;
+
+        try {
+            Response<RestResponse> response = call.execute();
+            restContent = extractDataFromResponse(response);
+
+        } catch (IOException e) {
+            Log.e("CHEAPTRIP", "Error during Rest-Request Execution: " + e.getLocalizedMessage());
+            return null;
+        }
+
+        return restContent;
     }
 
 

@@ -2,14 +2,23 @@ package com.example.cheaptrip.models;
 
 import android.util.Log;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
 public class TripLocation implements Serializable {
+
+    @ColumnInfo(name= "locationName")
     private String locationName;
 
+    @ColumnInfo(name= "latitude")
     private double latitdue;
+
+    @ColumnInfo(name= "longitude")
     private double longitude;
 
     public TripLocation(String locationName, double latitdue, double longitude) {
@@ -94,7 +103,7 @@ public class TripLocation implements Serializable {
     public static List<TripLocation> getAsTripLocationList(List<List<Double>> coordinates){
         List<TripLocation> tripLocationList = new ArrayList<>();
 
-        if (coordinates != null){
+        if (coordinates == null){
             Log.e("CHEAPTRIP","getAsTripLocationList(): cannot convert List: List is null");
             return null;
         }
@@ -114,7 +123,7 @@ public class TripLocation implements Serializable {
     public static List<List<Double>> getAsDoubleList(List<TripLocation> tripLocations){
         List<List<Double>> coordinateList = new ArrayList<>();
 
-        if (tripLocations != null){
+        if (tripLocations == null){
             Log.e("CHEAPTRIP","getAsDoubleList(): cannot convert List: List is null");
             return null;
         }

@@ -9,6 +9,7 @@ import com.example.cheaptrip.models.photon.PhotonResponse;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
 import retrofit2.Response;
 
 public class GeoLocationRestHandler extends RestHandler<List<List<Double>> ,PhotonResponse> {
@@ -17,8 +18,9 @@ public class GeoLocationRestHandler extends RestHandler<List<List<Double>> ,Phot
 
     public GeoLocationRestHandler(String locationName){
         super(BASE_URL);
-        GeoCompletionClient geoCompletionClient = retrofit.create(GeoCompletionClient.class);
-        super.call = geoCompletionClient.geoPos(locationName);
+        GeoCompletionClient geoCompletionClient = super.getRetrofit().create(GeoCompletionClient.class);
+         Call call = geoCompletionClient.geoPos(locationName);
+         setCall(call);
     }
     /**
      * TODO: Document
@@ -26,8 +28,9 @@ public class GeoLocationRestHandler extends RestHandler<List<List<Double>> ,Phot
      */
     public GeoLocationRestHandler(String locationName ,double lat , double lon) {
         super(BASE_URL);
-        GeoCompletionClient geoCompletionClient = retrofit.create(GeoCompletionClient.class);
-        super.call = geoCompletionClient.geoPos(locationName,lat,lon);
+        GeoCompletionClient geoCompletionClient = super.getRetrofit().create(GeoCompletionClient.class);
+        Call call = geoCompletionClient.geoPos(locationName,lat,lon);
+        super.setCall(call);
     }
 
     /**

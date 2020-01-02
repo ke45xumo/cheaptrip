@@ -7,16 +7,19 @@ import com.example.cheaptrip.models.photon.PhotonResponse;
 import com.example.cheaptrip.models.photon.Properties;
 
 
+import retrofit2.Call;
 import retrofit2.Response;
 
 public class GeoNameRestHandler extends RestHandler<String,PhotonResponse> {
     private final static String BASE_URL = "http://photon.komoot.de/";
+    private static GeoCompletionClient geoCompletionClient;
 
     public GeoNameRestHandler(double lat, double lon){
         super(BASE_URL);
 
-        GeoCompletionClient geoCompletionClient = retrofit.create(GeoCompletionClient.class);
-        call = geoCompletionClient.getLocationName(lat,lon);
+        geoCompletionClient = super.getRetrofit().create(GeoCompletionClient.class);
+        Call call = geoCompletionClient.getLocationName(lat,lon);
+        super.setCall(call);
     }
 
 

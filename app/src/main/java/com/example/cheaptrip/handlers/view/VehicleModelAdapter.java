@@ -1,4 +1,4 @@
-package com.example.cheaptrip.handlers;
+package com.example.cheaptrip.handlers.view;
 
 import android.content.Context;
 import android.os.Build;

@@ -2,9 +2,11 @@ package com.example.cheaptrip.handlers.rest.geo;
 
 import com.example.cheaptrip.activities.CalculationActivity;
 import com.example.cheaptrip.dao.ORServiceClient;
+import com.example.cheaptrip.models.orservice.ORServiceResponse;
 import com.example.cheaptrip.models.orservice.PostBody;
 import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.util.List;
 
 import retrofit2.Call;
@@ -59,6 +61,26 @@ public class GeoJsonHandler {
 
             }
         });
+    }
+
+    public ORServiceResponse makeRequest(){
+
+        ORServiceClient orServiceClient = retrofit.create(ORServiceClient.class);
+
+        String body = formatToJSON();
+
+        Call<String> call = orServiceClient.getGeoJson(body);
+        ORServiceResponse orServiceResponse = null;
+        try {
+            String response = call.execute().body();
+            Gson gson = new Gson();
+
+            orServiceResponse = gson.fromJson(response,ORServiceResponse.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return orServiceResponse;
     }
 
 

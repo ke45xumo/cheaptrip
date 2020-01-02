@@ -11,6 +11,7 @@ import com.example.cheaptrip.handlers.rest.RestHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
 import retrofit2.Response;
 
 /**
@@ -27,8 +28,9 @@ public class GeoNameListRestHandler extends RestHandler<List<String>,PhotonRespo
      */
     public GeoNameListRestHandler(Editable enteredText, double lat, double lon) {
         super(BASE_URL);
-        geoCompletionClient = retrofit.create(GeoCompletionClient.class);
-        super.call = geoCompletionClient.geoPos(enteredText.toString(),lat,lon);
+        geoCompletionClient = super.getRetrofit().create(GeoCompletionClient.class);
+        Call call = geoCompletionClient.geoPos(enteredText.toString(),lat,lon);
+        super.setCall(call);
     }
 
 

@@ -1,13 +1,20 @@
 package com.example.cheaptrip.models.tankerkoenig;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+
+@Entity
 public class Station {
 
     @SerializedName("id")
     @Expose
+    @ColumnInfo(name="ID")
     private String id;
+
     @SerializedName("name")
     @Expose
     private String name;
@@ -29,9 +36,15 @@ public class Station {
     @SerializedName("dist")
     @Expose
     private Double dist;
-    @SerializedName("price")
+    @SerializedName("diesel")
     @Expose
-    private Double price;
+    private Double diesel;
+    @SerializedName("e5")
+    @Expose
+    private Double e5;
+    @SerializedName("e10")
+    @Expose
+    private Double e10;
     @SerializedName("isOpen")
     @Expose
     private Boolean isOpen;
@@ -106,12 +119,28 @@ public class Station {
         this.dist = dist;
     }
 
-    public Double getPrice() {
-        return price;
+    public Double getDiesel() {
+        return diesel;
     }
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setDiesel(Double diesel) {
+        this.diesel = diesel;
+    }
+
+    public Double getE5() {
+        return e5;
+    }
+
+    public void setE5(Double e5) {
+        this.e5 = e5;
+    }
+
+    public Double getE10() {
+        return e10;
+    }
+
+    public void setE10(Double e10) {
+        this.e10 = e10;
     }
 
     public Boolean getIsOpen() {

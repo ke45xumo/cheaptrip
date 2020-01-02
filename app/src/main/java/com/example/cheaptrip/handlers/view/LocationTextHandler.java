@@ -1,4 +1,4 @@
-package com.example.cheaptrip.handlers;
+package com.example.cheaptrip.handlers.view;
 
 import android.content.Context;
 import android.text.Editable;
@@ -54,7 +54,7 @@ public class LocationTextHandler {
             public void afterTextChanged(Editable s) {
                 geoNameListRestHandler = new GeoNameListRestHandler(s,currLongitude,currLongitude);
 
-                geoNameListRestHandler.startLoadProperties(new RestListener<List<String>>() {
+                geoNameListRestHandler.makeAsyncRequest(new RestListener<List<String>>() {
                     @Override
                     public void OnRestSuccess(List<String> locationNames) {
                         ArrayAdapter<String> completeAdapter = new ArrayAdapter<>(completeTextView.getContext(), android.R.layout.select_dialog_item, locationNames);
@@ -90,7 +90,7 @@ public class LocationTextHandler {
             GeoNameRestHandler geoNameRestHandler = new GeoNameRestHandler(currLatitude,currLongitude);
 
 
-            geoNameRestHandler.startLoadProperties(new RestListener<String>() {
+            geoNameRestHandler.makeAsyncRequest(new RestListener<String>() {
                 @Override
                 public void OnRestSuccess(String locationName) {
                     if (autoCompleteTextView != null){

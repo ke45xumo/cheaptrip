@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.ArrayAdapter;
 
 import android.widget.EditText;
 import android.widget.ListView;
@@ -15,17 +14,11 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.handlers.VehicleBrandAdapter;
-import com.example.cheaptrip.handlers.VehicleModelAdapter;
+import com.example.cheaptrip.handlers.view.VehicleModelAdapter;
 import com.example.cheaptrip.handlers.rest.RestListener;
-import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleModelHandler;
-import com.example.cheaptrip.handlers.rest.vehicle.VehicleModelRestHandler;
-import com.example.cheaptrip.models.nhtsa.VehicleBrand;
 import com.example.cheaptrip.models.nhtsa.VehicleModel;
 
-
-import java.util.ArrayList;
 
 import java.util.List;
 
@@ -80,11 +73,10 @@ public class CarModelActivity extends ListActivity {
     public void setModelListView() {
         VehicleModelHandler vehicleBrandHandler = new VehicleModelHandler(vehicleBrand);
 
-        vehicleBrandHandler.startLoadProperties(new RestListener<List<VehicleModel>>() {
+        vehicleBrandHandler.makeAsyncRequest(new RestListener<List<VehicleModel>>() {
             @Override
             public void OnRestSuccess(List<VehicleModel> modelList) {
                 listDataAdapter = new VehicleModelAdapter(getApplicationContext(), modelList);
-                //ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(getApplicationContext(),R.layout.selection_list_row, R.id.listText,brandList);
                 setListAdapter(listDataAdapter);
                 progressBar.setVisibility(View.INVISIBLE);
 

@@ -8,19 +8,21 @@ import com.example.cheaptrip.models.nhtsa.VehicleModelResponse;
 
 import java.util.List;
 
+import retrofit2.Call;
 import retrofit2.Response;
 
 public class VehicleModelHandler extends RestHandler<List<VehicleModel>,VehicleModelResponse> {
     private static final String BASE_URL = "https://vpic.nhtsa.dot.gov/api/vehicles/";
-
+    private static CarSpecClient carSpecClient;
 
     /**
      * Constructor: Initializes Retrofit and creates an Client for CarSpecClient Class
      */
-    public VehicleModelHandler(String brand){
+    public VehicleModelHandler(String vehicleBrand){
         super(BASE_URL);
-        CarSpecClient carSpecClient = retrofit.create(CarSpecClient.class);
-        super.call = carSpecClient.getModels(brand,"json");
+        carSpecClient = super.getRetrofit().create(CarSpecClient.class);
+        Call call = carSpecClient.getModels(vehicleBrand, "json");
+        super.setCall(call);
     }
 
     /**
@@ -30,20 +32,22 @@ public class VehicleModelHandler extends RestHandler<List<VehicleModel>,VehicleM
      */
     @Override
     public List<VehicleModel> extractDataFromResponse(Response<VehicleModelResponse> response) {
-
         VehicleModelResponse vehicleResponseSingle = response.body();
         List<VehicleModel> vehicleModels = vehicleResponseSingle.getResults();
         return vehicleModels;
 
     }
 
-    /**
-     * TODO: Document
-     *
-     */
-    @Override
-    public void startLoadProperties(final RestListener restListener) {
 
-        super.startLoadProperties(restListener);
+    public void getVehicleModelList(final RestListener restListener){
+        assert (carSpecClient != null);
+        super.makeAsyncRequest(restListener);
+    }
+
+    public List<VehicleModel> startGetVehicleModelList(String vehicleBrand, final RestListener restListener) {
+        assert (carSpecClient != null);
+        List<VehicleModel> vehicleModelList = makeSyncRequest();
+
+        return vehicleModelList;
     }
 }

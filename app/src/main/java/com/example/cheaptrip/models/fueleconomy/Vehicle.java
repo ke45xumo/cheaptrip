@@ -3,342 +3,348 @@ package com.example.cheaptrip.models.fueleconomy;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.Path;
+import org.simpleframework.xml.Root;
+
+
+@Root(name = "vehicle",strict = false)
 public class Vehicle
 {
-    @SerializedName("barrels08")
-    @Expose
+    @Element(name="barrels08", required = false)
+    //@Path("vehicles")
     private String barrels08;
 
-    @SerializedName("barrelsA08")
-    @Expose
+    @Element(name="barrelsA08", required = false)
+    //@Path("vehicles")
     private String barrelsA08;
 
-    @SerializedName("fuelType2")
-    @Expose
+    @Element(name="fuelType2", required = false)
+    //@Path("vehicles")
     private String fuelType2;
 
-    @SerializedName("year")
-    @Expose
+    @Element(name="year", required = false)
+    //@Path("vehicles")
     private String year;
 
-    @SerializedName("combA08U")
-    @Expose
+    @Element(name="combA08U", required = false)
+    //@Path("vehicles")
     private String combA08U;
 
-    @SerializedName("fuelType1")
-    @Expose
+    @Element(name="fuelType1", required = false)
+    //@Path("vehicles")
     private String fuelType1;
 
-    @SerializedName("highway08U")
-    @Expose
+    @Element(name="highway08U", required = false)
+    //@Path("vehicles")
     private String highway08U;
 
-    @SerializedName("comb08U")
-    @Expose
+    @Element(name="comb08U", required = false)
+    //@Path("vehicles")
     private String comb08U;
 
-    @SerializedName("UCityA")
-    @Expose
+    @Element(name="UCityA", required = false)
+    //@Path("vehicles")
     private String UCityA;
 
-    @SerializedName("eng_dscr")
-    @Expose
+    @Element(name="eng_dscr", required = false)
+    //@Path("vehicles")
     private String eng_dscr;
 
-    @SerializedName("startStop")
-    @Expose
+    @Element(name="startStop", required = false)
+    //@Path("vehicles")
     private String startStop;
 
-    @SerializedName("guzzler")
-    @Expose
+    @Element(name="guzzler", required = false)
+    //@Path("vehicles")
     private String guzzler;
 
-    @SerializedName("co2A")
-    @Expose
+    @Element(name="co2A", required = false)
+    //@Path("vehicles")
     private String co2A;
 
-    @SerializedName("c240bDscr")
-    @Expose
+    @Element(name="c240bDscr" ,required = false)
+    //@Path("vehicles")
     private String c240bDscr;
 
-    @SerializedName("phevHwy")
-    @Expose
+    @Element(name="phevHwy", required = false)
+    //@Path("vehicles")
     private String phevHwy;
 
-    @SerializedName("model")
-    @Expose
+    @Element(name="model", required = false)
+    //@Path("vehicles")
     private String model;
 
-    @SerializedName("id")
-    @Expose
+    @Element(name="id", required = false)
+    //@Path("vehicles")
     private String id;
 
-    @SerializedName("cityE")
-    @Expose
+    @Element(name="cityE", required = false)
+    //@Path("vehicles")
     private String cityE;
 
-    @SerializedName("mpgData")
-    @Expose
+    @Element(name="mpgData", required = false)
+    //@Path("vehicles")
     private String mpgData;
 
-    @SerializedName("highwayUF")
-    @Expose
+    @Element(name="highwayUF", required = false)
+    //@Path("vehicles")
     private String highwayUF;
 
-    @SerializedName("highwayA08U")
-    @Expose
+    @Element(name="highwayA08U", required = false)
+    //@Path("vehicles")
     private String highwayA08U;
 
-    @SerializedName("combinedCD")
-    @Expose
+    @Element(name="combinedCD", required = false)
+    //@Path("vehicles")
     private String combinedCD;
 
-    @SerializedName("sCharger")
-    @Expose
+    @Element(name="sCharger", required = false)
+    //@Path("vehicles")
     private String sCharger;
 
-    @SerializedName("atvType")
-    @Expose
+    @Element(name="atvType",required = false)
+    //@Path("vehicles")
     private String atvType;
 
-    @SerializedName("ghgScore")
-    @Expose
+    @Element(name="ghgScore", required = false)
+    //@Path("vehicles")
     private String ghgScore;
 
-    @SerializedName("highway08")
-    @Expose
+    @Element(name="highway08", required = false)
+    //@Path("vehicles")
     private String highway08;
 
-    @SerializedName("cylinders")
-    @Expose
+    @Element(name="cylinders", required = false)
+    //@Path("vehicles")
     private String cylinders;
 
-    @SerializedName("UCity")
-    @Expose
+    @Element(name="UCity", required = false)
+    //@Path("vehicles")
     private String UCity;
 
-    @SerializedName("phevCity")
-    @Expose
+    @Element(name="phevCity", required = false)
+    //@Path("vehicles")
     private String phevCity;
 
-    @SerializedName("rangeA")
-    @Expose
+    @Element(name="rangeA", required = false)
+    //@Path("vehicles")
     private String rangeA;
 
-    @SerializedName("displ")
-    @Expose
+    @Element(name="displ", required = false)
+    //@Path("vehicles")
     private String displ;
 
-    @SerializedName("rangeCityA")
-    @Expose
+    @Element(name="rangeCityA", required = false)
+    //@Path("vehicles")
     private String rangeCityA;
 
-    @SerializedName("rangeHwyA")
-    @Expose
+    @Element(name="rangeHwyA", required = false)
+    //@Path("vehicles")
     private String rangeHwyA;
 
-    @SerializedName("trany")
-    @Expose
+    @Element(name="trany", required = false)
+    //@Path("vehicles")
     private String trany;
 
-    @SerializedName("drive")
-    @Expose
+    @Element(name="drive", required = false)
+    //@Path("vehicles")
     private String drive;
 
-    @SerializedName("mpgRevised")
-    @Expose
+    @Element(name="mpgRevised", required = false)
+    //@Path("vehicles")
     private String mpgRevised;
 
-    @SerializedName("combE")
-    @Expose
+    @Element(name="combE", required = false)
+    //@Path("vehicles")
     private String combE;
 
-    @SerializedName("fuelCost08")
-    @Expose
+    @Element(name="fuelCost08", required = false)
+    //@Path("vehicles")
     private String fuelCost08;
 
-    @SerializedName("highwayE")
-    @Expose
+    @Element(name="highwayE", required = false)
+    //@Path("vehicles")
     private String highwayE;
 
-    @SerializedName("c240Dscr")
-    @Expose
+    @Element(name="c240Dscr",required = false)
+    //@Path("vehicles")
     private String c240Dscr;
 
-    @SerializedName("feScore")
-    @Expose
+    @Element(name="feScore", required = false)
+    //@Path("vehicles")
     private String feScore;
 
-    @SerializedName("co2")
-    @Expose
+    @Element(name="co2", required = false)
+    //@Path("vehicles")
     private String co2;
 
-    @SerializedName("combA08")
-    @Expose
+    @Element(name="combA08", required = false)
+    //@Path("vehicles")
     private String combA08;
 
-    @SerializedName("range")
-    @Expose
+    @Element(name="range", required = false)
+    //@Path("vehicles")
     private String range;
 
-    @SerializedName("co2TailpipeAGpm")
-    @Expose
+    @Element(name="co2TailpipeAGpm", required = false)
+    //@Path("vehicles")
     private String co2TailpipeAGpm;
 
-    @SerializedName("createdOn")
-    @Expose
+    @Element(name="createdOn", required = false)
+    //@Path("vehicles")
     private String createdOn;
 
-    @SerializedName("phevComb")
-    @Expose
+    @Element(name="phevComb", required = false)
+    //@Path("vehicles")
     private String phevComb;
 
-    @SerializedName("cityUF")
-    @Expose
+    @Element(name="cityUF", required = false)
+    //@Path("vehicles")
     private String cityUF;
 
-    @SerializedName("city08U")
-    @Expose
+    @Element(name="city08U", required = false)
+    //@Path("vehicles")
     private String city08U;
 
-    @SerializedName("modifiedOn")
-    @Expose
+    @Element(name="modifiedOn", required = false)
+    //@Path("vehicles")
     private String modifiedOn;
 
-    @SerializedName("trans_dscr")
-    @Expose
+    @Element(name="trans_dscr", required = false)
+    //@Path("vehicles")
     private String trans_dscr;
 
-    @SerializedName("highwayCD")
-    @Expose
+    @Element(name="highwayCD", required = false)
+    //@Path("vehicles")
     private String highwayCD;
 
-    @SerializedName("co2TailpipeGpm")
-    @Expose
+    @Element(name="co2TailpipeGpm", required = false)
+    //@Path("vehicles")
     private String co2TailpipeGpm;
 
-    @SerializedName("combinedUF")
-    @Expose
+    @Element(name="combinedUF", required = false)
+    //@Path("vehicles")
     private String combinedUF;
 
-    @SerializedName("engId")
-    @Expose
+    @Element(name="engId", required = false)
+    //@Path("vehicles")
     private String engId;
 
-    @SerializedName("ghgScoreA")
-    @Expose
+    @Element(name="ghgScoreA", required = false)
+    //@Path("vehicles")
     private String ghgScoreA;
 
-    @SerializedName("rangeHwy")
-    @Expose
+    @Element(name="rangeHwy", required = false)
+    //@Path("vehicles")
     private String rangeHwy;
 
-    @SerializedName("make")
-    @Expose
+    @Element(name="make", required = false)
+    //@Path("vehicles")
     private String make;
 
-    @SerializedName("charge240b")
-    @Expose
+    @Element(name="charge240b", required = false)
+    //@Path("vehicles")
     private String charge240b;
 
-    @SerializedName("city08")
-    @Expose
+    @Element(name="city08", required = false)
+    //@Path("vehicles")
     private String city08;
 
-    @SerializedName("phevBlended")
-    @Expose
+    @Element(name="phevBlended", required = false)
+    //@Path("vehicles")
     private String phevBlended;
 
-    @SerializedName("cityCD")
-    @Expose
+    @Element(name="cityCD", required = false)
+    //@Path("vehicles")
     private String cityCD;
 
-    @SerializedName("VClass")
-    @Expose
+    @Element(name="VClass", required = false)
+    //@Path("vehicles")
     private String VClass;
 
-    @SerializedName("fuelCostA08")
-    @Expose
+    @Element(name="fuelCostA08", required = false)
+    //@Path("vehicles")
     private String fuelCostA08;
 
-    @SerializedName("rangeCity")
-    @Expose
+    @Element(name="rangeCity", required = false)
+    //@Path("vehicles")
     private String rangeCity;
 
-    @SerializedName("tCharger")
-    @Expose
+    @Element(name="tCharger", required = false)
+    //@Path("vehicles")
     private String tCharger;
 
-    @SerializedName("evMotor")
-    @Expose
+    @Element(name="evMotor", required = false)
+    //@Path("vehicles")
     private String evMotor;
 
-    @SerializedName("lv2")
-    @Expose
+    @Element(name="lv2", required = false)
+    //@Path("vehicles")
     private String lv2;
 
-    @SerializedName("charge240")
-    @Expose
+    @Element(name="charge240", required = false)
+    //@Path("vehicles")
     private String charge240;
 
-    @SerializedName("charge120")
-    @Expose
+    @Element(name="charge120", required = false)
+    //@Path("vehicles")
     private String charge120;
 
-    @SerializedName("cityA08U")
-    @Expose
+    @Element(name="cityA08U", required = false)
+    //@Path("vehicles")
     private String cityA08U;
 
-    @SerializedName("lv4")
-    @Expose
+    @Element(name="lv4", required = false)
+    //@Path("vehicles")
     private String lv4;
 
-    @SerializedName("pv2")
-    @Expose
+    @Element(name="pv2", required = false)
+    //@Path("vehicles")
     private String pv2;
 
-    @SerializedName("cityA08")
-    @Expose
+    @Element(name="cityA08", required = false)
+    //@Path("vehicles")
     private String cityA08;
 
-    @SerializedName("hpv")
-    @Expose
+    @Element(name="hpv", required = false)
+    //@Path("vehicles")
     private String hpv;
 
-    @SerializedName("pv4")
-    @Expose
+    @Element(name="pv4", required = false)
+    //@Path("vehicles")
     private String pv4;
 
-    @SerializedName("youSaveSpend")
-    @Expose
+    @Element(name="youSaveSpend", required = false)
+    //@Path("vehicles")
     private String youSaveSpend;
 
-    @SerializedName("hlv")
-    @Expose
+    @Element(name="hlv", required = false)
+    //@Path("vehicles")
     private String hlv;
 
-    @SerializedName("fuelType")
-    @Expose
+    @Element(name="fuelType", required = false)
+    //@Path("vehicles")
     private String fuelType;
 
-    @SerializedName("highwayA08")
-    @Expose
+    @Element(name="highwayA08", required = false)
+    //@Path("vehicles")
     private String highwayA08;
 
-    @SerializedName("UHighway")
-    @Expose
+    @Element(name="UHighway", required = false)
+    //@Path("vehicles")
     private String UHighway;
 
-    @SerializedName("comb08")
-    @Expose
+    @Element(name="comb08", required = false)
+    //@Path("vehicles")
     private String comb08;
 
-    @SerializedName("UHighwayA")
-    @Expose
+    @Element(name="UHighwayA", required = false)
+    //@Path("vehicles")
     private String UHighwayA;
 
-    @SerializedName("mfrCode")
-    @Expose
+    @Element(name="mfrCode", required = false)
+    //@Path("vehicles")
     private String mfrCode;
 
     public String getBarrels08 ()

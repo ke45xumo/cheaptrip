@@ -7,10 +7,12 @@ import com.example.cheaptrip.models.photon.PhotonResponse;
 
 import java.util.List;
 
+import retrofit2.Call;
 import retrofit2.Response;
 
 public class GeoFeatureRestHandler extends RestHandler<List<Location>, PhotonResponse> {
     private final static String BASE_URL = "http://photon.komoot.de/";
+    private static GeoCompletionClient geoCompletionClient;
 
     /**
      * TODO: Document
@@ -18,9 +20,10 @@ public class GeoFeatureRestHandler extends RestHandler<List<Location>, PhotonRes
      */
     public GeoFeatureRestHandler(String locationName) {
         super(BASE_URL);
-        GeoCompletionClient geoCompletionClient = retrofit.create(GeoCompletionClient.class);
+        geoCompletionClient = super.getRetrofit().create(GeoCompletionClient.class);
 
-        super.call =   geoCompletionClient.geoPos(locationName);
+        Call call =   geoCompletionClient.geoPos(locationName);
+        super.setCall(call);
     }
 
     @Override
@@ -30,4 +33,6 @@ public class GeoFeatureRestHandler extends RestHandler<List<Location>, PhotonRes
 
         return locations;
     }
+
+
 }

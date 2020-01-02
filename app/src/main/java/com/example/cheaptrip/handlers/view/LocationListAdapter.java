@@ -1,14 +1,11 @@
-package com.example.cheaptrip.handlers;
+package com.example.cheaptrip.handlers.view;
 
 
 import android.content.Context;
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,9 +15,6 @@ import com.example.cheaptrip.R;
 import com.example.cheaptrip.models.photon.Location;
 import com.example.cheaptrip.models.photon.Properties;
 
-import java.util.ArrayList;
-
-import java.util.Comparator;
 import java.util.List;
 
 public class LocationListAdapter extends BaseAdapter {

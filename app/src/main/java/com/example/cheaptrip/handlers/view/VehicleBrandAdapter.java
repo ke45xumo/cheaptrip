@@ -1,4 +1,4 @@
-package com.example.cheaptrip.handlers;
+package com.example.cheaptrip.handlers.view;
 
 import android.content.Context;
 import android.os.Build;
@@ -20,18 +20,28 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
+
     private Context context;
     private List<VehicleBrand> vehicleBrandList;
-
     private List<VehicleBrand> mDisplayedBrands;    // Values to be displayed
 
+
+    public VehicleBrandAdapter(@NonNull Context context) {
+        this.context = context;
+        vehicleBrandList = new ArrayList<>();
+        mDisplayedBrands = new ArrayList<>();
+    }
+
     public VehicleBrandAdapter(@NonNull Context context, List<VehicleBrand> vehicleBrandList) {
-        //super(context, R.layout.selection_list_row);
+        setList(vehicleBrandList);
+        this.context = context;
+    }
+
+    public void setList(List<VehicleBrand> vehicleBrandList){
         sortVehicleBrands(vehicleBrandList);
         this.vehicleBrandList = vehicleBrandList;
         this.mDisplayedBrands = vehicleBrandList;
-
-        this.context = context;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -51,6 +61,7 @@ public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
 
 
 
+
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -59,6 +70,7 @@ public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             row = inflater.inflate(R.layout.selection_list_row, parent, false);
         }
+
         TextView textView = (TextView) row.findViewById(R.id.listText);
         VehicleBrand list = mDisplayedBrands.get(position);
         String brand= list.getMakeName();

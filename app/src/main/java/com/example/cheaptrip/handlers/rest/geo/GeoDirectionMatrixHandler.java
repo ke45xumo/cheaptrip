@@ -2,6 +2,7 @@ package com.example.cheaptrip.handlers.rest.geo;
 
 import com.example.cheaptrip.dao.ORServiceClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
+import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.models.orservice.GeoMatrixResponse;
 import com.example.cheaptrip.models.orservice.MatrixPostBody;
 import com.google.gson.Gson;
@@ -9,21 +10,26 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
 import retrofit2.Response;
 
 public class GeoDirectionMatrixHandler extends RestHandler<List<List<Double>>,GeoMatrixResponse>{
 
     private static String BASE_URL = "https://api.openrouteservice.org/v2/";
+    private static ORServiceClient orServiceClient;
 
     List<List<Double>> coordinates;
 
     public GeoDirectionMatrixHandler(List<List<Double>> coordinates) {
         super(BASE_URL);
         this.coordinates = coordinates;
-        String body = prepareBody(coordinates);
 
-        ORServiceClient orServiceClient = retrofit.create(ORServiceClient.class);
-        call = orServiceClient.getMatrix(body);
+        orServiceClient = super.getRetrofit().create(ORServiceClient.class);
+
+        String body = prepareBody(coordinates);
+        Call call = orServiceClient.getMatrix(body);
+        super.setCall(call);
+
     }
 
     @Override
@@ -44,10 +50,20 @@ public class GeoDirectionMatrixHandler extends RestHandler<List<List<Double>>,Ge
         );
 
         Gson gson = new Gson();
-
         String body = gson.toJson(postBody);
 
         return body;
+    }
+
+    public void startGetMatrix(final RestListener restListener){
+        String body = prepareBody(coordinates);
+        Call call = orServiceClient.getMatrix(body);
+
+        super.makeAsyncRequest(restListener);
+    }
+
+    public List<List<Double>> getMatrix(){
+        return super.makeSyncRequest();
     }
 
 }
