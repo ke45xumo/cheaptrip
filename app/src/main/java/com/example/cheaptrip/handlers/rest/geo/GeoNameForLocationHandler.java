@@ -1,5 +1,7 @@
 package com.example.cheaptrip.handlers.rest.geo;
 
+import android.util.Log;
+
 import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
 import com.example.cheaptrip.models.photon.Location;
@@ -10,18 +12,17 @@ import com.example.cheaptrip.models.photon.Properties;
 import retrofit2.Call;
 import retrofit2.Response;
 
-public class GeoNameRestHandler extends RestHandler<String,PhotonResponse> {
+public class GeoNameForLocationHandler extends RestHandler<String,PhotonResponse> {
     private final static String BASE_URL = "http://photon.komoot.de/";
     private static GeoCompletionClient geoCompletionClient;
 
-    public GeoNameRestHandler(double lat, double lon){
+    public GeoNameForLocationHandler(double lat, double lon){
         super(BASE_URL);
 
         geoCompletionClient = super.getRetrofit().create(GeoCompletionClient.class);
         Call call = geoCompletionClient.getLocationName(lat,lon);
         super.setCall(call);
     }
-
 
     /**
      * TODO:Document
@@ -31,6 +32,22 @@ public class GeoNameRestHandler extends RestHandler<String,PhotonResponse> {
     @Override
     public String extractDataFromResponse(Response<PhotonResponse> response) {
         PhotonResponse photonResponse = response.body();
+
+        if(photonResponse == null){
+            Log.e("CHEAPTRIP", "Cannot extract Name for Location: REST-Response is null");
+            return null;
+        }
+
+        if(photonResponse.getLocations() == null){
+            Log.e("CHEAPTRIP", "Cannot extract Name for Location: REST-Response has no Locations.");
+            return null;
+        }
+
+        if(photonResponse.getLocations().size() < 1){
+            Log.e("CHEAPTRIP", "Cannot extract Name for Location: REST-Response has empty LocationList.");
+            return null;
+        }
+
         Location location = photonResponse.getLocations().get(0);
 
         String locationName;

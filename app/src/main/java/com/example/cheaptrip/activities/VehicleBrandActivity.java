@@ -36,7 +36,7 @@ import java.util.List;
  * As the user chooses a vehicle brand it will return to the calling activity whilst delivering the
  * selection (brand name) to it (as extra).
  */
-public class CarBrandActivity extends ListActivity {
+public class VehicleBrandActivity extends ListActivity {
 
     private ProgressBar progressBar;                // Loading Icon until List is loaded (using REST-API)
     private EditText edit_searchBrand;              // EditText Field for Search
@@ -44,7 +44,7 @@ public class CarBrandActivity extends ListActivity {
     private VehicleBrandAdapter listDataAdapter;    // List Adapter for VehicleBrands
 
     /**
-     * Gets Called when CarBrandActivity will be created.
+     * Gets Called when VehicleBrandActivity will be created.
      * Starts Asynchronious Call of the Webservice-Rest-API
      * @param savedInstanceState: State of this unique Instance
      */

@@ -4,24 +4,30 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.cheaptrip.R;
 import com.example.cheaptrip.activities.CalculationActivity;
+import com.example.cheaptrip.dao.GasStationClient;
 import com.example.cheaptrip.handlers.rest.RestListener;
-import com.example.cheaptrip.handlers.rest.VehiclePropertyHandler;
+import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
+import com.example.cheaptrip.handlers.rest.vehicle.VehiclePropertyHandler;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionMatrixHandler;
 
-import com.example.cheaptrip.handlers.rest.geo.GeoJsonHandler;
+import com.example.cheaptrip.handlers.rest.station.GasStationForRadiusHandler;
 import com.example.cheaptrip.handlers.rest.station.GasStationHistoryHandler;
 import com.example.cheaptrip.handlers.rest.station.GasStationHistoryPriceHandler;
 import com.example.cheaptrip.models.TripLocation;
+import com.example.cheaptrip.models.TripRoute;
 import com.example.cheaptrip.models.TripVehicle;
 
 import com.example.cheaptrip.models.fueleconomy.Vehicles;
 import com.example.cheaptrip.models.orservice.GeoMatrixResponse;
 import com.example.cheaptrip.models.orservice.ORServiceResponse;
 import com.example.cheaptrip.models.tankerkoenig.Station;
+import com.google.gson.Gson;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -33,15 +39,19 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
     private static String BASE_URL = "https://api.openrouteservice.org/v2/";
 
     private TripVehicle tripVehicle;
+    List<TripRoute> tripRouteList;
 
     private Context context;
+
     public RouteService(Context context, TripVehicle tripVehicle){
         this.tripVehicle = tripVehicle;
         this.context = context;
+        tripRouteList = new ArrayList<>();
     }
 
     @Override
     protected Void doInBackground(TripLocation... tripLocations) {
+
         if (tripLocations.length < 2){
             Log.e("CHEAPTRIP","locations must be greater than 2 (start + destination)");
             return null;
@@ -59,11 +69,24 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             Log.e("CHEAPTRIP","End location is empty.");
             return null;
         }
+        /*============================================================================================
+         * Initilize the TripVehicle (set its Properties from Rest-API, e.g. Consumption)
+         *============================================================================================*/
+        tripVehicle = initTripVehicle(tripVehicle);
 
-        List<List<Double>> coordinateList = TripLocation.getAsDoubleList(startTripLocation,endTripLocation);
-        GeoJsonHandler geoJsonHandler = new GeoJsonHandler(coordinateList);
+        if (tripVehicle == null){
+            return null;
+        }
+        /*==============================================================================================
+         * Determine Route from Start to End Location
+         *==============================================================================================*/
+        GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(Arrays.asList(tripLocations));
+        ORServiceResponse orServiceResponse = geoDirectionsHandler.makeSyncRequest();
 
-        ORServiceResponse orServiceResponse = geoJsonHandler.makeRequest();
+        if(orServiceResponse == null){
+            Log.e("CHEAPTRIP","OrServiceResponse is null");
+            return null;
+        }
 
         double distance = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDistance();
         double duration = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDuration();
@@ -71,13 +94,48 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         double hours = duration /3600;
         double avgSpeed = distance/hours;
 
+        double maxRange = determineMaxRange(tripVehicle, avgSpeed);
+
         List<List<Double>> routeCoordinates = orServiceResponse.getFeatures().get(0).getGeometry().getCoordinates();
         List<TripLocation> tripLocationList = TripLocation.getAsTripLocationList(routeCoordinates);
 
+        /*============================================================================================
+         * Determine the Point on the Route from where to find Gas Stations nearby
+         *============================================================================================*/
+        TripLocation pointInRange = findPointfromDistance(maxRange,tripLocationList,25);
+
+        if( context instanceof CalculationActivity) {
+            CalculationActivity calculationActivity = (CalculationActivity) context;
+
+            calculationActivity.drawRange(pointInRange, 25);
+            calculationActivity.drawRange(startTripLocation, maxRange);
+        }
+        /*============================================================================================
+         * Determine the Point on the Route from where to find Gas Stations nearby
+         *============================================================================================*/
+        List<Station> stationList = getStationsInRange(pointInRange);
+
+        //calculationActivity.drawStations(stationList);
+        tripRouteList = determineRoutes(startTripLocation,endTripLocation,stationList,tripVehicle);
+
+        //calculationActivity.onCalculationDone(tripRouteList);
+        return null;
+    }
+
+    public TripVehicle initTripVehicle(TripVehicle tripVehicle){
+        if (tripVehicle == null){
+            Log.e("CHEAPTRIP","Cannot assign Properties to tripVehicle: tripVehicle is null");
+            return null;
+        }
+
         VehiclePropertyHandler vehiclePropertyHandler = new VehiclePropertyHandler(tripVehicle);
-        //String xml = vehiclePropertyHandler.getStringResponse();
 
         Vehicles vehicles = vehiclePropertyHandler.makeRequest();
+
+        if( vehicles == null){
+            Log.e("CHEAPTRIP","Cannot assign Properties to tripVehicle: Could not get Properties from REST-API");
+            return null;
+        }
 
         String strCityMPG = vehicles.getVehicleList().get(0).getCity08();
         double cityMPG = Double.parseDouble(strCityMPG);
@@ -91,17 +149,108 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         tripVehicle.setGetFuelConsumptionHighway(highwayKML);
         tripVehicle.setFuelConsumptionCity(cityKML);
 
-        double maxRange = determineMaxRange(tripVehicle, avgSpeed);
-
-        TripLocation pointInRange = findPointfromDistance(maxRange,tripLocationList,25);
-
-        CalculationActivity calculationActivity = (CalculationActivity) context;
-
-        calculationActivity.onVehiclePropertiesLoaded(startTripLocation,endTripLocation,pointInRange,maxRange);
-        calculationActivity.onCalculationPointDetermined(pointInRange);
-        return null;
+        return tripVehicle;
     }
 
+    public static double determineRouteCosts(TripRoute tripRoute, TripVehicle tripVehicle){
+        return 0.0;
+    }
+
+    public List<TripRoute> determineRoutes(TripLocation startLocation, TripLocation endLocation, List<Station> stationList, TripVehicle tripVehicle){
+        List<TripRoute> tripRouteList = new ArrayList<>();
+        if(tripVehicle == null){
+            Log.e("CHEAPTRIP","Cannot determine Routes: tripVehicle may not be null");
+            return tripRouteList;
+        }
+
+        if(startLocation == null){
+            Log.e("CHEAPTRIP","Cannot determine Routes: StartLocation may not be null");
+            return tripRouteList;
+        }
+
+        if(startLocation == null){
+            Log.e("CHEAPTRIP","Cannot determine Routes: EndLocation may not be null");
+            return tripRouteList;
+        }
+
+        if(stationList == null){
+            Log.e("CHEAPTRIP","Cannot determine Routes: stationList may not be null");
+            return tripRouteList;
+        }
+        if(stationList.size() < 1){
+            Log.e("CHEAPTRIP","Cannot determine Routes: stationList has no Elements");
+            return tripRouteList;
+        }
+
+        for(Station station : stationList){
+            if(station == null){
+                continue;
+            }
+            TripRoute tripRoute = new TripRoute();
+
+            double lat = station.getLat();
+            double lon = station.getLng();
+
+            TripLocation gasStation = new TripLocation(lat, lon);
+
+            tripRoute.addTripLocation(startLocation,gasStation,endLocation);
+
+            GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(tripRoute.getStops());
+
+            ORServiceResponse orServiceResponse = geoDirectionsHandler.makeSyncRequest();
+
+            if(orServiceResponse == null){
+                Log.e("CHEAPTRIP","OrService Response is null");
+               continue;
+            }
+
+            double distance = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDistance();
+            double duration = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDuration();
+
+            Gson gson = new Gson();
+
+            String geoJSON = gson.toJson(orServiceResponse);
+
+            double avgSpeed = distance/duration;
+
+            double cityMPG = tripVehicle.getFuelConsumptionCity();
+            double highwayMPG = tripVehicle.getFuelConsumptionCity();
+
+            double avgConsumption = interpolateConsumption(avgSpeed,cityMPG,highwayMPG);
+            Double pricePerLiter = station.getE5();
+
+            if(pricePerLiter == null){
+                pricePerLiter = new Double(0);
+            }
+
+            double costs = distance * pricePerLiter * avgConsumption/100;
+
+
+            tripRoute.setCosts(costs);
+            tripRoute.setGeoJSON(geoJSON);
+            tripRoute.setDistance(distance);
+            tripRoute.setDuration(duration);
+
+            tripRouteList.add(tripRoute);
+           /* if(context instanceof CalculationActivity){
+                CalculationActivity calculationActivity = (CalculationActivity) context;
+                calculationActivity.drawRoute(geoJSON, Color.BLACK);
+            }*/
+
+        }
+        return tripRouteList;
+    }
+
+    public List<Station> getStationsInRange(TripLocation calcLocation){
+        double lat = calcLocation.getLatitdue();
+        double lon = calcLocation.getLongitude();
+
+        GasStationForRadiusHandler gasStationHandler = new GasStationForRadiusHandler(lat,lon, GasStationClient.FuelType.E10);
+
+        List<Station> stations = gasStationHandler.getStations();
+
+        return stations;
+    }
 
     public Double interpolateConsumption(double avgSpeed, double cityMPG, double highwayMPG){
         double citySpeed = 50.0;
@@ -198,7 +347,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
                 indexLowerBound = indexMiddle;
             }
 
-            calculationActivity.onSetCalculationMarker(middleLocation);
+            calculationActivity.drawMarker(middleLocation, R.drawable.person);
             ratio = Math.abs(distance - areaToFind)/areaToFind;
         }
 
@@ -282,5 +431,13 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
     private static double rad2deg(double rad) {
         return (rad * 180.0 / Math.PI);
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+        CalculationActivity calculationActivity = (CalculationActivity) context;
+
+        calculationActivity.onCalculationDone(tripRouteList);
     }
 }

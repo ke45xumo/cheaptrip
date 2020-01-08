@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/linear_map_select"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:isScrollContainer="true"
+        android:orientation="vertical"
+        android:layout_weight="1"
+        >
+
+        <org.osmdroid.views.MapView
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:transitionName="image_to_map"
+            android:focusable="true">
+
+        </org.osmdroid.views.MapView>
+
+        <LinearLayout
+            android:id="@+id/layout_location_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginTop="50dp"
+
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:background="@android:drawable/zoom_plate">
+            <TextView
+                android:id="@+id/tv_curr_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="casual"
+                android:textColor="#F5FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="@tools:sample/cities"
+                android:layout_weight="1"/>
+
+                <Button
+                    style="@style/Base.TextAppearance.AppCompat.Widget.Button.Colored"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/ic_menu_send"
+                    android:onClick="onLocationSelected" />
+            </LinearLayout>
+            <ListView
+                android:id="@+id/list_map_locations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/background_light" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/autocomplete_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@drawable/location_search_box">
+
+
+            <EditText
+                android:id="@+id/edit_start"
+                android:transitionName="edit_start"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="8dp"
+                android:autofillHints="@string/hint_edit_start"
+                android:hint="@string/location_start"
+                android:inputType="textPersonName"
+                android:focusable="true"
+                android:layout_weight="1"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="3dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1"
+                android:background="@android:drawable/ic_menu_search" />
+
+        </LinearLayout>
+
+
+    </FrameLayout>
+
+
+</LinearLayout>

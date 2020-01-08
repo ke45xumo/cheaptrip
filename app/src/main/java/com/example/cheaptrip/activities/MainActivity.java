@@ -2,19 +2,22 @@ package com.example.cheaptrip.activities;
 
 
 
+import android.animation.ValueAnimator;
+import android.app.ActivityOptions;
 import android.content.Intent;
 
 import android.content.pm.PackageManager;
 
-import android.os.Build;
 import android.os.Bundle;
 
 
+import android.util.Pair;
 import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import android.widget.SeekBar;
@@ -29,9 +32,9 @@ import com.example.cheaptrip.R;
 
 
 import com.example.cheaptrip.database.VehicleDatabase;
-import com.example.cheaptrip.handlers.view.LocationTextHandler;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripVehicle;
+import com.example.cheaptrip.views.Gauge;
 
 
 //TODO:https://github.com/Q42/AndroidScrollingImageView
@@ -45,11 +48,13 @@ public class MainActivity extends AppCompatActivity {
     final static int ACTIVITY_REQ_CODE_CALC     = 6;
 
 
+    Gauge gauge;
+
     Button btn_carBrand;
     Button btn_carModel;
     Button btn_carYear;
 
-    AutoCompleteTextView edit_start;
+    EditText edit_start;
     AutoCompleteTextView edit_end;
 
     SeekBar seek_tankContents;
@@ -76,9 +81,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         assignViewObjects();
-        initLocationHandler();
         appDatabase = initDatabase();
         tripVehicle = new TripVehicle();
+
+        /*ValueAnimator animation = ValueAnimator.ofInt(-99, 75);
+        animation.setDuration(3000);
+        animation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                int mCurrentProgress = (int) valueAnimator.getAnimatedValue();
+                gauge.setProgress(mCurrentProgress);
+                gauge.invalidate();
+            }
+        });
+
+        animation.start();*/
 
     }
 
@@ -99,29 +116,16 @@ public class MainActivity extends AppCompatActivity {
         btn_carModel = findViewById(R.id.btn_car_model);
         btn_carYear = findViewById(R.id.btn_car_year);
 
-        pic = findViewById(R.id.img_gas_pump);
+        //pic = findViewById(R.id.img_gas_pump);
 
         edit_start = findViewById(R.id.edit_start);
         edit_end = findViewById(R.id.edit_destination);
 
         seek_tankContents = findViewById(R.id.seek_gas_contents);
+
+        gauge = findViewById(R.id.img_gas_pump);
     }
 
-    private void initLocationHandler(){
-        /*=================================================
-         * Auto Completion
-         *=================================================*/
-        LocationTextHandler locationTextHandler = new LocationTextHandler(currLatitude,currLongitude);
-
-        startLocation = new TripLocation();
-        endLocation= new TripLocation();
-
-        locationTextHandler.setCurrentLocation(this,edit_start, startLocation );
-        locationTextHandler.setCurrentLocation(this,edit_end, endLocation );
-
-        locationTextHandler.addTextChangedListener(edit_start);
-        locationTextHandler.addTextChangedListener(edit_end);
-    }
 
     /**
      * This function is a Handler for all Views of activity_main2
@@ -130,45 +134,88 @@ public class MainActivity extends AppCompatActivity {
     public void viewClickHandler(View view){
         Intent intent;
         int requestCode;
-
+        Bundle optionsBundle = null;    // For Transition
         String txt_start  = edit_start.getText().toString();
         String txt_end  = edit_end.getText().toString();
 
-        double tankPercent = (double)seek_tankContents.getProgress()/ (double)seek_tankContents.getMax();
-
+       // double tankPercent = (double)seek_tankContents.getProgress()/ (double)seek_tankContents.getMax();
+        double tankPercent = (double)gauge.getProgress()/ (double)seek_tankContents.getMax();
         tripVehicle.setRemainFuelPercent(tankPercent);
 
         switch(view.getId()){
-            case R.id.btn_car_brand:        intent = new Intent(this, CarBrandActivity.class);
+            case R.id.btn_car_brand:        intent = new Intent(this, VehicleBrandActivity.class);
                                             btn_carModel.setEnabled(true);
                                             requestCode = ACTIVITY_REQ_CODE_BRAND;
                                             break;
 
             case R.id.btn_car_model:        // TODO Check for str_carBrand
-                                            intent = new Intent(this, CarModelActivity.class);
+                                            intent = new Intent(this, VehicleModelActivity.class);
                                             intent.putExtra("brand",str_Brand);
                                             requestCode = ACTIVITY_REQ_CODE_MODEL;
                                             break;
 
-            case R.id.btn_car_year:         intent = new Intent(this, CarYearActivity.class);
+            case R.id.btn_car_year:         intent = new Intent(this, VehicleYearActivity.class);
                                             requestCode = 3;
                                             break;
 
 
 
-            case R.id.btn_start_location:   intent = new Intent(this, MapActivity.class);
+            case R.id.edit_start:   intent = new Intent(this, MapActivity2.class);
                                             intent.putExtra("location_name",txt_start);
+                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+
+                                                Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.img_gas_pump),"image_to_map");
+                                                Pair<View,String> pairEditStart = Pair.create((View)edit_start,"edit_start");
+                                                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
+                                                optionsBundle = options.toBundle();
+                                            }
                                             requestCode = ACTIVITY_REQ_CODE_START;
                                             break;
 
-            case R.id.btn_end_location:     intent = new Intent(this, MapActivity.class);
+            case R.id.btn_end_location:     intent = new Intent(this, MapActivity2.class);
                                             intent.putExtra("lat", currLatitude);
                                             intent.putExtra("lon", currLongitude);
                                             intent.putExtra("location_name",txt_end);
 
+                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+
+                                                Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.img_gas_pump),"image_to_map");
+                                                Pair<View,String> pairEditStart = Pair.create((View)edit_end,"edit_end");
+                                                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
+                                                optionsBundle = options.toBundle();
+                                            }
+
+
                                             requestCode = ACTIVITY_REQ_CODE_END;
                                             break;
-            case R.id.btn_find:             intent = new Intent(this, CalculationActivity.class);
+
+
+            case R.id.btn_find:             boolean bIsIncomplete = false;
+                                            String toastText = "The following Porperties must be set:\n";
+                                            if(startLocation == null){
+                                                toastText += " - Start Location\n";
+                                            }
+                                            if(endLocation == null){
+                                                toastText += " - Destination/ End Location\n";
+                                                bIsIncomplete = true;
+                                            }
+
+                                            if(tripVehicle.getBrand() == null){
+                                                toastText += " - Brand of the Vehicle\n";
+                                                bIsIncomplete = true;
+                                            }
+
+                                            if(tripVehicle.getModel() == null){
+                                                toastText += " - Model of the Vehicle\n";
+                                                bIsIncomplete = true;
+                                            }
+
+                                            if (bIsIncomplete == true){
+                                                Toast.makeText(this, toastText,Toast.LENGTH_LONG).show();
+                                                return;
+                                            }
+
+                                            intent = new Intent(this, CalculationActivity.class);
                                             intent.putExtra("start", startLocation);
                                             intent.putExtra("end", endLocation);
                                             intent.putExtra("tripVehicle",tripVehicle);
@@ -179,19 +226,8 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Apply activity transition
-/*
-            ActivityOptions options = ActivityOptions
-                    .makeSceneTransitionAnimation(this, btn_carBrand, "robot");
-            startActivityForResult(intent, requestCode,  options.toBundle());
-  */
-            startActivityForResult(intent, requestCode);
-        } else {
-            // Swap without transition
-            startActivityForResult(intent, requestCode);
-        }
-
+        startActivityForResult(intent, requestCode, optionsBundle);
+        
         //finish();
     }
 
@@ -237,35 +273,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /**
-     * Starts the Calculation Activity
-     *
-     * @param view
-     */
-    protected void startCalculation(View view){
-        if (str_Year == null){
-            Toast.makeText(this,"Construction Year not set!", Toast.LENGTH_LONG).show();
-            return;
-        }
-        if (str_Brand == null){
-            Toast.makeText(this,"Car Brand not set!", Toast.LENGTH_LONG).show();
-            return;
-        }
-        if (str_Model == null){
-            Toast.makeText(this,"Car Model not set!", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        Intent intent = new Intent(this, CalculationActivity.class);
-        intent.putExtra("brand",str_Brand);
-        intent.putExtra("model",str_Brand);
-        intent.putExtra("year",str_Brand);
-
-        intent.putExtra("StartLocation",startLocation);
-        intent.putExtra("EndLocation", endLocation);
-
-        startActivity(intent);
-    }
     private VehicleDatabase initDatabase(){
         VehicleDatabase db = Room.databaseBuilder(getApplicationContext(),
                 VehicleDatabase.class, "database-name").build();

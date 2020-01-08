@@ -58,37 +58,8 @@ public class LocationListAdapter extends BaseAdapter {
         }
         TextView textView = (TextView) row.findViewById(R.id.listText);
         Location location = mDisplayedLocations.get(position);
-        Properties properties = location.getProperties();
-        String city = properties.getCity();
 
-
-        String locationName = "";
-
-        if (city == null){
-            city = "";
-        }
-
-        String name = properties.getName();
-        if (name == null){
-            name = "";
-        }
-
-        String street = properties.getStreet();
-
-        if (street == null){
-            street = "";
-        }
-
-        String housenumber = properties.getHousenumber();
-        if (housenumber == null){
-            housenumber = "";
-        }
-
-        if (name.equals("")) {
-            locationName = city + ", " + street + " " + housenumber;
-        }else{
-            locationName = city + ", " + name;
-        }
+        String locationName = location.getStringForList();
 
         textView.setText(locationName);
 

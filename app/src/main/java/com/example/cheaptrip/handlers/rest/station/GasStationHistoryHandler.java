@@ -2,17 +2,13 @@ package com.example.cheaptrip.handlers.rest.station;
 
 import com.example.cheaptrip.dao.GasStationClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
-import com.example.cheaptrip.models.tankerkoenig.GasStationResponse;
 import com.example.cheaptrip.models.tankerkoenig.Station;
 
-import java.io.IOException;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
+
 
 public class GasStationHistoryHandler extends RestHandler<List<Station>,List<Station>> {
 

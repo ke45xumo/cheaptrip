@@ -3,6 +3,7 @@ package com.example.cheaptrip.handlers.rest.vehicle;
 import com.example.cheaptrip.dao.CarSpecClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
 import com.example.cheaptrip.handlers.rest.RestListener;
+import com.example.cheaptrip.models.TripVehicle;
 import com.example.cheaptrip.models.nhtsa.VehicleModel;
 import com.example.cheaptrip.models.nhtsa.VehicleModelResponse;
 
@@ -14,6 +15,7 @@ import retrofit2.Response;
 public class VehicleModelHandler extends RestHandler<List<VehicleModel>,VehicleModelResponse> {
     private static final String BASE_URL = "https://vpic.nhtsa.dot.gov/api/vehicles/";
     private static CarSpecClient carSpecClient;
+    private List<TripVehicle> tripVehicleList;
 
     /**
      * Constructor: Initializes Retrofit and creates an Client for CarSpecClient Class
@@ -22,6 +24,7 @@ public class VehicleModelHandler extends RestHandler<List<VehicleModel>,VehicleM
         super(BASE_URL);
         carSpecClient = super.getRetrofit().create(CarSpecClient.class);
         Call call = carSpecClient.getModels(vehicleBrand, "json");
+
         super.setCall(call);
     }
 

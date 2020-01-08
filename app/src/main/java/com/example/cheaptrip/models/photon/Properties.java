@@ -1,27 +1,44 @@
 package com.example.cheaptrip.models.photon;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Properties {
+@Entity(tableName = "LOCATION")
 
+public class Properties {
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
+    @ColumnInfo(name="CITY")
     @SerializedName("city")
     @Expose
     private String city;
+
+    @ColumnInfo(name="COUNTRY")
     @SerializedName("country")
     @Expose
     private String country;
+
+    @ColumnInfo(name="NAME")
     @SerializedName("name")
     @Expose
     private String name;
+
+    @ColumnInfo(name="POSTCODE")
     @SerializedName("postcode")
     @Expose
     private String postcode;
 
+    @ColumnInfo(name="STREET")
     @SerializedName("street")
     @Expose
     private String street;
 
+    @ColumnInfo(name="HOUSENUMBER")
     @SerializedName("housenumber")
     @Expose
     private String housenumber;

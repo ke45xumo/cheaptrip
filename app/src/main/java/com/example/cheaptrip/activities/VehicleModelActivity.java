@@ -27,7 +27,7 @@ import java.util.List;
 //https://www.codeproject.com/Articles/5165136/Retrofit-A-REST-Client-for-Android-Retrofit-2-X
 //TODO: https://stackoverflow.com/questions/29380844/how-to-set-timeout-in-retrofit-library
 //TODO: Search for Vehicle in Edit Text
-public class CarModelActivity extends ListActivity {
+public class VehicleModelActivity extends ListActivity {
     private ProgressBar progressBar;
     private EditText edit_searchModel;      // Edit Field for searching Models
 

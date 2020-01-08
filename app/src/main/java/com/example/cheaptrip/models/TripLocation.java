@@ -4,22 +4,48 @@ import android.util.Log;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Entity(tableName = "TRIP_LOCATION")
 public class TripLocation implements Serializable {
 
-    @ColumnInfo(name= "locationName")
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
+    @ColumnInfo(name= "LOCATION_NAME")
     private String locationName;
 
-    @ColumnInfo(name= "latitude")
+    @ColumnInfo(name= "LATITUDE")
     private double latitdue;
 
-    @ColumnInfo(name= "longitude")
+    @ColumnInfo(name= "LONGITUDE")
     private double longitude;
+
+    @ColumnInfo(name="CITY")
+    private String city;
+
+    @ColumnInfo(name="COUNTRY")
+    private String country;
+
+    @ColumnInfo(name="NAME")
+    private String name;
+
+    @ColumnInfo(name="POSTCODE")
+    private String postcode;
+
+    @ColumnInfo(name="STREET")
+    private String street;
+
+    @ColumnInfo(name="HOUSENUMBER")
+    private String housenumber;
+
 
     public TripLocation(String locationName, double latitdue, double longitude) {
         this.locationName = locationName;
@@ -84,9 +110,74 @@ public class TripLocation implements Serializable {
     public void setLocationName(String locationName) {
         assertInvariants();
         this.locationName = locationName;
+        assertInvariants();
     }
 
+    public String getCity() {
+        assertInvariants();
+        return city;
+    }
 
+    public void setCity(String city) {
+        assertInvariants();
+        this.city = city;
+        assertInvariants();
+    }
+
+    public String getCountry() {
+        assertInvariants();
+        return country;
+    }
+
+    public void setCountry(String country) {
+        assertInvariants();
+        this.country = country;
+        assertInvariants();
+    }
+
+    public String getName() {
+        assertInvariants();
+        return name;
+    }
+
+    public void setName(String name) {
+        assertInvariants();
+        this.name = name;
+        assertInvariants();
+    }
+
+    public String getPostcode() {
+        assertInvariants();
+        return postcode;
+    }
+
+    public void setPostcode(String postcode) {
+        assertInvariants();
+        this.postcode = postcode;
+        assertInvariants();
+    }
+
+    public String getStreet() {
+        assertInvariants();
+        return street;
+    }
+
+    public void setStreet(String street) {
+        assertInvariants();
+        this.street = street;
+        assertInvariants();
+    }
+
+    public String getHousenumber() {
+        assertInvariants();
+        return housenumber;
+    }
+
+    public void setHousenumber(String housenumber) {
+        assertInvariants();
+        this.housenumber = housenumber;
+        assertInvariants();
+    }
 
     public List<Double> getAsDoubleList(){
         assertInvariants();
@@ -172,4 +263,6 @@ public class TripLocation implements Serializable {
         assert (longitude >= 0);
         assert (longitude >= 0);
     }
+
+
 }

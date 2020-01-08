@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#009688</color>
     <color name="colorList2nd">#CCCCCC</color>
+    <color name="color_arc">#AAA69B</color>
+    <color name="color_progress">#AF7E05</color>
+    <color name="color_text">#000000</color>
 </resources>

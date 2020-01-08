@@ -31,4 +31,23 @@ public class PhotonResponse {
         this.locations = locations;
     }
 
+
+    public List<String> getLocationNameList(){
+        List<String> locationNameList = new ArrayList<>();
+
+        if (locations == null || locations.size() <= 0){
+            return locationNameList;
+        }
+
+        for (Location location : locations){
+            if(location == null){
+                continue;
+            }
+            String textField = location.getStringForList();
+            locationNameList.add(textField);
+        }
+
+        return locationNameList;
+    }
+
 }

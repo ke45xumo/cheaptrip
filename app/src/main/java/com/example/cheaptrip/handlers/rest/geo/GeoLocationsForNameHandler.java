@@ -1,7 +1,10 @@
 package com.example.cheaptrip.handlers.rest.geo;
 
+import android.text.Editable;
+
 import com.example.cheaptrip.dao.GeoCompletionClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
+import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.models.photon.Location;
 import com.example.cheaptrip.models.photon.PhotonResponse;
 
@@ -10,7 +13,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Response;
 
-public class GeoFeatureRestHandler extends RestHandler<List<Location>, PhotonResponse> {
+public class GeoLocationsForNameHandler extends RestHandler<List<Location>, PhotonResponse> {
     private final static String BASE_URL = "http://photon.komoot.de/";
     private static GeoCompletionClient geoCompletionClient;
 
@@ -18,11 +21,18 @@ public class GeoFeatureRestHandler extends RestHandler<List<Location>, PhotonRes
      * TODO: Document
      *
      */
-    public GeoFeatureRestHandler(String locationName) {
+    public GeoLocationsForNameHandler(String locationName) {
         super(BASE_URL);
         geoCompletionClient = super.getRetrofit().create(GeoCompletionClient.class);
 
         Call call =   geoCompletionClient.geoPos(locationName);
+        super.setCall(call);
+    }
+
+    public GeoLocationsForNameHandler(String enteredText, double lat, double lon){
+        super(BASE_URL);
+        geoCompletionClient = super.getRetrofit().create(GeoCompletionClient.class);
+        Call call = geoCompletionClient.geoPos(enteredText,lat,lon);
         super.setCall(call);
     }
 
@@ -33,6 +43,4 @@ public class GeoFeatureRestHandler extends RestHandler<List<Location>, PhotonRes
 
         return locations;
     }
-
-
 }

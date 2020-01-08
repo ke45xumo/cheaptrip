@@ -1,4 +1,4 @@
-package com.example.cheaptrip.handlers.rest;
+package com.example.cheaptrip.handlers.rest.vehicle;
 
 import android.util.Xml;
 
@@ -76,8 +76,6 @@ public class VehiclePropertyHandler {
             }
 
         });
-
-
 
     }
 

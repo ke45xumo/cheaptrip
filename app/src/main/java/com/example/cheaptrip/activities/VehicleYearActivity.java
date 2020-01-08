@@ -19,7 +19,7 @@ import java.util.List;
 //TODO: https://stackoverflow.com/questions/29380844/how-to-set-timeout-in-retrofit-library
 //TODO: Search for Vehicle in Edit Text
 
-public class CarYearActivity extends ListActivity {
+public class VehicleYearActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
