@@ -197,7 +197,7 @@ public class Gauge extends View {
         // center the text
         int xPos = canvas.getWidth() / 2 - mTextRect.width() / 2;
         int yPos = (int) ((mArcRect.centerY()) - ((mTextPaint.descent() + mTextPaint.ascent()) / 2));
-        //canvas.drawText(String.valueOf(mPoints), xPos, yPos, mTextPaint);
+        canvas.drawText(String.valueOf(mPoints), xPos  , yPos - 50, mTextPaint);
 
         // draw the arc and progress
         canvas.drawArc(mArcRect, -180, 180, false, mArcPaint);

@@ -98,24 +98,29 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
         List<List<Double>> routeCoordinates = orServiceResponse.getFeatures().get(0).getGeometry().getCoordinates();
         List<TripLocation> tripLocationList = TripLocation.getAsTripLocationList(routeCoordinates);
+        CalculationActivity calcACT = (CalculationActivity) context;
 
+        calcACT.drawRange(startTripLocation, maxRange);
         /*============================================================================================
          * Determine the Point on the Route from where to find Gas Stations nearby
          *============================================================================================*/
         TripLocation pointInRange = findPointfromDistance(maxRange,tripLocationList,25);
 
-        if( context instanceof CalculationActivity) {
-            CalculationActivity calculationActivity = (CalculationActivity) context;
-
+       /* if( context instanceof CalculationActivity) {
+             CalculationActivity calculationActivity = (CalculationActivity) context;
             calculationActivity.drawRange(pointInRange, 25);
-            calculationActivity.drawRange(startTripLocation, maxRange);
-        }
+
+        }*/
         /*============================================================================================
          * Determine the Point on the Route from where to find Gas Stations nearby
          *============================================================================================*/
         List<Station> stationList = getStationsInRange(pointInRange);
 
-        //calculationActivity.drawStations(stationList);
+        if (context instanceof CalculationActivity){
+            CalculationActivity calculationActivity = (CalculationActivity) context;
+            //calculationActivity.drawStations(stationList);
+        }
+
         tripRouteList = determineRoutes(startTripLocation,endTripLocation,stationList,tripVehicle);
 
         //calculationActivity.onCalculationDone(tripRouteList);
@@ -347,7 +352,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
                 indexLowerBound = indexMiddle;
             }
 
-            calculationActivity.drawMarker(middleLocation, R.drawable.person);
+            //calculationActivity.drawMarker(middleLocation, R.drawable.person);
             ratio = Math.abs(distance - areaToFind)/areaToFind;
         }
 

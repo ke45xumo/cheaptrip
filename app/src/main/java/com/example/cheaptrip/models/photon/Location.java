@@ -8,7 +8,6 @@ import java.util.List;
 
 public class Location {
 
-
     @SerializedName("type")
     @Expose
     private String type;

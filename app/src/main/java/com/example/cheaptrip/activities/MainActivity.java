@@ -1,8 +1,6 @@
 package com.example.cheaptrip.activities;
 
 
-
-import android.animation.ValueAnimator;
 import android.app.ActivityOptions;
 import android.content.Intent;
 
@@ -14,7 +12,7 @@ import android.os.Bundle;
 import android.util.Pair;
 import android.view.MenuInflater;
 import android.view.View;
-import android.widget.AutoCompleteTextView;
+
 import android.widget.Button;
 
 import android.widget.EditText;
@@ -55,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     Button btn_carYear;
 
     EditText edit_start;
-    AutoCompleteTextView edit_end;
+    EditText edit_end;
 
     SeekBar seek_tankContents;
 
@@ -160,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-            case R.id.edit_start:   intent = new Intent(this, MapActivity2.class);
+            case R.id.edit_start:           intent = new Intent(this, MapActivity2.class);
                                             intent.putExtra("location_name",txt_start);
                                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
 
@@ -169,10 +167,11 @@ public class MainActivity extends AppCompatActivity {
                                                 ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
                                                 optionsBundle = options.toBundle();
                                             }
+
                                             requestCode = ACTIVITY_REQ_CODE_START;
                                             break;
 
-            case R.id.btn_end_location:     intent = new Intent(this, MapActivity2.class);
+            case R.id.edit_destination:     intent = new Intent(this, MapActivity2.class);
                                             intent.putExtra("lat", currLatitude);
                                             intent.putExtra("lon", currLongitude);
                                             intent.putExtra("location_name",txt_end);
@@ -288,20 +287,13 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 4711) {
 
             // Checking whether user granted the permission or not.
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                 // Showing the toast message
-                Toast.makeText(MainActivity.this,
-                        "Location Permission Granted",
-                        Toast.LENGTH_SHORT)
-                        .show();
+                Toast.makeText(MainActivity.this,"Location Permission Granted", Toast.LENGTH_SHORT).show();
             }
             else {
-                Toast.makeText(MainActivity.this,
-                        "Location Permission Denied",
-                        Toast.LENGTH_SHORT)
-                        .show();
+                Toast.makeText(MainActivity.this,"Location Permission Denied", Toast.LENGTH_SHORT).show();
             }
         }
 

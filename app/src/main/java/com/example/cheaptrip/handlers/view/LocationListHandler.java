@@ -1,25 +1,30 @@
 package com.example.cheaptrip.handlers.view;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.EditText;
 
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.activities.MapActivity2;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoLocationsForNameHandler;
+import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.photon.Location;
 
 import java.util.List;
@@ -50,6 +55,25 @@ public class LocationListHandler {
         animZoomIn = AnimationUtils.loadAnimation(context, R.anim.zoom_in);
     }
 
+
+    public void setEditorActionListener(){
+        locationInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    String inputText = v.getText().toString();
+
+                    if(context instanceof MapActivity2){
+                        MapActivity2 mapActivity = (MapActivity2)context;
+                        mapActivity.loadMarkers(inputText);
+                        listView.startAnimation(animSlideUp);
+                    }
+                }
+                return true;
+            }
+        });
+    }
+
     public void setInputListener() {
         locationInput.addTextChangedListener(new TextWatcher() {
             @Override
@@ -74,7 +98,7 @@ public class LocationListHandler {
                                 LocationListAdapter locationListAdapter = new LocationListAdapter(context, locations);
                                 locationListAdapter.notifyDataSetChanged();
                                 listView.setAdapter(locationListAdapter);
-                                listView.startAnimation(animSlideDown);
+                                //listView.startAnimation(animSlideDown);
 
                             }
 
@@ -113,8 +137,8 @@ public class LocationListHandler {
                 listView.setLayoutParams(layoutParams);
                 MapActivity2 mapActivity2 = (MapActivity2) context;
 
-                mapActivity2.loadMarker(location);
-
+                TripLocation tripLocation = new TripLocation(location);
+                mapActivity2.setMarker(tripLocation, MapActivity2.MARKERTYPE.SELECTED, true);
             }
         });
 

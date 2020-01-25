@@ -6,6 +6,9 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.example.cheaptrip.models.photon.Geometry;
+import com.example.cheaptrip.models.photon.Location;
+import com.example.cheaptrip.models.photon.Properties;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -51,6 +54,48 @@ public class TripLocation implements Serializable {
         this.locationName = locationName;
         this.latitdue = latitdue;
         this.longitude = longitude;
+    }
+
+    public TripLocation(Location location){
+        if(location == null){
+            String msg = "Cannot initialize TripLocation when location is null";
+            Log.e("TripLocation",msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        /*====================================================
+         * Set Longitude and Latitude
+         *====================================================*/
+        List<Double> coordinates = location.getCoordinates();
+
+        if(coordinates == null || coordinates.isEmpty()){
+            String msg = "Provided Argument location cannot have no coordinates.";
+            Log.e("TripLocation",msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        double lon = coordinates.get(0);    // longitude of the location
+        double lat = coordinates.get(1);    // latitude of the location
+
+        setLongitude(lon);
+        setLatitdue(lat);
+        /*====================================================
+         * Set Location Names (Street postal ...)
+         *====================================================*/
+        Properties properties = location.getProperties();
+
+        if(properties == null){
+            String msg = "Provided Argument location cannot have no Properties.";
+            Log.e("TripLocation",msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        setCountry(properties.getCountry());
+        setCity(properties.getCity());
+        setPostcode(properties.getPostcode());
+        setStreet(properties.getStreet());
+        setHousenumber(properties.getHousenumber());
+
     }
 
     public TripLocation(List<Double> coordinate){

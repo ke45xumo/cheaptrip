@@ -5,22 +5,19 @@ import android.content.Context;
 import android.content.Intent;
 
 import android.graphics.drawable.Drawable;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
 import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.handlers.view.LocationListHandler;
@@ -39,78 +36,81 @@ import org.osmdroid.tileprovider.tilesource.XYTileSource;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
-import org.osmdroid.views.Projection;
-import org.osmdroid.views.overlay.IconOverlay;
 import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.infowindow.InfoWindow;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MapActivity2 extends Activity {
-    protected LocationManager locationManager;
-    protected LocationListener locationListener;
 
-    private EditText editLocationInput;
+    private EditText editLocationInput;                 // Text field to search for Locations
 
-    private MapView mMapView = null;
-    private IMapController mMapController = null;
+    private MapView mMapView = null;                    // View, representing the map
+    private IMapController mMapController = null;       // Controller for the map
 
-    private TripLocation tripLocation;
-    private Marker currentMarker;
+    private TripLocation tripLocation;                  // This will be the result of the activity
+                                                        // (user will select a tripLocation)
 
     private TextView txtView_currentLocation;
 
-    private Animation animSlideDown;
-    private Animation animSlideUp;
+    private ListView locationList;                      // Location list to be shown on user input
+                                                        // on the text field
 
-    private ListView locationList;
+    private Marker currentSelectedMarker;               // Marker, representing the current selected Location
+    private Marker currentLocationMarker;               // Marker, representing the current current Location
+    private Marker customLocationMarker;                // Marker, representing a Location picked form the map
 
-    private Marker currentSelectedMarker;
 
+    /**
+     * Enum, to identify the purpose of a Marker
+     * This enum will be used to set marker icons
+     */
+    public enum MARKERTYPE{
+        CURRENT,    // Current Location (location of this device)
+        SELECTED,   // Custom selected Location from Map
+        LOADED      // Loaded Locations from Search
+    }
 
+    /**
+     * This function will be called on Activity Creation.
+     *
+     * It initializes the views, attached to the Layout and sets current Properties:
+     *      *   it initializes the Map
+     *      *   it initializes a hidden list, which will be populated when the user types something
+     *          into the Edit-Text field editLocationInput
+     *      *   it sets a TouchListener on the Map to handle Location
+     *      *   sets the current location as a marker
+     *
+     * @param savedInstanceState    the state of the Activity when it has been opened before
+     */
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         //handle permissions first, before mMapView is created. not depicted here
 
-        //load/initialize the osmdroid configuration, this can be done
+        //load/initialize the osmdroid configuration
         Context ctx = getApplicationContext();
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
-        //setting this before the layout is inflated is a good idea
-        //it 'should' ensure that the mMapView has a writable location for the mMapView cache, even without permissions
-        //if no tiles are displayed, you can try overriding the cache path using Configuration.getInstance().setCachePath
-        //see also StorageUtils
-        //note, the load method also sets the HTTP User Agent to your application's package name, abusing osm's tile servers will get you banned based on this string
-
-        //inflate and create the mMapView
+        /*===============================================================================
+         * inflate and create the Views
+         *==============================================================================*/
         setContentView(R.layout.map_activity);
-
-        mMapView = (MapView) findViewById(R.id.map);
-
-        editLocationInput =  findViewById(R.id.edit_start);
+        mMapView = findViewById(R.id.map);
+        editLocationInput = findViewById(R.id.edit_start);
         locationList = findViewById(R.id.list_map_locations);
-
         txtView_currentLocation = findViewById(R.id.tv_curr_location);
-
-        //final ITileSource tileSource = new HEREWeGoTileSource(this);
-        //mMapView.setTileSource(tileSource);
-
-        //mMapView.setBuiltInZoomControls(true);
-        animSlideDown = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.slide_down);
-        animSlideUp = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.slide_up);
-
-        Intent intent = getIntent();
-        Bundle extras = intent.getExtras();
-
-        final String locationName = (String) extras.get("location_name");
-
+        /*===============================================================================
+         * Initialize the Map and the Location List
+         *==============================================================================*/
         initMap();
         initList();
-        loadMarkers(locationName);
-        editLocationInput.requestFocus();
+        setTouchListener();
+        setCurrentLocationMarker();
 
+        editLocationInput.requestFocus();   // Request Focus (to start writing to the Edit text)
     }
 
     public void onResume(){
@@ -131,20 +131,11 @@ public class MapActivity2 extends Activity {
         mMapView.onPause();  //needed for compass, my location overlays, v6.0.0 and up
     }
 
-    private void initList() {
-        GPSService gpsService = new GPSService(this);
-
-        if (gpsService.canGetLocation()) {
-            final double latitude = gpsService.getLatitude();
-            final double longitude = gpsService.getLongitude();
-            LocationListHandler locationListHandler = new LocationListHandler(editLocationInput, locationList,latitude,longitude);
-            locationListHandler.setInputListener();
-            locationListHandler.setListTouchListeners();
-        }
-
-    }
-
     private void initMap(){
+        mMapView.setMultiTouchControls(true);
+        /*===============================================================================
+         * Set different Tile Source (--> HttpMapnik is faster as the default TileSource)
+         *==============================================================================*/
         //mMapView.setTileSource(TileSourceFactory.MAPNIK);
         mMapView.setTileSource(
                 new XYTileSource("HttpMapnik",
@@ -154,90 +145,297 @@ public class MapActivity2 extends Activity {
                         "http://c.tile.openstreetmap.org/" },
                         "© OpenStreetMap contributors")
         );
+        /*===============================================================================
+         * Get the current Location
+         *==============================================================================*/
+        GPSService gpsService = new GPSService(this);
 
-        mMapView.setMultiTouchControls(true);
+        if (!gpsService.canGetLocation()) {
+            Toast.makeText(this,"Could not determine your Location",Toast.LENGTH_LONG).show();
+            Log.e("initMap()","GPS-Service could not get Location");
+            return;
+        }
 
+        final double latitude = gpsService.getLatitude();
+        final double longitude = gpsService.getLongitude();
+        /*===============================================================================
+         * Center Map on current Location
+         *==============================================================================*/
+        mMapController = mMapView.getController();
+        mMapController.setZoom(20.0);
+        GeoPoint startPoint = new GeoPoint(latitude, longitude);
+        mMapController.setCenter(startPoint);
+
+    }
+
+    /**
+     * Initializes the list of locations to be shown on user input.
+     * It takes care of the Input of the Edit-Text to populate the location List.
+     */
+    private void initList() {
         GPSService gpsService = new GPSService(this);
 
         if (gpsService.canGetLocation()) {
-            final double latitude = gpsService.getLatitude();
-            final double longitude = gpsService.getLongitude();
+            final double latitude = gpsService.getLatitude();       // current latitude
+            final double longitude = gpsService.getLongitude();     // current longitude
 
-            GeoNameForLocationHandler geoNameForLocationHandler = new GeoNameForLocationHandler(latitude, longitude);
-            geoNameForLocationHandler.makeAsyncRequest(new RestListener<String>() {
-                @Override
-                public void OnRestSuccess(String s) {
-                    currentMarker.setTitle(s);
-                    currentMarker.showInfoWindow();
-                }
-
-                @Override
-                public void OnRestFail() {
-
-                }
-            });
-
-            mMapController = mMapView.getController();
-            mMapController.setZoom(20.0);
-            GeoPoint startPoint = new GeoPoint(latitude, longitude);
-            mMapController.setCenter(startPoint);
-
-            currentMarker= new Marker(mMapView);
-            currentMarker.setPosition(new GeoPoint(latitude,longitude));
-            currentMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            currentMarker.setIcon(getResources().getDrawable(R.drawable.marker_default));
-            //currentMarker.setTitle(locationName);
-
-            mMapView.getOverlays().add(currentMarker);
-            setTouchListener();
-
-
+            /*=============================================================================
+             * Initialize LocationListHandler
+             * ( this will take care of transforming user input into a list of locations)
+             *=============================================================================*/
+            LocationListHandler locationListHandler = new LocationListHandler(editLocationInput, locationList,latitude,longitude);
+            locationListHandler.setInputListener();
+            locationListHandler.setListTouchListeners();
+            locationListHandler.setEditorActionListener();
         }
 
     }
 
-    public void loadMarker(Location location){
-        List<Location> locationList = new ArrayList<>();
-        locationList.add(location);
-        loadMarkers(locationList);
+    /**
+     * This functions sets a TouchListener on the map,
+     * so the user can select custom locations from it.
+     */
+    private void setTouchListener(){
+        final MapEventsReceiver mReceive = new MapEventsReceiver(){
+
+            @Override
+            public boolean singleTapConfirmedHelper(GeoPoint selectedGeoPoint) {
+                // Hide the Keyboard
+                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                in.hideSoftInputFromWindow(mMapView.getWindowToken(), 0);
+
+
+                final double latitude = selectedGeoPoint.getLatitude();
+                final double longitude = selectedGeoPoint.getLongitude();
+
+                tripLocation = new TripLocation(latitude,longitude);
+                setMarker(tripLocation,MARKERTYPE.SELECTED,false);
+
+
+                return true;
+            }
+            @Override
+            public boolean longPressHelper(GeoPoint p) {
+                return false;
+            }
+        };
+        mMapView.getOverlays().add(new MapEventsOverlay(mReceive));
     }
 
+    /**
+     * This functions purpose is to set the marker for the current location of this device.
+     */
+    private void setCurrentLocationMarker(){
+        /*===============================================================================
+         * Get the current Location
+         *==============================================================================*/
+        GPSService gpsService = new GPSService(this);
 
-    public void loadMarkers(List<Location> locationList){
+        if (!gpsService.canGetLocation()) {
+            Toast.makeText(this,"Could not determine your Location",Toast.LENGTH_LONG).show();
+            Log.e("initMap()","GPS-Service could not get Location");
+            return;
+        }
+
+        final double latitude = gpsService.getLatitude();
+        final double longitude = gpsService.getLongitude();
+        /*===============================================================================
+         * Create the marker
+         *==============================================================================*/
+        TripLocation tripLocation = new TripLocation(latitude,longitude);
+        setMarker(tripLocation, MARKERTYPE.CURRENT,true);
+    }
+
+    /**
+     * updateCurrentMarker() will handle the selection of a specific marker (provided by argument.
+     *      * If the marker is the same as the current location, it will remove the previous selection.
+     *
+     *      * If there is no previous selection (marker) it will close the info window of the marker,
+     *        representing current location and will set the selected Marker
+     *        to the marker provided by the argument
+     *
+     *      * if the current selection is the same as a custom selected location from the map,
+     *        it will remove the previous selected marker from the map.
+     *
+     *      * Else, the previous selected marker is a marker loaded from the text-input
+     *        and has to be kept on the map. It will only close the info window of the previous marker.
+     *
+     * @param marker    marker to be set as current selection
+     */
+    public void updateCurrentMarker(Marker marker){
+        if(marker == null){
+            Log.e("updateCurrentMarker()","Current Selected Marker is null");
+            return;
+        }
+        /*==============================================================
+         * Marker is current location -> remove current selected marker
+         ===============================================================*/
+        if(marker == currentLocationMarker){
+            currentSelectedMarker.getInfoWindow().close();
+            mMapView.getOverlays().remove(currentSelectedMarker);
+            currentLocationMarker.showInfoWindow();
+            //currentSelectedMarker = currentLocationMarker;
+            return;
+        }
+        /*==============================================================
+         * No marker selection --> set current selected marker
+         ===============================================================*/
+        if(currentSelectedMarker == null){
+            currentLocationMarker.getInfoWindow().close();
+            currentSelectedMarker = marker;
+            currentSelectedMarker.showInfoWindow();
+            return;
+        }
+        /*========================================================================
+         * custom pick from map is the current selected marker --> can be removed
+         =========================================================================*/
+        if(currentSelectedMarker == customLocationMarker){
+            currentLocationMarker.getInfoWindow().close();
+            currentSelectedMarker.getInfoWindow().close();
+            mMapView.getOverlays().remove(currentSelectedMarker);
+            currentSelectedMarker = marker;
+            return;
+        }
+        /*==================================================================================
+         * one of multiple choices is current selected marker --> just change the icon back
+         ===================================================================================*/
+        currentSelectedMarker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
+        currentSelectedMarker.getInfoWindow().close();
+        currentLocationMarker.getInfoWindow().close();
+
+        currentSelectedMarker = marker;
+        currentSelectedMarker.setIcon(getResources().getDrawable(R.drawable.marker_default));
+        currentSelectedMarker.showInfoWindow();
+
+        mMapView.invalidate();
+    }
+
+    /**
+     * A marker will be added to the map with the location, provided by argument.
+     *
+     * The markers icon will be set based on the argument <markertype>:
+     *      * CURRENT:      current location of this device
+     *      * SELECTED:     Selection by the user (either from laoded markers or picked from the map)
+     *      * LOADED:       Loaded by typing in the search field.
+     *
+     * @param location      location of the marker to be set
+     * @param markertype    type of the marker
+     * @param center        indicates, whether the map as to be centered around the new marker
+     */
+    public void setMarker(TripLocation location, MARKERTYPE markertype, boolean center){
+        if(location == null){
+            Log.d("setMarker()","Cannot set Marker: Location may not be null");
+            return;
+        }
+
+        Double latitude = location.getLatitdue();
+        Double longitude = location.getLongitude();
+        /*====================================================
+         * Close current Selection
+         *====================================================*/
+        if(currentSelectedMarker != null) {
+            currentSelectedMarker.getInfoWindow().close();
+        }
+        /*====================================================
+         * Initialize the Marker
+         *====================================================*/
+        Marker marker = new Marker(mMapView);
+
+        marker.setPosition(new GeoPoint(latitude,longitude));
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        marker.setTitle("Loading Location Name...");
+        marker.setInfoWindow(new TripInfoWindow("Loading Location Name...", mMapView));
+        marker.showInfoWindow();
+        /*===============================================================
+         * Set the icon based on the Purpose
+         *      * CURRENT:      shows current location
+         *      * SELECTED:     Current Selection
+         *      * LOADED:       Individual Marker, loaded from REST-Api
+         *===============================================================*/
+        Drawable markerIcon;
+
+        switch (markertype){
+            case CURRENT:   markerIcon = getResources().getDrawable(R.drawable.person);
+                            currentLocationMarker = marker;
+                            break;
+
+            case SELECTED:  markerIcon = getResources().getDrawable(R.drawable.marker_default);
+                            updateCurrentMarker(marker);
+                            customLocationMarker = marker;
+                            currentSelectedMarker = marker;
+                            break;
+
+            case LOADED:    markerIcon = getResources().getDrawable(R.drawable.osm_ic_center_map);
+                            currentSelectedMarker = marker;
+                            break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + markertype);
+        }
+
+        marker.setIcon(markerIcon);
+
+        loadLocationTitle(marker);
+
+        mMapView.getOverlays().add(marker);
+        mMapView.getController().setZoom(20.0);
+        mMapView.invalidate();
+
+        if(center){
+            mMapView.getController().setCenter(new GeoPoint(latitude,longitude));
+        }
+
+        setMarkerClickListener(marker);
+
+    }
+
+    /**
+     *  This function loads the Location Attributes (City, Street, Postcode ...) for a specific marker.
+     *  This will be shown in the Info-Window of the marker.
+     *
+     *  By calling the Rest-API of Photon it will return a String containing the relevant location
+     *  information for a specific Coordinate (the marker's coordinate)
+     *
+     * @param marker    Marker, to be updated with the location text
+     */
+    private void loadLocationTitle(final Marker marker){
+        final GeoNameForLocationHandler geoNameListRestHandler = new GeoNameForLocationHandler(marker.getPosition().getLatitude(),marker.getPosition().getLongitude());
+
+        geoNameListRestHandler.makeAsyncRequest(new RestListener<String>() {
+            @Override
+            public void OnRestSuccess(final String locationName) {
+                marker.setTitle(locationName);
+
+                TripInfoWindow tripInfoWindow = (TripInfoWindow)marker.getInfoWindow();
+                tripInfoWindow.setText(locationName);
+
+            }
+
+            @Override
+            public void OnRestFail() {
+                String locationName = "Could not load LocationName";
+                marker.setTitle(locationName);
+                TripInfoWindow tripInfoWindow = (TripInfoWindow)marker.getInfoWindow();
+                tripInfoWindow.setText(locationName);
+            }
+        });
+    }
+
+    public void loadMarkers(List<TripLocation> locationList){
         if (locationList == null || locationList.size() <= 0){
             return;
         }
 
-        for(Location location : locationList){
-            List<Double> coordinates = location.getCoordinates();
-            final String labelText = generateMarkerLabel(location);
-            /*====================================================
-             * Set
-             *====================================================*/
-            Marker marker = new Marker(mMapView);
-
-            Double longitude = coordinates.get(0);
-            Double latitude = coordinates.get(1);
-
-
-            marker.setPosition(new GeoPoint(latitude,longitude));
-            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            mMapView.getOverlays().add(marker);
-
-            marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
-
-            marker.setTitle(labelText);
-
-            setMarkerClickListener(marker);
-
+        for(TripLocation location : locationList){
+            setMarker(location, MARKERTYPE.LOADED,true);
         }
 
         if (locationList.size() > 1) {
             BoundingBox boundingBox = determineBoundingBox(locationList);
             mMapView.zoomToBoundingBox(boundingBox, true,150);
+
         }else if (locationList.size() == 1 ){
-            double lon = locationList.get(0).getCoordinates().get(0);
-            double lat = locationList.get(0).getCoordinates().get(1);
+            double lon = locationList.get(0).getLongitude();
+            double lat = locationList.get(0).getLatitdue();
 
             mMapController.setCenter(new GeoPoint(lat,lon));
             mMapController.setZoom(18.0);
@@ -245,10 +443,18 @@ public class MapActivity2 extends Activity {
             Log.w("CHEAPTRIP","location List is empty.");
         }
 
-
-
     }
-    private void loadMarkers(final String locationName){
+
+    /**
+     * This function sets Markers, identified by a specific location name, to the map
+     * (The location name provided by Location-Search)
+     *
+     * This is done by calling the Rest-API of Photon, which will result for a List of Locations
+     * with a given location name.
+     *
+     * @param locationName
+     */
+    public void loadMarkers(final String locationName){
         final GeoLocationsForNameHandler geoLocationsForNameHandler = new GeoLocationsForNameHandler(locationName);
 
         geoLocationsForNameHandler.makeAsyncRequest(new RestListener< List<Location>>() {
@@ -260,31 +466,16 @@ public class MapActivity2 extends Activity {
                     return;
                 }
 
+                List<TripLocation> tripLocationList = new ArrayList<>();
+
                 for(Location location : locationList){
-                    List<Double> coordinates = location.getCoordinates();
-                    final String labelText = generateMarkerLabel(location);
-                    /*====================================================
-                     * Set
-                     *====================================================*/
-                    Marker marker = new Marker(mMapView);
-
-                    Double longitude = coordinates.get(0);
-                    Double latitude = coordinates.get(1);
-
-
-                    marker.setPosition(new GeoPoint(latitude,longitude));
-                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                    mMapView.getOverlays().add(marker);
-
-                    marker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
-
-                    marker.setTitle(labelText);
-                    setMarkerClickListener(marker);
-
+                    TripLocation tripLocation = new TripLocation(location);
+                    tripLocationList.add(tripLocation);
+                    setMarker(tripLocation,MARKERTYPE.LOADED,false);
                 }
 
                 if (locationList.size() > 1) {
-                    BoundingBox boundingBox = determineBoundingBox(locationList);
+                    BoundingBox boundingBox = determineBoundingBox(tripLocationList);
                     mMapView.zoomToBoundingBox(boundingBox, true,150);
                 }else if (locationList.size() == 1 ){
                     double lon = locationList.get(0).getCoordinates().get(0);
@@ -335,24 +526,75 @@ public class MapActivity2 extends Activity {
         return labelText;
     }
 
-    private static BoundingBox determineBoundingBox(List<Location> locationList){
+    public void setMarkerClickListener(Marker marker){
+
+
+        marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker, final MapView mapView) {
+
+                if (marker != null){
+                    double latitude = marker.getPosition().getLatitude();
+                    double longitude = marker.getPosition().getLongitude();
+                    String locationName = marker.getTitle();
+
+                    tripLocation = new TripLocation(locationName,latitude,longitude);
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    intent.putExtra("Location",tripLocation);
+
+                    setResult(Activity.RESULT_OK,intent);
+
+                    TripInfoWindow tripInfoWindow = (TripInfoWindow)marker.getInfoWindow();
+                    tripInfoWindow.setText(locationName);
+
+                    updateCurrentMarker(marker);
+
+                    //txtView_currentLocation.setText(locationName);
+                }
+
+                mMapView.invalidate();
+                return true;
+            }
+        });
+    }
+
+    public void onLocationSelected(View view){
+
+        double latitude = currentSelectedMarker.getPosition().getLatitude();
+        double longitude = currentSelectedMarker.getPosition().getLongitude();
+        String locationName = currentSelectedMarker.getTitle();
+
+        tripLocation = new TripLocation(locationName,latitude,longitude);
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.putExtra("Location",tripLocation);
+
+        setResult(Activity.RESULT_OK,intent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            finishAfterTransition();
+        }else{
+            finish();
+        }
+    }
+
+
+    private static BoundingBox determineBoundingBox(List<TripLocation> locationList){
 
         if (locationList == null || locationList.size() <= 0){
             Log.e("CHEAPTRIP", "Cannot Determine BoundingBox for Empty or noninitialized location list.");
             return null;
         }
 
-        Double minLon = locationList.get(0).getCoordinates().get(0);
-        Double maxLon = locationList.get(0).getCoordinates().get(0);
+        Double minLon = locationList.get(0).getLongitude();
+        Double maxLon = minLon;
 
-        Double minLat = locationList.get(0).getCoordinates().get(1);
-        Double maxLat = locationList.get(0).getCoordinates().get(1);
+        Double minLat = locationList.get(0).getLatitdue();
+        Double maxLat = minLat;
 
-        for(Location location : locationList) {
-            List<Double> coordinates = location.getCoordinates();
+        for(TripLocation location : locationList) {
 
-            Double longitude = coordinates.get(0);
-            Double latitude = coordinates.get(1);
+            Double longitude = location.getLongitude();
+            Double latitude = location.getLatitdue();
 
             if (latitude < minLat) {
                 minLat = latitude;
@@ -373,180 +615,39 @@ public class MapActivity2 extends Activity {
         return new BoundingBox(maxLat, maxLon, minLat, minLon);
     }
 
-    private void setTouchListener(){
-        final MapEventsReceiver mReceive = new MapEventsReceiver(){
+    private class TripInfoWindow extends InfoWindow{
 
-            @Override
-            public boolean singleTapConfirmedHelper(GeoPoint p) {
-                mMapView.getOverlayManager().remove(currentMarker);
-                mMapView.getOverlays().remove(currentMarker);
+        private TextView tvLocation;
+        public TripInfoWindow(String locationText, MapView mapView) {
+            super(R.layout.info_window, mapView);
+            tvLocation = super.mView.findViewById(R.id.tv_curr_location);
+            tvLocation.setText(locationText);
 
-                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                in.hideSoftInputFromWindow(mMapView.getWindowToken(), 0);
+        }
 
-                currentMarker.setPosition(new GeoPoint(p.getLatitude(),p.getLongitude()));
-                mMapView.getOverlays().add(currentMarker);
-                mMapView.invalidate();
+        public void setText(String locationName){
 
+            tvLocation.setText(locationName);
+            tvLocation.invalidate();
 
-                //mMapView.getOverlays().add(currentMarker);
-                final GeoNameForLocationHandler geoNameListRestHandler = new GeoNameForLocationHandler(p.getLatitude(),p.getLongitude());
+            // Workaround for wrapping Content (Fitting the box around)
+            int visibility = tvLocation.getVisibility();
+            tvLocation.setVisibility(View.GONE);
+            tvLocation.setVisibility(visibility);
 
-                geoNameListRestHandler.makeAsyncRequest(new RestListener<String>() {
-                    @Override
-                    public void OnRestSuccess(final String locationName) {
-                        currentMarker.setTitle(locationName);
+            visibility = mView.getVisibility();
+            mView.setVisibility(View.GONE);
+            mView.setVisibility(visibility);
 
-                        txtView_currentLocation.setText(locationName);
-                        final double latitude = currentMarker.getPosition().getLatitude();
-                        final double longitude = currentMarker.getPosition().getLongitude();
-                        tripLocation = new TripLocation(locationName, latitude,longitude);
+        }
+        @Override
+        public void onOpen(Object item) {
 
-                        currentMarker.showInfoWindow();
-                        currentMarker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
-                            @Override
-                            public boolean onMarkerClick(Marker marker, MapView mapView) {
-                                //Toast.makeText(getApplicationContext(),labelText,Toast.LENGTH_LONG).show();
-                                marker.showInfoWindow();
-                                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                                in.hideSoftInputFromWindow(mMapView.getWindowToken(), 0);
+        }
 
+        @Override
+        public void onClose() {
 
-                                tripLocation = new TripLocation(locationName,latitude,longitude);
-                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                intent.putExtra("Location",tripLocation);
-
-                                setResult(Activity.RESULT_OK,intent);
-                                finish();
-
-                                return true;
-                            }
-                        });
-
-                    }
-
-                    @Override
-                    public void OnRestFail() {
-
-                    }
-                });
-
-                return false;
-            }
-            @Override
-            public boolean longPressHelper(GeoPoint p) {
-                return false;
-            }
-        };
-        mMapView.getOverlays().add(new MapEventsOverlay(mReceive));
-    }
-
-    public void setMarkerClickListener(Marker marker){
-
-
-        marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker, MapView mapView) {
-
-                if (marker != null && marker == marker){
-                    double latitude = marker.getPosition().getLatitude();
-                    double longitude = marker.getPosition().getLongitude();
-                    String locationName = marker.getTitle();
-
-                    tripLocation = new TripLocation(locationName,latitude,longitude);
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    intent.putExtra("Location",tripLocation);
-
-                    setResult(Activity.RESULT_OK,intent);
-
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        finishAfterTransition();
-                    }else{
-                        finish();
-                    }
-                }
-
-                if(currentSelectedMarker != null) {
-                    currentSelectedMarker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
-                }
-
-                currentSelectedMarker = marker;
-
-                //Toast.makeText(getApplicationContext(),labelText,Toast.LENGTH_LONG).show();
-                marker.showInfoWindow();
-
-                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                in.hideSoftInputFromWindow(mMapView.getWindowToken(), 0);
-
-                final String locationName = marker.getTitle();
-                final double latitude = marker.getPosition().getLatitude();
-                final double longitude= marker.getPosition().getLongitude();
-
-                tripLocation = new TripLocation(locationName,latitude,longitude);
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-
-                intent.putExtra("Location",tripLocation);
-
-                setResult(Activity.RESULT_OK,intent);
-
-
-                IconOverlay overlay = new IconOverlay();
-
-                Drawable myIcon = getResources().getDrawable(R.drawable.apply_location);
-                myIcon.setBounds(100, 0, myIcon.getIntrinsicWidth()+100, myIcon.getIntrinsicHeight());
-
-                double lat = marker.getPosition().getLatitude();
-                double lon = marker.getPosition().getLongitude();
-
-                overlay.set(new GeoPoint(lat,lon),myIcon);
-
-                marker.setIcon(myIcon);
-
-                //mMapView.getOverlays().remove(marker);
-                //mMapView.getOverlays().add();
-
-                //marker.setImage(myIcon);
-                //locationName = marker.getTitle();
-                txtView_currentLocation.setText(locationName);
-
-                Projection projection  = mapView.getProjection();
-
-
-                //Point point = projection.toPixels(marker.getPosition(),null);
-                //point.offset(100,-100);
-
-                //GeoPoint geoPoint = (GeoPoint) projection.fromPixels(point.x,point.y);
-
-
-                //overlay.set(geoPoint,myIcon);
-
-                //mMapView.getOverlays().add(overlay);
-                mMapView.invalidate();
-
-                //finish();
-                return true;
-            }
-        });
-    }
-
-    public void onLocationSelected(View view){
-
-        double latitude = currentMarker.getPosition().getLatitude();
-        double longitude = currentMarker.getPosition().getLongitude();
-        String locationName = currentMarker.getTitle();
-
-        tripLocation = new TripLocation(locationName,latitude,longitude);
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        intent.putExtra("Location",tripLocation);
-
-        setResult(Activity.RESULT_OK,intent);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            finishAfterTransition();
-        }else{
-            finish();
         }
     }
 }
-

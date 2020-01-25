@@ -33,9 +33,9 @@
 
             android:orientation="vertical">
 
-            <LinearLayout
+            <!--<LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:background="@android:drawable/zoom_plate">
             <TextView
@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="casual"
                 android:textColor="#F5FFFFFF"
-                android:textSize="18sp"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 tools:text="@tools:sample/cities"
                 android:layout_weight="1"/>
@@ -56,7 +56,7 @@
                     android:layout_weight="1"
                     android:background="@android:drawable/ic_menu_send"
                     android:onClick="onLocationSelected" />
-            </LinearLayout>
+            </LinearLayout>-->
             <ListView
                 android:id="@+id/list_map_locations"
                 android:layout_width="match_parent"
@@ -77,6 +77,8 @@
             <EditText
                 android:id="@+id/edit_start"
                 android:transitionName="edit_start"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
@@ -84,7 +86,6 @@
                 android:layout_marginRight="8dp"
                 android:autofillHints="@string/hint_edit_start"
                 android:hint="@string/location_start"
-                android:inputType="textPersonName"
                 android:focusable="true"
                 android:layout_weight="1"/>
 

@@ -63,13 +63,20 @@ public class CalculationActivity extends AppCompatActivity {
 
     TripVehicle tripVehicle;
 
+    /**
+     * This function will be called on Activity creation
+     * It takes care of initializing the views attached to the layout
+     * and starts calculating routes with a gas station as intermediate stop
+     *
+     * @param savedInstanceState    Bundle, containing the state of the activity
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /*============================================================
+         * Init the Views
+         *============================================================*/
         setContentView(R.layout.activity_calculation);
-
-
-        Bundle extras = getIntent().getExtras();
 
         startLocation = (TripLocation) getIntent().getSerializableExtra("start");
         endLocation = (TripLocation) getIntent().getSerializableExtra("end");
@@ -80,8 +87,13 @@ public class CalculationActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_brand);
         lvRoutes = findViewById(R.id.list_routes);
 
+        /*============================================================
+         * Initialize an empty List containing route information
+         * (this will be populated asynchronously)
+         *============================================================*/
         tripRouteListAdapter = new TripRouteListAdapter(this);
         lvRoutes.setAdapter(tripRouteListAdapter);
+
         lvRoutes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -98,6 +110,9 @@ public class CalculationActivity extends AppCompatActivity {
             }
         });
 
+        /*============================================================
+         * Init the Views
+         *============================================================*/
         initMap();
         getDirections();
 
