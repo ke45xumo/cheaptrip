@@ -1,7 +1,6 @@
 package com.example.cheaptrip.handlers.view;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -24,6 +23,7 @@ import com.example.cheaptrip.R;
 import com.example.cheaptrip.activities.MapActivity2;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoLocationsForNameHandler;
+import com.example.cheaptrip.handlers.view.adapters.LocationListAdapter;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.photon.Location;
 
@@ -41,6 +41,9 @@ public class LocationListHandler {
     private static Context context;
 
     private volatile boolean bItemSelected = false; //Indicator if an Item is selected
+
+    GeoLocationsForNameHandler mGeoNameRestHandler;
+
 
     public LocationListHandler(EditText locationInput, final ListView listView, double lat, double lon) {
         this.locationInput = locationInput;
@@ -86,8 +89,13 @@ public class LocationListHandler {
 
                 if (!bItemSelected) {
                     if (listView != null) {
-                        GeoLocationsForNameHandler geoNameRestHandler = new GeoLocationsForNameHandler(s.toString(), lat, lon);
-                        geoNameRestHandler.makeAsyncRequest(new RestListener<List<Location>>() {
+
+                        if(mGeoNameRestHandler != null){
+                            mGeoNameRestHandler.cancel();
+                        }
+
+                        mGeoNameRestHandler = new GeoLocationsForNameHandler(s.toString(), lat, lon);
+                        mGeoNameRestHandler.makeAsyncRequest(new RestListener<List<Location>>() {
                             @Override
                             public void OnRestSuccess(List<Location> locations) {
                                 if (locations == null || locations.size() < 1) {

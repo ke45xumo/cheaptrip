@@ -340,7 +340,6 @@ public class MapActivity2 extends Activity {
          * Initialize the Marker
          *====================================================*/
         Marker marker = new Marker(mMapView);
-
         marker.setPosition(new GeoPoint(latitude,longitude));
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         marker.setTitle("Loading Location Name...");
@@ -357,6 +356,7 @@ public class MapActivity2 extends Activity {
         switch (markertype){
             case CURRENT:   markerIcon = getResources().getDrawable(R.drawable.person);
                             currentLocationMarker = marker;
+                            mMapView.getController().setZoom(20.0);
                             break;
 
             case SELECTED:  markerIcon = getResources().getDrawable(R.drawable.marker_default);
@@ -367,6 +367,7 @@ public class MapActivity2 extends Activity {
 
             case LOADED:    markerIcon = getResources().getDrawable(R.drawable.osm_ic_center_map);
                             currentSelectedMarker = marker;
+                            mMapView.getController().setZoom(20.0);
                             break;
             default:
                 throw new IllegalStateException("Unexpected value: " + markertype);
@@ -377,7 +378,6 @@ public class MapActivity2 extends Activity {
         loadLocationTitle(marker);
 
         mMapView.getOverlays().add(marker);
-        mMapView.getController().setZoom(20.0);
         mMapView.invalidate();
 
         if(center){

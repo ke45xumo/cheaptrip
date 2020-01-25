@@ -15,7 +15,7 @@ import com.example.cheaptrip.R;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
 import com.example.cheaptrip.handlers.view.MyKmlStyler;
-import com.example.cheaptrip.handlers.view.TripRouteListAdapter;
+import com.example.cheaptrip.handlers.view.adapters.TripRouteListAdapter;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripRoute;
 import com.example.cheaptrip.models.TripVehicle;

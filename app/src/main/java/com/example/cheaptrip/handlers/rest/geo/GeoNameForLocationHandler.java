@@ -51,16 +51,25 @@ public class GeoNameForLocationHandler extends RestHandler<String,PhotonResponse
         Location location = photonResponse.getLocations().get(0);
         Properties properties = location.getProperties();
 
+
         /*====================================================
          * Extract Values
          *====================================================*/
+        String postCode = properties.getPostcode();
+        if (postCode == null || postCode.length() == 0){
+            postCode = "";
+        }
+
+
         String city = properties.getCity();
-        if (city == null){
+        if (city == null || city.length() == 0){
             city = "";
+        }{
+            city = postCode + " " + city;
         }
 
         String locationName = properties.getName();
-        if (locationName == null){
+        if (locationName == null || locationName.length() == 0){
             locationName = "";
         }else{
             locationName = "\n" + locationName;
@@ -68,15 +77,19 @@ public class GeoNameForLocationHandler extends RestHandler<String,PhotonResponse
 
         String street = properties.getStreet();
 
-        if (street == null){
+        if (street == null || street.length() == 0){
             street = "";
+        }else{
+            street = "\n" + street;
         }
 
         String housenumber = properties.getHousenumber();
         if (housenumber == null){
             housenumber = "";
+        }else{
+            housenumber = " " + housenumber;
         }
-        final String labelText = locationName + "City: " + city + "\nStreet: " + street + " " + housenumber;
+        final String labelText = city + locationName + street + housenumber;
 
         return labelText;
        /* Location location = photonResponse.getLocations().get(0);
