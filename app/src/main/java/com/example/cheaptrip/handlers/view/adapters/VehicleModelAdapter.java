@@ -1,4 +1,4 @@
-package com.example.cheaptrip.handlers.view;
+package com.example.cheaptrip.handlers.view.adapters;
 
 import android.content.Context;
 import android.os.Build;
@@ -13,52 +13,41 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.models.nhtsa.VehicleBrand;
+import com.example.cheaptrip.models.nhtsa.VehicleModel;
 
 import java.util.ArrayList;
 
 import java.util.Comparator;
 import java.util.List;
-public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
-
+public class VehicleModelAdapter extends BaseAdapter implements Filterable {
     private Context context;
-    private List<VehicleBrand> vehicleBrandList;
-    private List<VehicleBrand> mDisplayedBrands;    // Values to be displayed
+    private List<VehicleModel> vehicleModelList;
 
+    private List<VehicleModel> mDisplayedModels;    // Values to be displayed
 
-    public VehicleBrandAdapter(@NonNull Context context) {
+    public VehicleModelAdapter(@NonNull Context context, List<VehicleModel> vehicleModelList) {
+        //super(context, R.layout.selection_list_row);
+        sortVehicleModels(vehicleModelList);
+        this.vehicleModelList = vehicleModelList;
+        this.mDisplayedModels = vehicleModelList;
+
         this.context = context;
-        vehicleBrandList = new ArrayList<>();
-        mDisplayedBrands = new ArrayList<>();
-    }
-
-    public VehicleBrandAdapter(@NonNull Context context, List<VehicleBrand> vehicleBrandList) {
-        setList(vehicleBrandList);
-        this.context = context;
-    }
-
-    public void setList(List<VehicleBrand> vehicleBrandList){
-        sortVehicleBrands(vehicleBrandList);
-        this.vehicleBrandList = vehicleBrandList;
-        this.mDisplayedBrands = vehicleBrandList;
-        notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        return mDisplayedBrands.size();
+        return mDisplayedModels.size();
     }
 
     @Override
-    public Object getItem(int position) {
-        return mDisplayedBrands.get(position);
+    public VehicleModel getItem(int position) {
+        return mDisplayedModels.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        return mDisplayedBrands.get(position).getMakeId();
+        return mDisplayedModels.get(position).getModelID();
     }
-
 
 
 
@@ -70,11 +59,10 @@ public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             row = inflater.inflate(R.layout.selection_list_row, parent, false);
         }
-
         TextView textView = (TextView) row.findViewById(R.id.listText);
-        VehicleBrand list = mDisplayedBrands.get(position);
-        String brand= list.getMakeName();
-        textView.setText(brand);
+        VehicleModel list = mDisplayedModels.get(position);
+        String model= list.getModelName();
+        textView.setText(model);
 
         return row;
     }
@@ -86,8 +74,8 @@ public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
             @SuppressWarnings("unchecked")
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
-                mDisplayedBrands = (List<VehicleBrand>) results.values; // has the filtered values
-                sortVehicleBrands(mDisplayedBrands);
+                mDisplayedModels = (List<VehicleModel>) results.values; // has the filtered values
+                sortVehicleModels(mDisplayedModels);
                 notifyDataSetChanged();  // notifies the data with new filtered values
             }
 
@@ -95,10 +83,10 @@ public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
             protected FilterResults performFiltering(CharSequence constraint) {
 
                 FilterResults results = new FilterResults();        // Holds the results of a filtering operation in values
-                List<VehicleBrand> FilteredArrList = new ArrayList<VehicleBrand>();
+                List<VehicleModel> FilteredArrList = new ArrayList<VehicleModel>();
 
-                if (mDisplayedBrands == null) {
-                    mDisplayedBrands =  new ArrayList<VehicleBrand>(mDisplayedBrands); // saves the original data in mOriginalValues
+                if (mDisplayedModels == null) {
+                    mDisplayedModels =  new ArrayList<VehicleModel>(mDisplayedModels); // saves the original data in mOriginalValues
                 }
 
                 /********
@@ -110,19 +98,19 @@ public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
                 if (constraint == null || constraint.length() == 0) {
 
                     // set the Original result to return
-                    results.count = vehicleBrandList.size();
-                    results.values = vehicleBrandList;
+                    results.count = vehicleModelList.size();
+                    results.values = vehicleModelList;
 
                 } else {
                     constraint = constraint.toString().toLowerCase();
-                    for (int i = 0; i < vehicleBrandList.size(); i++) {
-                        String data = vehicleBrandList.get(i).getMakeName();
+                    for (int i = 0; i < vehicleModelList.size(); i++) {
+                        String data = vehicleModelList.get(i).getModelName();
                         if (data.toLowerCase().startsWith(constraint.toString())) {
-                            FilteredArrList.add(vehicleBrandList.get(i));
+                            FilteredArrList.add(vehicleModelList.get(i));
                         }
                     }
 
-                    sortVehicleBrands(FilteredArrList);
+                    sortVehicleModels(FilteredArrList);
 
                     // set the Filtered result to return
                     results.count = FilteredArrList.size();
@@ -137,19 +125,19 @@ public class VehicleBrandAdapter extends BaseAdapter implements Filterable {
     }
 
 
-    private List<VehicleBrand> sortVehicleBrands(List<VehicleBrand> brandList){
+    private List<VehicleModel> sortVehicleModels(List<VehicleModel> modelList){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            brandList.sort(new Comparator<VehicleBrand>() {
+            modelList.sort(new Comparator<VehicleModel>() {
                 @Override
-                public int compare(VehicleBrand brand1, VehicleBrand brand2) {
-                    String brand1_name = brand1.getMakeName().trim();
-                    String brand2_name = brand2.getMakeName().trim();
+                public int compare(VehicleModel model1, VehicleModel model2) {
+                    String model1_name = model1.getModelName().trim();
+                    String model2_name = model2.getModelName().trim();
 
-                    return brand1_name.compareTo(brand2_name);
+                    return model1_name.compareTo(model2_name);
                 }
             });
         }
 
-        return brandList;
+        return modelList;
     }
 }

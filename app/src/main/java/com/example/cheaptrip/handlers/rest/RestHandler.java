@@ -83,6 +83,14 @@ public abstract class RestHandler<RestContent, RestResponse> {
     }
 
     /**
+     * Cancels current call (if exists)
+      */
+    public void cancel(){
+        if(call != null){
+            call.cancel();
+        }
+    }
+    /**
      * @return
      */
     public RestContent makeSyncRequest() {

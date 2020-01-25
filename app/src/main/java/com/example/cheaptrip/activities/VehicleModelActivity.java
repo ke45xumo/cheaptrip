@@ -14,7 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.handlers.view.VehicleModelAdapter;
+import com.example.cheaptrip.handlers.view.adapters.VehicleModelAdapter;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleModelHandler;
 import com.example.cheaptrip.models.nhtsa.VehicleModel;

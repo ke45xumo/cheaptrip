@@ -1,4 +1,4 @@
-package com.example.cheaptrip.handlers.view;
+package com.example.cheaptrip.handlers.view.adapters;
 
 
 import android.content.Context;
