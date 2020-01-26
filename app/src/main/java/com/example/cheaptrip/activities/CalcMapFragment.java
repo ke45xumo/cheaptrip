@@ -1,23 +1,23 @@
 package com.example.cheaptrip.activities;
 
-
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
+import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
-import com.example.cheaptrip.handlers.view.CalcViewPagerAdapter;
 import com.example.cheaptrip.handlers.view.MyKmlStyler;
-
 import com.example.cheaptrip.handlers.view.adapters.TripRouteListAdapter;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripRoute;
@@ -26,14 +26,10 @@ import com.example.cheaptrip.models.orservice.ORServiceResponse;
 import com.example.cheaptrip.models.tankerkoenig.Station;
 import com.example.cheaptrip.services.GPSService;
 import com.example.cheaptrip.services.RouteService;
-
-import com.google.android.material.tabs.TabLayout;
 import com.google.gson.Gson;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.kml.KmlDocument;
-
-
 import org.osmdroid.bonuspack.kml.KmlFeature;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
@@ -41,19 +37,13 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.FolderOverlay;
 import org.osmdroid.views.overlay.Marker;
-
-
 import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.Polygon;
-
 
 import java.util.ArrayList;
 import java.util.List;
 
-
-public class CalculationActivity extends AppCompatActivity {
-
-
+public class CalcMapFragment extends Fragment {
     private static MapView  mMapView = null;
     private static IMapController mMapController = null;
 
@@ -67,77 +57,41 @@ public class CalculationActivity extends AppCompatActivity {
 
     TripVehicle tripVehicle;
 
-    /**
-     * This function will be called on Activity creation
-     * It takes care of initializing the views attached to the layout
-     * and starts calculating routes with a gas station as intermediate stop
-     *
-     * @param savedInstanceState    Bundle, containing the state of the activity
-     */
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
+        View rootView = inflater.inflate(R.layout.fragment_calc_map, container, false);
+
+
+
+        return rootView;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view,savedInstanceState);
+
+        startLocation = (TripLocation) getActivity().getIntent().getSerializableExtra("start");
+        endLocation = (TripLocation) getActivity().getIntent().getSerializableExtra("end");
+
+        tripVehicle = (TripVehicle) getActivity().getIntent().getSerializableExtra("tripVehicle");
+
+        mMapView = view.findViewById(R.id.mapView);
+
+
         /*============================================================
          * Init the Views
          *============================================================*/
-        setContentView(R.layout.activity_calculation);
-
-      /*  startLocation = (TripLocation) getIntent().getSerializableExtra("start");
-        endLocation = (TripLocation) getIntent().getSerializableExtra("end");
-
-        tripVehicle = (TripVehicle)getIntent().getSerializableExtra("tripVehicle");
-        mMapView = (MapView) findViewById(R.id.mapView);
-
-        progressBar = findViewById(R.id.progress_brand);
-        lvRoutes = findViewById(R.id.list_routes);
-        *//*============================================================
-         * Init Fragments
-         *============================================================*/
-        ViewPager viewPager = findViewById(R.id.viewpager_calc);
-
-        CalcViewPagerAdapter calcViewPagerAdapter = new CalcViewPagerAdapter(getSupportFragmentManager());
-        calcViewPagerAdapter.addFragment(new CalcMapFragment(),"Map");
-        calcViewPagerAdapter.addFragment(new CalcGasStationFragment(),"Station");
-        calcViewPagerAdapter.addFragment(new CalcRouteFragment(),"Route");
-
-        viewPager.setAdapter(calcViewPagerAdapter);
-        TabLayout tabLayout = findViewById(R.id.tab_layout_calc);
-
-        tabLayout.setupWithViewPager(viewPager);
-        /*============================================================
-         * Initialize an empty List containing route information
-         * (this will be populated asynchronously)
-         *============================================================*//*
-        tripRouteListAdapter = new TripRouteListAdapter(this);
-        lvRoutes.setAdapter(tripRouteListAdapter);
-
-        lvRoutes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mMapView.getOverlays().clear();
-                TripRoute tripRoute = (TripRoute)lvRoutes.getItemAtPosition(position);
-                String geoJSON = tripRoute.getGeoJSON();
-
-                drawRoute(geoJSON,Color.GREEN);
-
-                drawRoute(startEndRouteJSON,Color.BLACK);
-                for(TripLocation tripLocation : tripRoute.getStops()){
-                    drawMarker(tripLocation,R.drawable.marker_default);
-                }
-            }
-        });
-
-        *//*============================================================
-         * Init the Views
-         *============================================================*//*
         initMap();
         getDirections();
 
         RouteService routeService = new RouteService(this,tripVehicle);
-        routeService.execute(startLocation,endLocation);*/
+        routeService.execute(startLocation,endLocation);
+
     }
 
-/*
     public void onResume() {
         super.onResume();
         //this will refresh the osmdroid configuration on resuming.
@@ -155,13 +109,12 @@ public class CalculationActivity extends AppCompatActivity {
         //Configuration.getInstance().save(this, prefs);
         mMapView.onPause();  //needed for compass, my location overlays, v6.0.0 and up
     }
-*/
 
     private void initMap(){
         mMapView.setTileSource(TileSourceFactory.MAPNIK);
         mMapView.setMultiTouchControls(true);
 
-        GPSService gpsService = new GPSService(this);
+        GPSService gpsService = new GPSService(getActivity().getApplicationContext());
 
         if (gpsService.canGetLocation()) {
 
@@ -194,7 +147,7 @@ public class CalculationActivity extends AppCompatActivity {
                 Gson gson = new Gson();
                 String geoJSON = gson.toJson(orServiceResponse);
                 startEndRouteJSON = geoJSON;
-                drawRoute(geoJSON,Color.GREEN);
+                drawRoute(geoJSON, Color.GREEN);
                 setDirectionBbox(geoJSON);
             }
 
