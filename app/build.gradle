@@ -85,14 +85,12 @@ dependencies {
      *===================================================================*/
     implementation 'org.osmdroid:osmdroid-android:6.1.2'
     implementation 'com.google.android.material:material:1.0.0'
+    debugImplementation 'com.idescout.sql:sqlscout-server:4.1'
+    releaseImplementation 'com.idescout.sql:sqlscout-server-noop:4.1'
     //implementation 'org.osmdroid:osmdroid-wms:6.1.2'
     //implementation 'org.osmdroid:osmdroid-mapsforge:6.1.2'
     //implementation 'org.osmdroid:osmdroid-geopackage:6.1.2'
     //implementation 'org.osmdroid:osmdroid-third-party:6.0.1'
-    /*===================================================================
-     * Circular Seekbar
-     *===================================================================*/
-    implementation 'me.tankery.lib:circularSeekBar:1.1.5'
 }
 
 

@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class TripRoute {
@@ -25,6 +26,9 @@ public class TripRoute {
     public TripRoute(){
         stops = new ArrayList<>();
     }
+
+
+    List<HashMap<String,List<String>>> routeInfosList;
 
     public TripRoute(List<TripLocation> stops){
         this.stops = stops;

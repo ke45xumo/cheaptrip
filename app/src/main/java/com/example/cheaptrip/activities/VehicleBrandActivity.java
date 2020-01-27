@@ -9,17 +9,24 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.cheaptrip.R;
+import com.example.cheaptrip.dao.VehicleDatabaseClient;
+import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.view.adapters.VehicleBrandAdapter;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandHandler;
+import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
 import com.example.cheaptrip.models.nhtsa.VehicleBrand;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -102,7 +109,16 @@ public class VehicleBrandActivity extends ListActivity {
      */
     public void setBrandListView() {
         assertMembersInitialized();
-        VehicleBrandHandler vehicleBrandHandler = new VehicleBrandHandler();
+
+        VehicleDatabaseClient dbClient = VehicleDatabase.getDatabase(this).vehicleDatabaseClient();
+
+        List<String> dataSetList = dbClient.getAllBrands();
+        Collections.sort(dataSetList);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataSetList);
+        setListAdapter(adapter);
+        adapter.notifyDataSetChanged();
+        /*VehicleBrandHandler vehicleBrandHandler = new VehicleBrandHandler();
 
         vehicleBrandHandler.startGetVehicleBrandList(new RestListener<List<VehicleBrand>>() {
             @Override
@@ -118,7 +134,7 @@ public class VehicleBrandActivity extends ListActivity {
                 Toast.makeText(getApplicationContext(), "An Error Occurred", Toast.LENGTH_LONG).show();
                 Log.e("CHEAPTRIP", "Could not get Rest-Response.");
             }
-        });
+        });*/
         assertMembersInitialized();
     }
 

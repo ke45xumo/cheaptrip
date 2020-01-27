@@ -1,11 +1,12 @@
 package com.example.cheaptrip.services;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.example.cheaptrip.activities.CalcMapFragment;
 import com.example.cheaptrip.activities.CalculationActivity;
 import com.example.cheaptrip.dao.GasStationClient;
+import com.example.cheaptrip.handlers.CalculationListener;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehiclePropertyHandler;
@@ -14,6 +15,7 @@ import com.example.cheaptrip.handlers.rest.geo.GeoDirectionMatrixHandler;
 import com.example.cheaptrip.handlers.rest.station.GasStationForRadiusHandler;
 import com.example.cheaptrip.handlers.rest.station.GasStationHistoryHandler;
 import com.example.cheaptrip.handlers.rest.station.GasStationHistoryPriceHandler;
+import com.example.cheaptrip.models.TripGasStation;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripRoute;
 import com.example.cheaptrip.models.TripVehicle;
@@ -21,9 +23,9 @@ import com.example.cheaptrip.models.TripVehicle;
 import com.example.cheaptrip.models.fueleconomy.Vehicles;
 import com.example.cheaptrip.models.orservice.GeoMatrixResponse;
 import com.example.cheaptrip.models.orservice.ORServiceResponse;
+import com.example.cheaptrip.models.orservice.Segment;
 import com.example.cheaptrip.models.tankerkoenig.Station;
 import com.google.gson.Gson;
-
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,12 +42,15 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
     private TripVehicle tripVehicle;
     List<TripRoute> tripRouteList;
 
-    private CalcMapFragment calcMapFragment;
+    private Context context;
 
-    public RouteService(CalcMapFragment calcMapFragment, TripVehicle tripVehicle){
+    CalculationListener calculationListener;    // for Callbacks
+
+    public RouteService(Context context, TripVehicle tripVehicle, CalculationListener calculationListener){
         this.tripVehicle = tripVehicle;
-        this.calcMapFragment = calcMapFragment;
+        this.context = context;
         tripRouteList = new ArrayList<>();
+        this.calculationListener = calculationListener;
     }
 
     @Override
@@ -69,7 +74,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             return null;
         }
         /*============================================================================================
-         * Initilize the TripVehicle (set its Properties from Rest-API, e.g. Consumption)
+         * Initialize the TripVehicle (set its Properties from Rest-API, e.g. Consumption)
          *============================================================================================*/
         tripVehicle = initTripVehicle(tripVehicle);
 
@@ -98,10 +103,9 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         List<List<Double>> routeCoordinates = orServiceResponse.getFeatures().get(0).getGeometry().getCoordinates();
         List<TripLocation> tripLocationList = TripLocation.getAsTripLocationList(routeCoordinates);
 
-        if(calcMapFragment != null){
-            calcMapFragment.drawRange(startTripLocation, maxRange);
-        }
-
+       /* if(context != null && context instanceof CalcMapFragment){
+            ((CalculationActivity) context).drawRange(startTripLocation, maxRange);
+        }*/
 
         /*============================================================================================
          * Determine the Point on the Route from where to find Gas Stations nearby
@@ -193,17 +197,13 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             if(station == null){
                 continue;
             }
+
+
             TripRoute tripRoute = new TripRoute();
-
-            double lat = station.getLat();
-            double lon = station.getLng();
-
-            TripLocation gasStation = new TripLocation(lat, lon);
-
-            tripRoute.addTripLocation(startLocation,gasStation,endLocation);
+            TripGasStation tripGasStation = new TripGasStation(station);
+            tripRoute.addTripLocation(startLocation,tripGasStation,endLocation);
 
             GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(tripRoute.getStops());
-
             ORServiceResponse orServiceResponse = geoDirectionsHandler.makeSyncRequest();
 
             if(orServiceResponse == null){
@@ -214,8 +214,10 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             double distance = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDistance();
             double duration = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDuration();
 
-            Gson gson = new Gson();
+            List<Segment> segments = orServiceResponse.getFeatures().get(0).getProperties().getSegments();
 
+
+            Gson gson = new Gson();
             String geoJSON = gson.toJson(orServiceResponse);
 
             double avgSpeed = distance/duration;
@@ -308,7 +310,6 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
                 List<List<Double>> newSection = currentCoordinates.subList(index, upperBound);
 
                 determinePointFromDistance(maxRange,newSection);
-
             }
 
             @Override
@@ -371,7 +372,6 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
         double phi1 = Math.toRadians(latitude1);
         double phi2 = Math.toRadians(location2.getLatitdue());
-
 
         double deltaPhi = Math.toRadians(latitude2 - latitude2);
         double deltaLambda = Math.toRadians(longitude2 -longitude1);
@@ -444,6 +444,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
 
-        calcMapFragment.onCalculationDone(tripRouteList);
+        if(context != null && context instanceof CalculationActivity)
+            calculationListener.onCalculationDone(tripRouteList);
     }
 }

@@ -6,13 +6,16 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import com.example.cheaptrip.dao.VehicleDataClient;
+import com.example.cheaptrip.dao.VehicleDatabaseClient;
+import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
 import com.example.cheaptrip.models.nhtsa.VehicleBrand;
 import com.example.cheaptrip.dao.DAOVehicleBrand;
 
-@Database(entities = {VehicleBrand.class}, version = 1)
+@Database(entities = {VehicleDataSet.class}, version = 1,exportSchema = false)
 public abstract class VehicleDatabase extends RoomDatabase {
 
-    public abstract DAOVehicleBrand DAOVehicleBrand();
+    public abstract VehicleDatabaseClient vehicleDatabaseClient();
     private static VehicleDatabase INSTANCE;
 
     public static VehicleDatabase getDatabase(final Context context) {
@@ -20,9 +23,9 @@ public abstract class VehicleDatabase extends RoomDatabase {
             synchronized (VehicleDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE =
-                            Room.databaseBuilder(context.getApplicationContext(),
-                                    VehicleDatabase.class,
-                                    "vehicle_database").build();
+                            Room.databaseBuilder(context.getApplicationContext(),VehicleDatabase.class, "VEHICLES")
+                                    .allowMainThreadQueries()
+                                    .build();
                 }
             }
         }

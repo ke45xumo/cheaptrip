@@ -32,22 +32,22 @@ public class Station {
     private String place;
     @SerializedName("lat")
     @Expose
-    private Double lat;
+    private double lat;
     @SerializedName("lng")
     @Expose
-    private Double lng;
+    private double lng;
     @SerializedName("dist")
     @Expose
-    private Double dist;
+    private double dist;
     @SerializedName("diesel")
     @Expose
-    private Double diesel;
+    private double diesel;
     @SerializedName("e5")
     @Expose
-    private Double e5;
+    private double e5;
     @SerializedName("e10")
     @Expose
-    private Double e10;
+    private double e10;
     @SerializedName("isOpen")
     @Expose
     private Boolean isOpen;
@@ -98,51 +98,51 @@ public class Station {
         this.place = place;
     }
 
-    public Double getLat() {
+    public double getLat() {
         return lat;
     }
 
-    public void setLat(Double lat) {
+    public void setLat(double lat) {
         this.lat = lat;
     }
 
-    public Double getLng() {
+    public double getLng() {
         return lng;
     }
 
-    public void setLng(Double lng) {
+    public void setLng(double lng) {
         this.lng = lng;
     }
 
-    public Double getDist() {
+    public double getDist() {
         return dist;
     }
 
-    public void setDist(Double dist) {
+    public void setDist(double dist) {
         this.dist = dist;
     }
 
-    public Double getDiesel() {
+    public double getDiesel() {
         return diesel;
     }
 
-    public void setDiesel(Double diesel) {
+    public void setDiesel(double diesel) {
         this.diesel = diesel;
     }
 
-    public Double getE5() {
+    public double getE5() {
         return e5;
     }
 
-    public void setE5(Double e5) {
+    public void setE5(double e5) {
         this.e5 = e5;
     }
 
-    public Double getE10() {
+    public double getE10() {
         return e10;
     }
 
-    public void setE10(Double e10) {
+    public void setE10(double e10) {
         this.e10 = e10;
     }
 

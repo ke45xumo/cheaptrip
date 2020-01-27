@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.room.Room;
 
+import com.example.cheaptrip.BuildConfig;
 import com.example.cheaptrip.R;
 
 
@@ -44,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     final static int ACTIVITY_REQ_CODE_START    = 4;
     final static int ACTIVITY_REQ_CODE_END      = 5;
     final static int ACTIVITY_REQ_CODE_CALC     = 6;
-
 
     Gauge gauge;
 
@@ -77,23 +77,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_main);
         assignViewObjects();
         appDatabase = initDatabase();
         tripVehicle = new TripVehicle();
 
-        /*ValueAnimator animation = ValueAnimator.ofInt(-99, 75);
-        animation.setDuration(3000);
-        animation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                int mCurrentProgress = (int) valueAnimator.getAnimatedValue();
-                gauge.setProgress(mCurrentProgress);
-                gauge.invalidate();
-            }
-        });
 
-        animation.start();*/
+        /*======================================
+         * Set tripVehicle (in debug mode)
+         *======================================*/
+        if (BuildConfig.DEBUG) {
+            if(tripVehicle == null || tripVehicle.getBrand() == null || tripVehicle.getModel() == null) {
+
+                btn_carBrand.setText("BMW");
+                btn_carModel.setText("318i");
+                tripVehicle = new TripVehicle();
+                tripVehicle.setBrand("BMW");
+                tripVehicle.setModel("318i");
+            }
+        }
 
     }
 
@@ -126,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * This function is a Handler for all Views of activity_main2
+     * This function is a Handler for all Views of activity_main
      * @param view
      */
     public void viewClickHandler(View view){
@@ -141,85 +143,91 @@ public class MainActivity extends AppCompatActivity {
         tripVehicle.setRemainFuelPercent(tankPercent);
 
         switch(view.getId()){
-            case R.id.btn_car_brand:        intent = new Intent(this, VehicleBrandActivity.class);
-                                            btn_carModel.setEnabled(true);
-                                            requestCode = ACTIVITY_REQ_CODE_BRAND;
-                                            break;
+            case R.id.btn_car_brand:
+                intent = new Intent(this, VehicleBrandActivity.class);
+                btn_carModel.setEnabled(true);
+                requestCode = ACTIVITY_REQ_CODE_BRAND;
+                break;
 
-            case R.id.btn_car_model:        // TODO Check for str_carBrand
-                                            intent = new Intent(this, VehicleModelActivity.class);
-                                            intent.putExtra("brand",str_Brand);
-                                            requestCode = ACTIVITY_REQ_CODE_MODEL;
-                                            break;
+            case R.id.btn_car_model:
+                // TODO Check for str_carBrand
+                intent = new Intent(this, VehicleModelActivity.class);
+                intent.putExtra("brand",str_Brand);
+                requestCode = ACTIVITY_REQ_CODE_MODEL;
+                break;
 
-            case R.id.btn_car_year:         intent = new Intent(this, VehicleYearActivity.class);
-                                            requestCode = 3;
-                                            break;
-
-
-
-            case R.id.edit_start:           intent = new Intent(this, MapActivity2.class);
-                                            intent.putExtra("location_name",txt_start);
-                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-
-                                                Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.img_gas_pump),"image_to_map");
-                                                Pair<View,String> pairEditStart = Pair.create((View)edit_start,"edit_start");
-                                                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
-                                                optionsBundle = options.toBundle();
-                                            }
-
-                                            requestCode = ACTIVITY_REQ_CODE_START;
-                                            break;
-
-            case R.id.edit_destination:     intent = new Intent(this, MapActivity2.class);
-                                            intent.putExtra("lat", currLatitude);
-                                            intent.putExtra("lon", currLongitude);
-                                            intent.putExtra("location_name",txt_end);
-
-                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-
-                                                Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.img_gas_pump),"image_to_map");
-                                                Pair<View,String> pairEditStart = Pair.create((View)edit_end,"edit_end");
-                                                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
-                                                optionsBundle = options.toBundle();
-                                            }
+            case R.id.btn_car_year:
+                intent = new Intent(this, VehicleYearActivity.class);
+                requestCode = 3;
+                break;
 
 
-                                            requestCode = ACTIVITY_REQ_CODE_END;
-                                            break;
+
+            case R.id.edit_start:
+                intent = new Intent(this, MapActivity.class);
+                intent.putExtra("location_name",txt_start);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+
+                    Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.img_gas_pump),"image_to_map");
+                    Pair<View,String> pairEditStart = Pair.create((View)edit_start,"edit_start");
+                    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
+                    optionsBundle = options.toBundle();
+                }
+
+                requestCode = ACTIVITY_REQ_CODE_START;
+                break;
+
+            case R.id.edit_destination:
+                intent = new Intent(this, MapActivity.class);
+                intent.putExtra("lat", currLatitude);
+                intent.putExtra("lon", currLongitude);
+                intent.putExtra("location_name",txt_end);
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+
+                    Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.img_gas_pump),"image_to_map");
+                    Pair<View,String> pairEditStart = Pair.create((View)edit_end,"edit_end");
+                    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
+                    optionsBundle = options.toBundle();
+                }
+
+                requestCode = ACTIVITY_REQ_CODE_END;
+                break;
 
 
-            case R.id.btn_find:             boolean bIsIncomplete = false;
-                                            String toastText = "The following Porperties must be set:\n";
-                                            if(startLocation == null){
-                                                toastText += " - Start Location\n";
-                                            }
-                                            if(endLocation == null){
-                                                toastText += " - Destination/ End Location\n";
-                                                bIsIncomplete = true;
-                                            }
+            case R.id.btn_find:
 
-                                            if(tripVehicle.getBrand() == null){
-                                                toastText += " - Brand of the Vehicle\n";
-                                                bIsIncomplete = true;
-                                            }
+                boolean bIsIncomplete = false;
+                String toastText = "The following Porperties must be set:\n";
+                if(startLocation == null){
+                    toastText += " - Start Location\n";
+                }
+                if(endLocation == null){
+                    toastText += " - Destination/ End Location\n";
+                    bIsIncomplete = true;
+                }
 
-                                            if(tripVehicle.getModel() == null){
-                                                toastText += " - Model of the Vehicle\n";
-                                                bIsIncomplete = true;
-                                            }
+                if(tripVehicle.getBrand() == null){
+                    toastText += " - Brand of the Vehicle\n";
+                    bIsIncomplete = true;
+                }
 
-                                            if (bIsIncomplete == true){
-                                                Toast.makeText(this, toastText,Toast.LENGTH_LONG).show();
-                                                return;
-                                            }
+                if(tripVehicle.getModel() == null){
+                    toastText += " - Model of the Vehicle\n";
+                    bIsIncomplete = true;
+                }
 
-                                            intent = new Intent(this, CalculationActivity.class);
-                                            intent.putExtra("start", startLocation);
-                                            intent.putExtra("end", endLocation);
-                                            intent.putExtra("tripVehicle",tripVehicle);
-                                            requestCode = ACTIVITY_REQ_CODE_CALC;
-                                            break;
+                if (bIsIncomplete == true){
+                    Toast.makeText(this, toastText,Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                intent = new Intent(this, CalculationActivity.class);
+                intent.putExtra("start", startLocation);
+                intent.putExtra("end", endLocation);
+                intent.putExtra("tripVehicle",tripVehicle);
+                requestCode = ACTIVITY_REQ_CODE_CALC;
+                break;
             default:                        return;
 
 

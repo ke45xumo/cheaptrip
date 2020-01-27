@@ -20,7 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.cheaptrip.R;
-import com.example.cheaptrip.activities.MapActivity2;
+import com.example.cheaptrip.activities.MapActivity;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoLocationsForNameHandler;
 import com.example.cheaptrip.handlers.view.adapters.LocationListAdapter;
@@ -66,8 +66,8 @@ public class LocationListHandler {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     String inputText = v.getText().toString();
 
-                    if(context instanceof MapActivity2){
-                        MapActivity2 mapActivity = (MapActivity2)context;
+                    if(context instanceof MapActivity){
+                        MapActivity mapActivity = (MapActivity)context;
                         mapActivity.loadMarkers(inputText);
                         listView.startAnimation(animSlideUp);
                     }
@@ -143,10 +143,10 @@ public class LocationListHandler {
                 layoutParams.height = 0;
 
                 listView.setLayoutParams(layoutParams);
-                MapActivity2 mapActivity2 = (MapActivity2) context;
+                MapActivity mapActivity = (MapActivity) context;
 
                 TripLocation tripLocation = new TripLocation(location);
-                mapActivity2.setMarker(tripLocation, MapActivity2.MARKERTYPE.SELECTED, true);
+                mapActivity.setMarker(tripLocation, MapActivity.MARKERTYPE.SELECTED, true);
             }
         });
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:gauge="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -15,24 +16,34 @@
             android:focusable="true">
         </org.osmdroid.views.MapView>-->
 
-        <RelativeLayout
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:background="@color/colorPrimaryDark"
+            android:elevation="20dp">
 
-                <com.google.android.material.tabs.TabLayout
-                    android:id="@+id/tab_layout_calc"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:tabMode="fixed" />
 
-                <androidx.viewpager.widget.ViewPager
-                    android:id="@+id/viewpager_calc"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/white" />
 
-        </RelativeLayout>
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout_calc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:tabBackground="@color/colorList2nd"
+                app:tabIndicator="@color/colorAccent"
+                app:tabMode="fixed"
+                app:tabTextColor="@color/colorAccent"
+                />
+
+            <androidx.viewpager.widget.ViewPager
+                android:id="@+id/viewpager_calc"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/white" />
+
+
+        </LinearLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -53,6 +64,22 @@
             android:layout_centerInParent="true"
             android:visibility="visible"
             android:elevation="10dp"/>
+<!--
+            <com.example.cheaptrip.views.Gauge
+                xmlns:gauge="http://schemas.android.com/apk/res-auto"
+                android:layout_width="50dp"
+                android:layout_height="20dp"
+                android:layout_centerInParent="true"
+                android:visibility="visible"
+                android:elevation="10dp"
+                gauge:min="-3"
+                gauge:max="100"
+                gauge:step="1"
+                gauge:arcWidth="1dp"
+                gauge:progressColor="@color/colorPrimaryDark"
+                gauge:arcColor="@color/colorPrimaryDark"
+                />-->
+
 
         </RelativeLayout>
 

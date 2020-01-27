@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
 import com.example.cheaptrip.models.tankerkoenig.Station;
 
-@Database(entities = {Station.class}, version = 1)
+@Database(entities = {Station.class}, version = 1, exportSchema = false)
 public class GasStationDatabase extends RoomDatabase {
     @NonNull
     @Override

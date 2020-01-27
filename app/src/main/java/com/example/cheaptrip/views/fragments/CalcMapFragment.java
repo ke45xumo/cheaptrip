@@ -1,4 +1,4 @@
-package com.example.cheaptrip.activities;
+package com.example.cheaptrip.views.fragments;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -6,9 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,7 +23,6 @@ import com.example.cheaptrip.models.TripVehicle;
 import com.example.cheaptrip.models.orservice.ORServiceResponse;
 import com.example.cheaptrip.models.tankerkoenig.Station;
 import com.example.cheaptrip.services.GPSService;
-import com.example.cheaptrip.services.RouteService;
 import com.google.gson.Gson;
 
 import org.osmdroid.api.IMapController;
@@ -47,7 +44,6 @@ public class CalcMapFragment extends Fragment {
     private static MapView  mMapView = null;
     private static IMapController mMapController = null;
 
-    private ListView lvRoutes;
     private TripRouteListAdapter tripRouteListAdapter;
     private String startEndRouteJSON;
 
@@ -63,8 +59,6 @@ public class CalcMapFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_calc_map, container, false);
-
-
 
         return rootView;
     }
@@ -86,9 +80,9 @@ public class CalcMapFragment extends Fragment {
          *============================================================*/
         initMap();
         getDirections();
-
+/*
         RouteService routeService = new RouteService(this,tripVehicle);
-        routeService.execute(startLocation,endLocation);
+        routeService.execute(startLocation,endLocation);*/
 
     }
 
@@ -108,6 +102,15 @@ public class CalcMapFragment extends Fragment {
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //Configuration.getInstance().save(this, prefs);
         mMapView.onPause();  //needed for compass, my location overlays, v6.0.0 and up
+    }
+
+    public void clearMap(){
+        if(mMapView == null){
+            Log.e("Cheaptrip", "Cannot clear Map. mMapView is null");
+            return;
+        }
+
+        mMapView.getOverlays().clear();
     }
 
     private void initMap(){
@@ -181,6 +184,7 @@ public class CalcMapFragment extends Fragment {
                 FolderOverlay myOverLay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(mMapView, null, styler, kmlDocument);
                 mMapView.getOverlays().add(myOverLay);
                 mMapView.invalidate();
+                setDirectionBbox(geoJSON);
             }catch(IllegalStateException e){
                 Log.e("CHEAPTRIP","Cannot draw Route from GeoJSON: " +  e.getLocalizedMessage());
                 return;

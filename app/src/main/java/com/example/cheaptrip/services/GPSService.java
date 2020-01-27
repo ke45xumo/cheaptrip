@@ -90,7 +90,7 @@ public class GPSService implements LocationListener{
 
                 }
 
-                if (checkNetwork) {
+       /*         if (checkNetwork) {
                     if ( !hasFINE_LOCATION_ACCESS || !hasCOARSE_LOCATION_ACCESS){
                         ActivityCompat.requestPermissions( (Activity) mContext, new String[]{ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
                     }
@@ -108,7 +108,7 @@ public class GPSService implements LocationListener{
                         latitude = loc.getLatitude();
                         longitude = loc.getLongitude();
                     }
-                }
+                }*/
 
             }
 

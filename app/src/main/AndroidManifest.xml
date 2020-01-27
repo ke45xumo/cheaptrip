@@ -20,12 +20,19 @@
         android:usesCleartextTraffic="true"
        >
 
-        <activity android:name=".activities.MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        <activity android:name=".activities.StartUpActivity">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        </activity>
+
+
+        <activity android:name=".activities.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.StartUpActivity" />
         </activity>
         <activity android:name=".activities.VehicleBrandActivity">
             <meta-data
@@ -47,11 +54,12 @@
 
         <activity
             android:name=".activities.CalculationActivity">
+            <!--android:theme="@style/TablayoutTheme">-->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MainActivity" />
         </activity>
-        <activity android:name=".activities.MapActivity2">
+        <activity android:name=".activities.MapActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MainActivity" />
