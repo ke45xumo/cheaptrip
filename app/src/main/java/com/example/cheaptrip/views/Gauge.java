@@ -3,6 +3,7 @@ package com.example.cheaptrip.views;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -70,6 +71,8 @@ public class Gauge extends View {
 
     private boolean bIsinitiliazied = false;
 
+    private boolean mGlow    = true;                // glow effect
+
 
     /**
      * The current touch angle of arc.
@@ -97,10 +100,13 @@ public class Gauge extends View {
         int arcColor = ContextCompat.getColor(context, R.color.color_arc);
         int progressColor = ContextCompat.getColor(context, R.color.color_progress);
         int textColor = ContextCompat.getColor(context, R.color.color_text);
+
         mProgressWidth = (int) (mProgressWidth * density);
         mArcWidth = (int) (mArcWidth * density);
         mTextSize = (int) (mTextSize * density);
-
+        /*=======================================================================
+         * Get Attributes from XML - layout file
+         *=======================================================================*/
         if (attrs != null) {
             // Attribute initialization
             final TypedArray a = context.obtainStyledAttributes(attrs,
@@ -120,6 +126,8 @@ public class Gauge extends View {
             mTextSize = (int) a.getDimension(R.styleable.Gauge_textSize, mTextSize);
             textColor = a.getColor(R.styleable.Gauge_textColor, textColor);
 
+            mGlow = a.getBoolean(R.styleable.Gauge_glow, mGlow);
+
             a.recycle();
         }
 
@@ -128,38 +136,55 @@ public class Gauge extends View {
         mPoints = (mPoints < mMin) ? mMin : mPoints;
 
         mProgressSweep = (float) mPoints / valuePerDegree();
-
+        /*=======================================================================
+         * Initialize Arc Paint
+         *=======================================================================*/
         mArcPaint = new Paint();
         mArcPaint.setColor(arcColor);
         mArcPaint.setAntiAlias(true);
         mArcPaint.setStyle(Paint.Style.STROKE);
         mArcPaint.setStrokeWidth(mArcWidth);
-
+        /*=======================================================================
+         * Initialize Progress Paint
+         *=======================================================================*/
         mProgressPaint = new Paint();
         mProgressPaint.setColor(progressColor);
         mProgressPaint.setAntiAlias(true);
         mProgressPaint.setStyle(Paint.Style.STROKE);
         mProgressPaint.setStrokeWidth(mProgressWidth);
 
-
+        // Glow Effect
+        if(mGlow){
+            BlurMaskFilter filter = new BlurMaskFilter(mProgressWidth/2, BlurMaskFilter.Blur.SOLID);
+            mProgressPaint.setMaskFilter(filter);
+        }
+        /*=======================================================================
+         * Set Sweep Gradient
+         *=======================================================================*/
         int[] colors = { Color.GREEN,Color.RED};
         float []positions = {0, 45f/360};
 
         Shader gradient = new SweepGradient(0,0, colors,positions);
         mProgressPaint.setShader(gradient);
-
+        /*=======================================================================
+         * Set Text
+         *=======================================================================*/
         mTextPaint = new Paint();
         mTextPaint.setColor(textColor);
         mTextPaint.setAntiAlias(true);
         mTextPaint.setStyle(Paint.Style.FILL);
         mTextPaint.setTextSize(mTextSize);
-
+        /*=======================================================================
+         * Set Paint of the Scale
+         *=======================================================================*/
         mScalePaint = new Paint();
         mScalePaint.setColor(arcColor);
         mScalePaint.setAntiAlias(true);
         mScalePaint.setStyle(Paint.Style.STROKE);
         mScalePaint.setStrokeWidth(50);
-
+        /*=======================================================================
+         * Set inner Scale Paint
+         *=======================================================================*/
         mInnerScalePaint = new Paint();
         mInnerScalePaint.setColor(arcColor);
         mInnerScalePaint.setAntiAlias(true);
@@ -173,10 +198,10 @@ public class Gauge extends View {
         final int width = getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         final int height = getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec);
 
-        float top = 10;
+        float top = mProgressWidth/2 +5;
         float left = getPaddingLeft();
         float right = width -left;
-        float bottom = top + 2* height;
+        float bottom = 2* height - top;
 
         mArcRect.set(left, top, right, bottom);
 
@@ -194,6 +219,7 @@ public class Gauge extends View {
         // draw the text
         String textPoint = String.valueOf(mPoints);
         mTextPaint.getTextBounds(textPoint, 0, textPoint.length(), mTextRect);
+
         // center the text
         int xPos = canvas.getWidth() / 2 - mTextRect.width() / 2;
         int yPos = (int) ((mArcRect.centerY()) - ((mTextPaint.descent() + mTextPaint.ascent()) / 2));
@@ -204,6 +230,13 @@ public class Gauge extends View {
         canvas.drawArc(mArcRect, ANGLE_OFFSET, mProgressSweep, false, mProgressPaint);
 
         drawScale(canvas);
+
+        // Draw the needle
+       /* Paint paint = new Paint();
+        paint.setColor(Color.RED);
+        paint.setAntiAlias(true);
+
+        canvas.drawCircle(canvas.getWidth()/2,canvas.getHeight(),canvas.getHeight()/10, paint);*/
         canvas.drawArc(mArcRect,mProgressSweep +180,2,true, mTextPaint);
 
         if(bIsinitiliazied == false){
@@ -289,9 +322,10 @@ public class Gauge extends View {
         float tankPercentReserve = 180/10;  // Angle of the Reserve Area
         canvas.drawArc(mScaleRect, ANGLE_OFFSET , tankPercentReserve ,false,paint);
     }
+
+
     private double convertTouchEventPointToAngle(float xPos, float yPos) {
         // transform touch coordinate into component coordinate
-
         float midX = mArcRect.centerX();
         float midY = mArcRect.centerY();
 

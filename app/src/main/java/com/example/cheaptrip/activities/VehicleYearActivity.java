@@ -12,6 +12,7 @@ import android.widget.ListView;
 
 
 import com.example.cheaptrip.R;
+import com.example.cheaptrip.app.CheapTripApp;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
@@ -32,6 +33,7 @@ public class VehicleYearActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((CheapTripApp)getApplication()).setCurrentActivity(this);
         //setContentView(R.layout.activity_car_brand);
 
         setList();
@@ -55,6 +57,33 @@ public class VehicleYearActivity extends ListActivity {
             }
         };
         setListAdapter(listDataAdapter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
+
+    public void onResume(){
+        super.onResume();
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        cheapTripApp .setCurrentActivity( this ) ;
+    }
+
+    public void onPause(){
+        super.onPause();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
     }
     /**
      * Generates a list of Car Brands from REST-API 'https://vpic.nhtsa.dot.gov/api/'

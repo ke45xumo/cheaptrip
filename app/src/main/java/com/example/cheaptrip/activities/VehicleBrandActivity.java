@@ -17,6 +17,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.cheaptrip.R;
+import com.example.cheaptrip.app.CheapTripApp;
 import com.example.cheaptrip.dao.VehicleDatabaseClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.view.adapters.VehicleBrandAdapter;
@@ -58,6 +59,7 @@ public class VehicleBrandActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((CheapTripApp)getApplication()).setCurrentActivity(this);
 
         // Initialize Views
         setContentView(R.layout.activity_car_brand);
@@ -73,6 +75,34 @@ public class VehicleBrandActivity extends ListActivity {
         assertMembersInitialized();
     }
 
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
+
+    public void onResume(){
+        super.onResume();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        cheapTripApp .setCurrentActivity( this ) ;
+    }
+
+    public void onPause(){
+        super.onPause();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
     /**
      * This is a Callback function, which gets triggered when an item gets clicked.
      * It will send the Item Title (=Brand) back to calling Activity ( MainActivity) and finishes.

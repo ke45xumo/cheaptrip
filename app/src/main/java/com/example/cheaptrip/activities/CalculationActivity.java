@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.cheaptrip.R;
+import com.example.cheaptrip.app.CheapTripApp;
 import com.example.cheaptrip.views.fragments.CalcGasStationFragment;
 import com.example.cheaptrip.views.fragments.CalcMapFragment;
 import com.example.cheaptrip.views.fragments.CalcRouteFragment;
@@ -68,6 +69,7 @@ public class CalculationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((CheapTripApp)getApplication()).setCurrentActivity(this);
         /*============================================================
          * Init the Views
          *============================================================*/

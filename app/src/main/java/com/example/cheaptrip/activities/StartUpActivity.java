@@ -1,12 +1,17 @@
 package com.example.cheaptrip.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuInflater;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 
 import com.example.cheaptrip.R;
+import com.example.cheaptrip.app.CheapTripApp;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.StartupListener;
 import com.example.cheaptrip.handlers.rest.RestListener;
@@ -21,6 +26,8 @@ public class StartUpActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((CheapTripApp)getApplication()).setCurrentActivity(this);
+
         setContentView(R.layout.activity_startup);
 
         DatabasePopulationService databasePopulationService = new DatabasePopulationService(this, new StartupListener() {
@@ -32,7 +39,8 @@ public class StartUpActivity extends AppCompatActivity {
         });
         databasePopulationService.execute();
 
-
+       /* Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+        startActivity(intent);*/
 /*
         VehicleDataSetHandler vehicleDataSetHandler  = new VehicleDataSetHandler();
 
@@ -57,4 +65,31 @@ public class StartUpActivity extends AppCompatActivity {
 
 
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
+
+    public void onResume(){
+        super.onResume();
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        cheapTripApp .setCurrentActivity( this ) ;
+    }
+
+    public void onPause(){
+        super.onPause();
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
+
 }

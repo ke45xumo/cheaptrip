@@ -3,27 +3,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    >
+    <!--android:background="@drawable/main_background"-->
 
-<com.example.cheaptrip.views.Gauge
-    xmlns:gauge="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/img_gas_pump"
-    android:layout_width="match_parent"
-    android:layout_height="150dp"
-    android:layout_gravity="center"
-    android:padding="64dp"
-    android:paddingTop="10dp"
-    gauge:min="-3"
-    gauge:max="100"
-    gauge:step="1"
-    gauge:progressColor="@color/color_progress"
-    gauge:progressWidth="12dp"
-    gauge:arcColor="@color/color_arc"
-    gauge:arcWidth="8dp"
-    gauge:textSize="72sp"
-    gauge:textColor="@color/color_text" />
+    <com.example.cheaptrip.views.Gauge
+        android:id="@+id/tank_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_gravity="center"
+        android:padding="64dp"
+        android:paddingTop="10dp"
+        app:arcColor="@color/color_arc"
+        app:arcWidth="8dp"
+        app:max="100"
+        app:min="-3"
+        app:progressColor="@color/color_progress"
+        app:progressWidth="12dp"
+        app:step="1"
+        app:textColor="@color/color_text"
+        app:textSize="72sp" />
 
-   <!-- <ImageView
+    <!-- <ImageView
         android:id="@+id/img_gas_pump"
         android:layout_width="match_parent"
         android:layout_height="230dp"
@@ -49,7 +50,7 @@
         style="@android:style/Widget.Holo.Button"
         android:layout_width="317dp"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/img_gas_pump"
+        android:layout_alignBottom="@id/tank_indicator"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="-62dp"
@@ -84,40 +85,19 @@
         android:onClick="viewClickHandler"
         android:text="@string/car_year" />
 
-    <TextView
-        android:id="@+id/txt_tank_contents"
-        android:layout_centerHorizontal="true"
-        android:layout_alignBottom="@id/btn_car_year"
-        android:layout_marginBottom="-40dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/tank_contents"
-        />
-
-
-    <SeekBar
-        android:id="@+id/seek_gas_contents"
-        android:layout_width="313dp"
-        android:layout_height="30dp"
-        android:layout_alignBottom="@id/txt_tank_contents"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="-27dp"
-        android:indeterminate="false"
-        android:max="100"
-        android:progress="@android:integer/config_longAnimTime" />
 
     <EditText
         android:id="@+id/edit_start"
         android:layout_width="313dp"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/seek_gas_contents"
+        android:layout_alignBottom="@id/btn_car_year"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="-50dp"
         android:autofillHints="@string/hint_edit_start"
 
-        android:focusable="false"
         android:ems="10"
+        android:focusable="false"
 
         android:hint="@string/location_start"
         android:inputType="textPersonName"
@@ -132,34 +112,32 @@
         android:layout_marginBottom="-49dp"
         android:autofillHints="@string/hint_edit_dest"
         android:ems="10"
-        android:hint="@string/location_dest"
         android:focusable="false"
+        android:hint="@string/location_dest"
         android:inputType="textPersonName"
-        android:onClick="viewClickHandler"/>
+        android:onClick="viewClickHandler" />
 
     <Button
         android:id="@+id/btn_start_location"
+        android:layout_width="34dp"
+        android:layout_height="31dp"
+        android:layout_alignBottom="@id/edit_start"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
         android:layout_toRightOf="@id/edit_start"
-        android:layout_alignBottom="@id/edit_start"
-        android:layout_width="34dp"
-        android:layout_height="31dp"
         android:background="@android:drawable/ic_menu_mylocation"
-        android:onClick="viewClickHandler"
-         />
+        android:onClick="viewClickHandler" />
 
     <Button
         android:id="@+id/btn_end_location"
+        android:layout_width="34dp"
+        android:layout_height="31dp"
+        android:layout_alignBottom="@id/edit_destination"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
         android:layout_toRightOf="@id/edit_destination"
-        android:layout_alignBottom="@id/edit_destination"
-        android:layout_width="34dp"
-        android:layout_height="31dp"
         android:background="@android:drawable/ic_menu_mylocation"
-        android:onClick="viewClickHandler"
-         />
+        android:onClick="viewClickHandler" />
 
     <Button
         android:id="@+id/btn_find"

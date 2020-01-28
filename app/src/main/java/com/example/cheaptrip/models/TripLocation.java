@@ -95,6 +95,9 @@ public class TripLocation implements Serializable {
         setPostcode(properties.getPostcode());
         setStreet(properties.getStreet());
         setHousenumber(properties.getHousenumber());
+        setLocationName(properties.getName());
+        
+        
 
     }
 
@@ -304,6 +307,50 @@ public class TripLocation implements Serializable {
         return coordinateList;
     }
 
+    
+    public String getInfoWindowText(){
+
+        if (postcode == null || postcode.length() == 0){
+            postcode = "";
+        }
+
+
+        if (city == null || city.length() == 0){
+            city = "";
+        }{
+            city = postcode + " " + city;
+        }
+
+
+        if (locationName == null || locationName.length() == 0){
+            locationName = "";
+        }else{
+            locationName = "\n" + locationName;
+        }
+
+
+        if (street == null || street.length() == 0){
+            street = "";
+        }else{
+            street = "\n" + street;
+        }
+
+
+        if (housenumber == null){
+            housenumber = "";
+        }else{
+            housenumber = " " + housenumber;
+        }
+        final String labelText = city + locationName + street + housenumber;
+
+        if (labelText.trim().length() == 0)
+            return null;
+
+        return labelText;
+    }
+    
+    
+    
     private void assertInvariants(){
         assert (longitude >= 0);
         assert (longitude >= 0);

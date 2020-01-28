@@ -14,6 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.cheaptrip.R;
+import com.example.cheaptrip.app.CheapTripApp;
 import com.example.cheaptrip.handlers.view.adapters.VehicleModelAdapter;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleModelHandler;
@@ -38,6 +39,7 @@ public class VehicleModelActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((CheapTripApp)getApplication()).setCurrentActivity(this);
         setContentView(R.layout.activity_car_model);
 
         progressBar = findViewById(R.id.progress_model);
@@ -47,6 +49,32 @@ public class VehicleModelActivity extends ListActivity {
 
         edit_searchModel = findViewById(R.id.edit_model);
         setModelListView();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
+
+    public void onResume(){
+        super.onResume();
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        cheapTripApp .setCurrentActivity( this ) ;
+    }
+
+    public void onPause(){
+        super.onPause();
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
     }
 
     /**

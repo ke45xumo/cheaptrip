@@ -56,7 +56,7 @@ public abstract class RestHandler<RestContent, RestResponse> {
      *
      * @param restListener
      */
-    public void makeAsyncRequest(final RestListener restListener) {
+    public void makeAsyncRequest(final RestListener<RestContent> restListener) {
         if (restListener == null) {
             Log.e("CHEAPTRIP", "Cannot make asynchronious Rest Request: RestListener is null.");
             return;

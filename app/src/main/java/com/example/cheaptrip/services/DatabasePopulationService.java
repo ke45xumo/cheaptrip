@@ -24,21 +24,26 @@ public class DatabasePopulationService extends AsyncTask<Void,Void,Void>  {
     @Override
     protected Void doInBackground(Void... voids) {
         VehicleDataSetHandler vehicleDataSetHandler  = new VehicleDataSetHandler();
+        VehicleDatabase vehicleDatabase = VehicleDatabase.getDatabase(mContext);
 
         List<VehicleDataSet> vehicleDataSetList = vehicleDataSetHandler.makeSyncRequest();
+        List<VehicleDataSet> fromDataBase = vehicleDatabase.vehicleDatabaseClient().getAll();
 
-        VehicleDatabase vehicleDatabase = VehicleDatabase.getDatabase(mContext);
-        vehicleDatabase.vehicleDatabaseClient().insertAll(vehicleDataSetList);
+
+        if(!fromDataBase.equals(vehicleDataSetList)){
+            vehicleDatabase.vehicleDatabaseClient().deleteAll();
+            vehicleDatabase.vehicleDatabaseClient().insertAll(vehicleDataSetList);
+        }
 
         vehicleDatabase.close();
 
         return null;
     }
 
-
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
         mStartupListener.onVehiclesLoaded();
     }
+
 }

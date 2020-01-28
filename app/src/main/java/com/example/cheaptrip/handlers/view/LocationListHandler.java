@@ -85,7 +85,7 @@ public class LocationListHandler {
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            public void onTextChanged(CharSequence s, int start, int before, final int count) {
 
                 if (!bItemSelected) {
                     if (listView != null) {
@@ -98,6 +98,7 @@ public class LocationListHandler {
                         mGeoNameRestHandler.makeAsyncRequest(new RestListener<List<Location>>() {
                             @Override
                             public void OnRestSuccess(List<Location> locations) {
+
                                 if (locations == null || locations.size() < 1) {
                                     Log.w("CHEAPTRIP", "Received locationList is null or empty.");
                                     return;

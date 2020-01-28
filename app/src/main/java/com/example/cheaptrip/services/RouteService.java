@@ -284,7 +284,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         return maxRange;
     }
 
-    public List<Double> determinePointFromDistance(final double maxRange, List<List<Double>> coordinateList){
+  /*  public List<Double> determinePointFromDistance(final double maxRange, List<List<Double>> coordinateList){
         final int countCoordinates = coordinateList.size();
 
         final List<List<Double>> currentCoordinates = new ArrayList<>();
@@ -320,7 +320,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
         return null;
     }
-
+*/
 
 
 

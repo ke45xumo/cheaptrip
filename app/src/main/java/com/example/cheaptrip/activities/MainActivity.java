@@ -1,6 +1,7 @@
 package com.example.cheaptrip.activities;
 
 
+import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
 
@@ -30,6 +31,7 @@ import com.example.cheaptrip.BuildConfig;
 import com.example.cheaptrip.R;
 
 
+import com.example.cheaptrip.app.CheapTripApp;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripVehicle;
@@ -46,40 +48,32 @@ public class MainActivity extends AppCompatActivity {
     final static int ACTIVITY_REQ_CODE_END      = 5;
     final static int ACTIVITY_REQ_CODE_CALC     = 6;
 
-    Gauge gauge;
+    Gauge gauge;                // Tank capacity view
 
-    Button btn_carBrand;
-    Button btn_carModel;
-    Button btn_carYear;
+    Button btn_carBrand;        // Selection for car brands
+    Button btn_carModel;        // Selection for car models
+    Button btn_carYear;         // Selection for car construction year
 
-    EditText edit_start;
-    EditText edit_end;
+    EditText edit_start;        // Edit-Text for Starting Location input
+    EditText edit_end;          // Edit-Text for Destination input
 
-    SeekBar seek_tankContents;
+    String str_Brand;           // String to set on the button (btn_carBrand) after Brand selection
+    String str_Model;           // String to set on the button (btn_carModel) after Model selection
+    String str_Year;            // String to set on the button (btn_carYear) after Year selection
 
-    String str_Brand;
-    String str_Model;
-    String str_Year;
-
-    TripLocation  startLocation;
-    TripLocation  endLocation;
-
-    ImageView pic;
-
-    VehicleDatabase appDatabase;
-
-    protected double currLatitude;
-    protected double currLongitude;
+    TripLocation  startLocation;    // Selected Stating Location
+    TripLocation  endLocation;      // Selected End Locaiton ( Destination
 
 
-    TripVehicle tripVehicle;
+    TripVehicle tripVehicle;        // Vehicle to be created with the properties (Brand,Model,Year)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((CheapTripApp)getApplication()).setCurrentActivity(this);
+
         setContentView(R.layout.activity_main);
         assignViewObjects();
-        appDatabase = initDatabase();
         tripVehicle = new TripVehicle();
 
 
@@ -98,7 +92,33 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
 
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
+
+    public void onResume(){
+        super.onResume();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        cheapTripApp .setCurrentActivity( this ) ;
+    }
+
+    public void onPause(){
+        super.onPause();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
 
     public void showPopup(View v) {
         PopupMenu popup = new PopupMenu(this, v);
@@ -121,9 +141,7 @@ public class MainActivity extends AppCompatActivity {
         edit_start = findViewById(R.id.edit_start);
         edit_end = findViewById(R.id.edit_destination);
 
-        seek_tankContents = findViewById(R.id.seek_gas_contents);
-
-        gauge = findViewById(R.id.img_gas_pump);
+        gauge = findViewById(R.id.tank_indicator);
     }
 
 
@@ -135,11 +153,10 @@ public class MainActivity extends AppCompatActivity {
         Intent intent;
         int requestCode;
         Bundle optionsBundle = null;    // For Transition
-        String txt_start  = edit_start.getText().toString();
-        String txt_end  = edit_end.getText().toString();
+
 
        // double tankPercent = (double)seek_tankContents.getProgress()/ (double)seek_tankContents.getMax();
-        double tankPercent = (double)gauge.getProgress()/ (double)seek_tankContents.getMax();
+        double tankPercent = (double)gauge.getProgress()/ 100;
         tripVehicle.setRemainFuelPercent(tankPercent);
 
         switch(view.getId()){
@@ -162,13 +179,12 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
 
-
             case R.id.edit_start:
                 intent = new Intent(this, MapActivity.class);
-                intent.putExtra("location_name",txt_start);
+                intent.putExtra("start", startLocation);
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
 
-                    Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.img_gas_pump),"image_to_map");
+                    Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.tank_indicator),"image_to_map");
                     Pair<View,String> pairEditStart = Pair.create((View)edit_start,"edit_start");
                     ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
                     optionsBundle = options.toBundle();
@@ -179,13 +195,11 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.edit_destination:
                 intent = new Intent(this, MapActivity.class);
-                intent.putExtra("lat", currLatitude);
-                intent.putExtra("lon", currLongitude);
-                intent.putExtra("location_name",txt_end);
+                intent.putExtra("end", endLocation);
 
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
 
-                    Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.img_gas_pump),"image_to_map");
+                    Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.tank_indicator),"image_to_map");
                     Pair<View,String> pairEditStart = Pair.create((View)edit_end,"edit_end");
                     ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
                     optionsBundle = options.toBundle();

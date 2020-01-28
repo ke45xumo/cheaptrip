@@ -5,7 +5,7 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "VEHICLES")
-public class VehicleDataSet {
+public class VehicleDataSet  implements Comparable<VehicleDataSet>{
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "UID")
     private long vehicleID;
@@ -86,4 +86,26 @@ public class VehicleDataSet {
     public void setVehicleID(long vehicleID) {
         this.vehicleID = vehicleID;
     }
+
+
+    @Override
+    public int compareTo(VehicleDataSet vehicleDataSet) {
+        if(vehicleDataSet == null){
+            return 1;
+        }
+
+        String thisDataString =
+                getConstructionYear() + getVehicleBrand() + getVehicleModel() +
+                        getConsumption_diesel() + getConsumption_premium() + getConsumption_regular();
+
+        String dataString2 =
+                vehicleDataSet.getConstructionYear() + vehicleDataSet.getVehicleBrand() + vehicleDataSet.getVehicleModel() +
+                        vehicleDataSet.getConsumption_diesel() + vehicleDataSet.getConsumption_premium() + vehicleDataSet.getConsumption_regular();
+
+
+        return thisDataString.compareTo(dataString2);
+
+    }
+
+
 }

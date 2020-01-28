@@ -1,6 +1,10 @@
 package com.example.cheaptrip.activities;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.Application;
+import android.app.LocalActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
@@ -21,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.cheaptrip.R;
+import com.example.cheaptrip.app.CheapTripApp;
 import com.example.cheaptrip.handlers.view.LocationListHandler;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoLocationsForNameHandler;
@@ -65,6 +70,9 @@ public class MapActivity extends Activity {
     private Marker customLocationMarker;                // Marker, representing a Location picked form the map
 
 
+    private volatile boolean bFinished = false;          // Indicator to show wheter activity is destroyed
+                                                        // as consequence all running async tasks get cancelled
+
     /**
      * Enum, to identify the purpose of a Marker
      * This enum will be used to set marker icons
@@ -89,7 +97,7 @@ public class MapActivity extends Activity {
      */
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        ((CheapTripApp)getApplication()).setCurrentActivity(this);
         //handle permissions first, before mMapView is created. not depicted here
 
         //load/initialize the osmdroid configuration
@@ -114,6 +122,19 @@ public class MapActivity extends Activity {
         editLocationInput.requestFocus();   // Request Focus (to start writing to the Edit text)
     }
 
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        bFinished = true;
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
+
     public void onResume(){
         super.onResume();
         //this will refresh the osmdroid configuration on resuming.
@@ -121,6 +142,9 @@ public class MapActivity extends Activity {
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
         mMapView.onResume(); //needed for compass, my location overlays, v6.0.0 and up
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        cheapTripApp .setCurrentActivity( this ) ;
     }
 
     public void onPause(){
@@ -130,6 +154,12 @@ public class MapActivity extends Activity {
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //Configuration.getInstance().save(this, prefs);
         mMapView.onPause();  //needed for compass, my location overlays, v6.0.0 and up
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
     }
 
     private void initMap(){
@@ -197,7 +227,10 @@ public class MapActivity extends Activity {
      * so the user can select custom locations from it.
      */
     private void setTouchListener(){
-
+        Log.i("CHEAPTRIP", "Applying TouchListeners to Map Activity");
+        /*=======================================================================
+         * Set on touch hide keyboard
+         *=======================================================================*/
         mMapView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -209,15 +242,13 @@ public class MapActivity extends Activity {
             }
         });
 
-
+        /*========================================================================
+         * Set the touchListener to apply a marker to that custom Location
+         *=======================================================================*/
         final MapEventsReceiver mReceive = new MapEventsReceiver(){
 
             @Override
             public boolean singleTapConfirmedHelper(GeoPoint selectedGeoPoint) {
-                // Hide the Keyboard
-                InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                in.hideSoftInputFromWindow(mMapView.getWindowToken(), 0);
-
 
                 final double latitude = selectedGeoPoint.getLatitude();
                 final double longitude = selectedGeoPoint.getLongitude();
@@ -225,11 +256,11 @@ public class MapActivity extends Activity {
                 tripLocation = new TripLocation(latitude,longitude);
                 setMarker(tripLocation,MARKERTYPE.SELECTED,false);
 
-
                 return true;
             }
             @Override
             public boolean longPressHelper(GeoPoint p) {
+                Log.e("CHEAPTRIP", "Could not get the ");
                 return false;
             }
 
@@ -241,6 +272,7 @@ public class MapActivity extends Activity {
      * This functions purpose is to set the marker for the current location of this device.
      */
     private void setCurrentLocationMarker(){
+        Log.i("CHEAPTRIP", "Setting Marker for current Location (location of this device");
         /*===============================================================================
          * Get the current Location
          *==============================================================================*/
@@ -278,6 +310,7 @@ public class MapActivity extends Activity {
      * @param marker    marker to be set as current selection
      */
     public void updateCurrentMarker(Marker marker){
+        Log.d("CHEAPTRIP","Updating current Selected Marker (updating drawable)");
         if(marker == null){
             Log.e("updateCurrentMarker()","Current Selected Marker is null");
             return;
@@ -311,15 +344,31 @@ public class MapActivity extends Activity {
             currentSelectedMarker = marker;
             return;
         }
+
         /*==================================================================================
-         * one of multiple choices is current selected marker --> just change the icon back
+         * if persistent marker --> change previous selected marker (icon)
          ===================================================================================*/
-        currentSelectedMarker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
+        if(currentSelectedMarker == currentLocationMarker){
+            currentLocationMarker.setIcon(getResources().getDrawable(R.drawable.person));
+        }else{
+            currentSelectedMarker.setIcon(getResources().getDrawable(R.drawable.osm_ic_center_map));
+        }
+
+        /*================================================================================================
+         * Default Action --> close previously opened InfoWindow and set this marker as current Selection
+         *===============================================================================================*/
         currentSelectedMarker.getInfoWindow().close();
         currentLocationMarker.getInfoWindow().close();
 
+
+        if(mMapView.getOverlays().contains(marker)) {
+            mMapView.getOverlays().remove(marker);
+            mMapView.getOverlays().add(marker);
+        }
+
         currentSelectedMarker = marker;
         currentSelectedMarker.setIcon(getResources().getDrawable(R.drawable.marker_default));
+
         currentSelectedMarker.showInfoWindow();
 
         mMapView.invalidate();
@@ -338,6 +387,8 @@ public class MapActivity extends Activity {
      * @param center        indicates, whether the map as to be centered around the new marker
      */
     public void setMarker(TripLocation location, MARKERTYPE markertype, boolean center){
+        Log.d("CHEAPTRIP", "setMarker(): Setting Marker for a Location");
+
         if(location == null){
             Log.d("setMarker()","Cannot set Marker: Location may not be null");
             return;
@@ -391,7 +442,14 @@ public class MapActivity extends Activity {
 
         marker.setIcon(markerIcon);
 
-        loadLocationTitle(marker);
+        String title = location.getInfoWindowText();
+
+        if(title == null || title.length() <= 0) {
+            loadLocationTitle(marker);
+        }else{
+            marker.setTitle(title);
+        }
+
 
         mMapView.getOverlays().add(marker);
         mMapView.invalidate();
@@ -414,24 +472,54 @@ public class MapActivity extends Activity {
      * @param marker    Marker, to be updated with the location text
      */
     private void loadLocationTitle(final Marker marker){
+        Log.d("CHEAPTRIP","loadLocationTitle(): Getting location title for a marker");
+        if(marker == null){
+            Log.e("CHEAPTRIP","loadLocationTitle(): Cannot determine location Name when Marker is null");
+            return;
+        }
+
         final GeoNameForLocationHandler geoNameListRestHandler = new GeoNameForLocationHandler(marker.getPosition().getLatitude(),marker.getPosition().getLongitude());
 
-        geoNameListRestHandler.makeAsyncRequest(new RestListener<String>() {
+        geoNameListRestHandler.makeAsyncRequest(new RestListener<TripLocation>() {
             @Override
-            public void OnRestSuccess(final String locationName) {
-                marker.setTitle(locationName);
+            public void OnRestSuccess(final TripLocation tripLocation) {
+                Activity currentActivity = ((CheapTripApp)getApplication()).getCurrentActivity();
 
-                TripInfoWindow tripInfoWindow = (TripInfoWindow)marker.getInfoWindow();
-                tripInfoWindow.setText(locationName);
+                String title = tripLocation.getInfoWindowText();
+
+                if(currentActivity instanceof MapActivity){
+
+                    Log.d("CHEAPTRIP", "Success: Getting location name for Marker");
+
+                    marker.setTitle(title);
+
+                    TripInfoWindow tripInfoWindow = (TripInfoWindow) marker.getInfoWindow();
+                    tripInfoWindow.setText(title);
+                }else if (currentActivity instanceof MainActivity){
+                    ((MainActivity) currentActivity).edit_start.setText(title);
+                }else{
+                    Log.e("CHEAPTRIP", "Failed to set location Name: Activity not provided");
+                }
 
             }
 
             @Override
             public void OnRestFail() {
+                Activity currentActivity = ((CheapTripApp)getApplication()).getCurrentActivity();
+
+                Log.e("CHEAPTRIP","Success: Could not determine Location name for Marker");
                 String locationName = "Could not load LocationName";
-                marker.setTitle(locationName);
-                TripInfoWindow tripInfoWindow = (TripInfoWindow)marker.getInfoWindow();
-                tripInfoWindow.setText(locationName);
+
+                if(currentActivity instanceof MapActivity){
+                    marker.setTitle(locationName);
+                    TripInfoWindow tripInfoWindow = (TripInfoWindow) marker.getInfoWindow();
+                    tripInfoWindow.setText(locationName);
+
+                }else if (currentActivity instanceof MainActivity){
+                    ((MainActivity) currentActivity).edit_start.setText(locationName);
+                }else{
+                    Log.e("CHEAPTRIP", "Failed to set location Name: Activity not provided");
+                }
             }
         });
     }

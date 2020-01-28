@@ -11,5 +11,6 @@
     <attr name="textSize" format="dimension"/>
     <attr name="textColor" format="color"/>
     <attr name="enabled" format="boolean" />
+    <attr name="glow" format="boolean" />
 </declare-styleable>
 </resources>
