@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.example.cheaptrip.models.orservice.Segment;
 import com.example.cheaptrip.models.tankerkoenig.Station;
 
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +16,6 @@ import java.util.List;
 
 public class TripRoute {
     private List<TripLocation> stops;
-    private List<Station> gasStationList;
 
     private String geoJSON;
     private double costs;
@@ -23,17 +23,31 @@ public class TripRoute {
     private double distance;
     private double duration;
 
+    private List<Segment> routeSegments = new ArrayList<>();
+
+    private List<TripLocation> pointsForPolyLine;                   // Points of the PolyLine to draw
+
+
     public TripRoute(){
         stops = new ArrayList<>();
     }
 
 
-    List<HashMap<String,List<String>>> routeInfosList;
-
+    /**
+     * Constructor
+     * @param stops List of Locations along the Route
+     */
     public TripRoute(List<TripLocation> stops){
         this.stops = stops;
     }
 
+    /**
+     * Constructor
+     * @param stops     List of Locations along the Route
+     * @param costs     costs of traveling this route
+     * @param distance  distance of this route
+     * @param duration  duration of this route
+     */
     public TripRoute(List<TripLocation> stops, double costs, double distance, double duration) {
         this.stops = stops;
         this.costs = costs;
@@ -112,5 +126,21 @@ public class TripRoute {
 
     public void setGeoJSON(String geoJSON) {
         this.geoJSON = geoJSON;
+    }
+
+    public void setRouteSegments(List<Segment> segments){
+        routeSegments = segments;
+    }
+
+    public List<Segment> getRouteSegments() {
+        return routeSegments;
+    }
+
+    public List<TripLocation> getPointsForPolyLine() {
+        return pointsForPolyLine;
+    }
+
+    public void setPointsForPolyLine(List<TripLocation> pointsForPolyLine) {
+        this.pointsForPolyLine = pointsForPolyLine;
     }
 }

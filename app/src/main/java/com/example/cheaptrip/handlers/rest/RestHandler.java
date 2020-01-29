@@ -8,6 +8,7 @@ import com.example.cheaptrip.models.tankerkoenig.Station;
 
 import java.io.IOException;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -70,6 +71,19 @@ public abstract class RestHandler<RestContent, RestResponse> {
         call.enqueue(new Callback<RestResponse>() {
             @Override
             public void onResponse(Call<RestResponse> call, Response<RestResponse> response) {
+
+                try {
+                    ResponseBody errorBody = response.errorBody();
+
+                    if (errorBody != null && errorBody.contentLength() > 0){
+                        Log.e("CHEAPTRIP","RestHandler->makeAsyncRequest: Error received from API: " + errorBody.string());
+                        return;
+                    }
+                } catch (IOException e) {
+                    Log.e("CHEAPTRIP","RestHandler->makeAsyncRequest: Could not retrieve Error-Body (errorBody is set): "  + e.getLocalizedMessage());
+                    return;
+                }
+
                 RestContent responseData = extractDataFromResponse(response);
                 restListener.OnRestSuccess(responseData);
             }
@@ -103,6 +117,20 @@ public abstract class RestHandler<RestContent, RestResponse> {
 
         try {
             Response<RestResponse> response = call.execute();
+
+
+            try {
+                ResponseBody errorBody = response.errorBody();
+
+                if (errorBody != null && errorBody.contentLength() > 0){
+                    Log.e("CHEAPTRIP","RestHandler->makeSyncRequest: Error received from API: " + errorBody.string());
+                    return null;
+                }
+            } catch (IOException e) {
+                Log.e("CHEAPTRIP","RestHandler->makeSyncRequest: Could not retrieve Error-Body (errorBody is set): "  + e.getLocalizedMessage());
+                return null;
+            }
+
             restContent = extractDataFromResponse(response);
 
         } catch (IOException e) {

@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         assignViewObjects();
         tripVehicle = new TripVehicle();
+        btn_carModel.setEnabled(false);
 
 
         /*======================================
@@ -159,29 +160,38 @@ public class MainActivity extends AppCompatActivity {
         double tankPercent = (double)gauge.getProgress()/ 100;
         tripVehicle.setRemainFuelPercent(tankPercent);
 
+        Bundle bundle = new Bundle();
+
         switch(view.getId()){
             case R.id.btn_car_brand:
                 intent = new Intent(this, VehicleBrandActivity.class);
-                btn_carModel.setEnabled(true);
+
+                bundle.putSerializable("vehicle",tripVehicle);
+                intent.putExtras(bundle);
                 requestCode = ACTIVITY_REQ_CODE_BRAND;
                 break;
 
             case R.id.btn_car_model:
                 // TODO Check for str_carBrand
+
                 intent = new Intent(this, VehicleModelActivity.class);
-                intent.putExtra("brand",str_Brand);
+                bundle.putSerializable("vehicle",tripVehicle);
+                intent.putExtras(bundle);
                 requestCode = ACTIVITY_REQ_CODE_MODEL;
                 break;
 
             case R.id.btn_car_year:
                 intent = new Intent(this, VehicleYearActivity.class);
+                bundle.putSerializable("vehicle",tripVehicle);
+                intent.putExtras(bundle);
                 requestCode = 3;
                 break;
 
 
             case R.id.edit_start:
                 intent = new Intent(this, MapActivity.class);
-                intent.putExtra("start", startLocation);
+                bundle.putSerializable("vehicle",tripVehicle);
+                intent.putExtras(bundle);
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
 
                     Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.tank_indicator),"image_to_map");
@@ -235,7 +245,6 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(this, toastText,Toast.LENGTH_LONG).show();
                     return;
                 }
-
                 intent = new Intent(this, CalculationActivity.class);
                 intent.putExtra("start", startLocation);
                 intent.putExtra("end", endLocation);
@@ -263,20 +272,21 @@ public class MainActivity extends AppCompatActivity {
 
         switch (requestCode){
 
-            case ACTIVITY_REQ_CODE_BRAND:       str_Brand = data.getStringExtra("selection");
+            case ACTIVITY_REQ_CODE_BRAND:       tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
+                                                str_Brand = tripVehicle.getBrand();
                                                 btn_carBrand.setText(str_Brand);
-                                                tripVehicle.setBrand(str_Brand);
+                                                btn_carModel.setEnabled(true);
                                                 break;
 
 
-            case ACTIVITY_REQ_CODE_MODEL:       str_Model = data.getStringExtra("selection");
+            case ACTIVITY_REQ_CODE_MODEL:       tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
+                                                str_Model = tripVehicle.getModel();
                                                 btn_carModel.setText(str_Model);
-                                                tripVehicle.setModel(str_Model);
                                                 break;
 
-            case ACTIVITY_REQ_CODE_YEAR:        str_Year = data.getStringExtra("selection");
+            case ACTIVITY_REQ_CODE_YEAR:        tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
+                                                str_Year = tripVehicle.getYear();
                                                 btn_carYear.setText(str_Year);
-                                                tripVehicle.setYear(str_Year);
                                                 break;
 
             case ACTIVITY_REQ_CODE_START:       startLocation = (TripLocation) data.getSerializableExtra("Location");

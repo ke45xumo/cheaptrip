@@ -38,32 +38,6 @@ public class StartUpActivity extends AppCompatActivity {
             }
         });
         databasePopulationService.execute();
-
-       /* Intent intent = new Intent(getApplicationContext(),MainActivity.class);
-        startActivity(intent);*/
-/*
-        VehicleDataSetHandler vehicleDataSetHandler  = new VehicleDataSetHandler();
-
-        vehicleDataSetHandler.makeAsyncRequest(new RestListener<List<VehicleDataSet>>() {
-            @Override
-            public void OnRestSuccess(List<VehicleDataSet> vehicleDataSets) {
-                VehicleDatabase vehicleDatabase = VehicleDatabase.getDatabase(getApplicationContext());
-                vehicleDatabase.vehicleDatabaseClient().insertAll(vehicleDataSets);
-
-                vehicleDatabase.close();
-
-                Intent intent = new Intent(getApplicationContext(),MainActivity.class);
-
-                startActivity(intent);
-            }
-
-            @Override
-            public void OnRestFail() {
-
-            }
-        });*/
-
-
     }
 
     @Override

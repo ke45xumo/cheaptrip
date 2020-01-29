@@ -494,7 +494,12 @@ public class MapActivity extends Activity {
                     marker.setTitle(title);
 
                     TripInfoWindow tripInfoWindow = (TripInfoWindow) marker.getInfoWindow();
-                    tripInfoWindow.setText(title);
+
+                    if(tripInfoWindow != null) {
+                        tripInfoWindow.setText(title);
+                    }else{
+                        Log.e("CHEAPTRIP","loadLocationTitle: InfoWindow is null");
+                    }
                 }else if (currentActivity instanceof MainActivity){
                     ((MainActivity) currentActivity).edit_start.setText(title);
                 }else{

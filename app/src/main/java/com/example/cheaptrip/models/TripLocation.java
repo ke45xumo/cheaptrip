@@ -309,39 +309,31 @@ public class TripLocation implements Serializable {
 
     
     public String getInfoWindowText(){
-
-        if (postcode == null || postcode.length() == 0){
-            postcode = "";
+        String labelText = "";
+        if (postcode != null && postcode.length() > 0){
+            labelText += "";
         }
 
 
-        if (city == null || city.length() == 0){
-            city = "";
-        }{
-            city = postcode + " " + city;
+        if (city != null && city.length() > 0){
+            labelText += postcode + " " + city;
         }
 
 
-        if (locationName == null || locationName.length() == 0){
-            locationName = "";
-        }else{
-            locationName = "\n" + locationName;
+        if (locationName != null && locationName.length() > 0){
+            labelText += "\n" + locationName;
         }
 
 
-        if (street == null || street.length() == 0){
-            street = "";
-        }else{
-            street = "\n" + street;
+        if (street != null && street.length() > 0){
+            labelText += "\n" + street;
         }
 
 
-        if (housenumber == null){
-            housenumber = "";
-        }else{
-            housenumber = " " + housenumber;
+        if (housenumber != null){
+            labelText += " " + housenumber;
         }
-        final String labelText = city + locationName + street + housenumber;
+
 
         if (labelText.trim().length() == 0)
             return null;

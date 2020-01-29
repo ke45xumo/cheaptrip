@@ -19,6 +19,9 @@ public interface VehicleDatabaseClient {
     @Query("SELECT DISTINCT (BRAND) FROM VEHICLES WHERE NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
     List<String> getAllBrands();
 
+    @Query("SELECT DISTINCT (MODEL) FROM VEHICLES WHERE NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
+    List<String> getAllModels();
+
     @Query("SELECT DISTINCT (YEAR) FROM VEHICLES WHERE NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
     List<String> getAllYears();
 
@@ -28,14 +31,29 @@ public interface VehicleDatabaseClient {
     @Query("SELECT DISTINCT(BRAND) FROM VEHICLES WHERE YEAR = :year AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
     List<String> getBrandsForYear(String year);
 
+    @Query("SELECT DISTINCT(BRAND) FROM VEHICLES WHERE MODEL = :model AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
+    List<String> getBrandsForModel(String model);
+
     @Query("SELECT DISTINCT (YEAR) FROM VEHICLES WHERE BRAND = :brand AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
     List<String> getYearsForBrand(String brand);
 
     @Query("SELECT DISTINCT (MODEL) FROM VEHICLES WHERE BRAND = :brand AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
     List<String> getModelForBrand(String brand);
 
+    @Query("SELECT DISTINCT (MODEL) FROM VEHICLES WHERE BRAND = :brand  AND YEAR = :year AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
+    List<String> getModelForBrandandYear(String brand, String year);
+
+    @Query("SELECT DISTINCT (MODEL) FROM VEHICLES WHERE YEAR = :year AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
+    List<String> getModelForYear(String year);
+
     @Query("SELECT DISTINCT (YEAR) FROM VEHICLES WHERE BRAND = :brand AND MODEL = :model AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
-    List<String> getYearForModel(String brand, String model);
+    List<String> getYearForBrandAndModel(String brand, String model);
+
+    @Query("SELECT DISTINCT (YEAR) FROM VEHICLES WHERE  MODEL = :model AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
+    List<String> getYearForModel(String model);
+
+    @Query("SELECT DISTINCT (YEAR) FROM VEHICLES WHERE  BRAND = :brand AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)")
+    List<String> getYearForBrand(String brand);
 
     @Query("SELECT * FROM VEHICLES WHERE BRAND = :brand AND MODEL = :model and YEAR = :year AND NOT(PREMIUM is null AND REGULAR is null AND DIESEL is null)  LIMIT 1")
     VehicleDataSet findVehicle(String brand, String model,String year);

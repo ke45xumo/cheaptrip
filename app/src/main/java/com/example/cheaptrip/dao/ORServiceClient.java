@@ -15,9 +15,12 @@ import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
 public interface ORServiceClient {
+    String API_KEY = "5b3ce3597851110001cf6248acbf784528c542769640c46c08f9dd07";
+    //String API_KEY = "5b3ce3597851110001cf624854d7d252265340ecba56c53ca4377994";
+
     @Raw
     @Headers({
-            "Authorization: 5b3ce3597851110001cf624809343b3866e54cf488fc96bdabd8b9a2",
+            "Authorization: " + API_KEY ,
             "Accept: application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
             "Content-Type: application/json"
     })
@@ -28,7 +31,7 @@ public interface ORServiceClient {
 
     @Json
     @Headers({
-            "Authorization: 5b3ce3597851110001cf624809343b3866e54cf488fc96bdabd8b9a2",
+            "Authorization: " + API_KEY ,
             "Accept: application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
             "Content-Type: application/json"
     })
@@ -39,7 +42,7 @@ public interface ORServiceClient {
     @Json
     @FormUrlEncoded
     @Headers({
-            "Authorization: 5b3ce3597851110001cf624809343b3866e54cf488fc96bdabd8b9a2",
+            "Authorization: " + API_KEY ,
             "Accept: application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
             "Content-Type: application/json"
     })
@@ -49,7 +52,7 @@ public interface ORServiceClient {
     @Json
     @FormUrlEncoded
     @Headers({
-            "Authorization: 5b3ce3597851110001cf624809343b3866e54cf488fc96bdabd8b9a2",
+            "Authorization: " + API_KEY ,
             "Accept: application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
             "Content-Type: application/json"
     })

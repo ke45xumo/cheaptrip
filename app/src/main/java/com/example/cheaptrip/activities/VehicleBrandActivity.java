@@ -18,22 +18,23 @@ import android.widget.Toast;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.app.CheapTripApp;
+import com.example.cheaptrip.dao.GasStationClient;
 import com.example.cheaptrip.dao.VehicleDatabaseClient;
 import com.example.cheaptrip.database.VehicleDatabase;
+import com.example.cheaptrip.handlers.view.adapters.SelectionListAdapter;
 import com.example.cheaptrip.handlers.view.adapters.VehicleBrandAdapter;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandHandler;
+import com.example.cheaptrip.models.TripVehicle;
 import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
 import com.example.cheaptrip.models.nhtsa.VehicleBrand;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 
-//https://www.codeproject.com/Articles/5165136/Retrofit-A-REST-Client-for-Android-Retrofit-2-X
-//TODO: https://stackoverflow.com/questions/29380844/how-to-set-timeout-in-retrofit-library
-//TODO: Search for Vehicle in Edit Text
 /**
  * This Classes purpose is to provide all current Vehicle Brands as List,
  * so that the user can choose the relevant brand for further calculation.
@@ -49,7 +50,9 @@ public class VehicleBrandActivity extends ListActivity {
     private ProgressBar progressBar;                // Loading Icon until List is loaded (using REST-API)
     private EditText edit_searchBrand;              // EditText Field for Search
 
-    private VehicleBrandAdapter listDataAdapter;    // List Adapter for VehicleBrands
+    private SelectionListAdapter listDataAdapter;    // List Adapter for VehicleBrands
+
+    private TripVehicle tripVehicle;                // the TripVehicle to be filled
 
     /**
      * Gets Called when VehicleBrandActivity will be created.
@@ -66,12 +69,21 @@ public class VehicleBrandActivity extends ListActivity {
         progressBar = findViewById(R.id.progress_brand);
         edit_searchBrand = findViewById(R.id.edit_brand);
 
+        // Get tripVehicle
+        Intent intent = getIntent();
+
+        if(intent.hasExtra("vehicle")){
+            tripVehicle = (TripVehicle)intent.getSerializableExtra("vehicle");
+        }else{
+            Log.e("CHEAPTRIP", "Vehicle not passed to VehicleBrandActivity");
+            throw new IllegalStateException("Vehicle not passed to VehicleBrandActivity");
+        }
+
         // Initialize ListAdapter
-        listDataAdapter = new VehicleBrandAdapter(this);
+        listDataAdapter = new SelectionListAdapter(this);
         setListAdapter(listDataAdapter);
-
         setBrandListView();
-
+        setTextChangedListener();
         assertMembersInitialized();
     }
 
@@ -119,13 +131,24 @@ public class VehicleBrandActivity extends ListActivity {
         /*----------------------------------------------------------
          * Get the Brand from the selected  item of the  ListView
          *---------------------------------------------------------*/
-        VehicleBrand selectedItem = (VehicleBrand) getListView().getItemAtPosition(position);
-        String brand = selectedItem.getMakeName();
+        String selectedBrand = (String) getListView().getItemAtPosition(position);
+        tripVehicle.setBrand(selectedBrand);
+
+        /*-----------------------------------------------------------------------------
+         * Set FuelType
+         *----------------------------------------------------------------------------*/
+        if(tripVehicle.getModel() != null && tripVehicle.getBrand() != null && tripVehicle.getYear() != null){
+
+        }
         /*----------------------------------------------------------
          * Send the Brand Name back to MainActivity
          *----------------------------------------------------------*/
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("selection", brand);
+
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("vehicle",tripVehicle);
+        intent.putExtras(bundle);
+
         setResult(Activity.RESULT_OK,intent);
 
         finish();
@@ -140,31 +163,10 @@ public class VehicleBrandActivity extends ListActivity {
     public void setBrandListView() {
         assertMembersInitialized();
 
-        VehicleDatabaseClient dbClient = VehicleDatabase.getDatabase(this).vehicleDatabaseClient();
+        List<String> brandNameList = getBrandNamesFromDatabase();
+        listDataAdapter.setList(brandNameList);
+        listDataAdapter.notifyDataSetChanged();
 
-        List<String> dataSetList = dbClient.getAllBrands();
-        Collections.sort(dataSetList);
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataSetList);
-        setListAdapter(adapter);
-        adapter.notifyDataSetChanged();
-        /*VehicleBrandHandler vehicleBrandHandler = new VehicleBrandHandler();
-
-        vehicleBrandHandler.startGetVehicleBrandList(new RestListener<List<VehicleBrand>>() {
-            @Override
-            public void OnRestSuccess(List<VehicleBrand> brandList) {
-                listDataAdapter.setList(brandList);
-                progressBar.setVisibility(View.INVISIBLE);
-                setTextChangedListener();
-            }
-
-            @Override
-            public void OnRestFail() {
-                progressBar.setVisibility(View.INVISIBLE);
-                Toast.makeText(getApplicationContext(), "An Error Occurred", Toast.LENGTH_LONG).show();
-                Log.e("CHEAPTRIP", "Could not get Rest-Response.");
-            }
-        });*/
         assertMembersInitialized();
     }
 
@@ -192,6 +194,65 @@ public class VehicleBrandActivity extends ListActivity {
         assertMembersInitialized();
     }
 
+    /**
+     * Gets all Brands from Database.
+     * Filtered by the contents of the Trip-Vehicle.
+     *
+     * If the year of the Trip-Vehicle is set it will filter by year.
+     * The same procedure for the model of the TripVehicle
+     *
+     * @return List of filtered or unfiltered Names of Brands (String)
+     */
+    private List<String> getBrandNamesFromDatabase(){
+
+        VehicleDatabaseClient dbClient = VehicleDatabase.getDatabase(this).vehicleDatabaseClient();
+
+        List<String> dataSetList = new ArrayList<>();
+
+        if(tripVehicle == null){
+            dataSetList = dbClient.getAllBrands();
+        }
+
+        String model = tripVehicle.getModel();
+        String year = tripVehicle.getYear();
+
+        if(model != null && model.length() > 0){
+            dataSetList = dbClient.getBrandsForModel(model);
+        } else if(year != null && year.length() > 0){
+            dataSetList = dbClient.getBrandsForYear(year);
+        }else{
+            dataSetList = dbClient.getAllBrands();
+        }
+
+        Collections.sort(dataSetList);
+
+        return dataSetList;
+    }
+
+
+  /*  private GasStationClient.FuelType getFuelType(){
+        VehicleDatabaseClient dbClient = VehicleDatabase.getDatabase(this).vehicleDatabaseClient();
+
+        String brand = tripVehicle.getBrand();
+        String model = tripVehicle.getModel();
+        String year = tripVehicle.getYear();
+
+        if(brand == null || model == null || year == null){
+            return null;
+        }
+
+        VehicleDataSet vehicleDataSet = dbClient.findVehicle(brand,model,year);
+
+        if(vehicleDataSet == null){
+            return null;
+        }
+
+        if(vehicleDataSet.getConsumption_regular() != null){
+            return
+        }
+
+
+    }*/
     /**
      * A Class Invariant.
      * Reassures that all the relevant Member Variables are initialized.

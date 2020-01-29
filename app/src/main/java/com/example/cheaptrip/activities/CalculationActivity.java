@@ -1,7 +1,6 @@
 package com.example.cheaptrip.activities;
 
 
-import android.graphics.Color;
 import android.os.Bundle;
 
 import android.view.View;
@@ -52,8 +51,8 @@ public class CalculationActivity extends AppCompatActivity {
 
     TripVehicle tripVehicle;
 
-    private CalcMapFragment mMapFragment;
     private CalcGasStationFragment mStationFragment;
+    private CalcMapFragment mMapFragment;
     private CalcRouteFragment mRouteFragment;
 
     private ViewPager mViewPager;
@@ -99,12 +98,14 @@ public class CalculationActivity extends AppCompatActivity {
 
 
         CalcViewPagerAdapter calcViewPagerAdapter = new CalcViewPagerAdapter(getSupportFragmentManager());
-        calcViewPagerAdapter.addFragment(mMapFragment,"Map");
         calcViewPagerAdapter.addFragment(mStationFragment,"Station");
+        calcViewPagerAdapter.addFragment(mMapFragment,"Map");
         calcViewPagerAdapter.addFragment(mRouteFragment,"Route");
 
         mViewPager.setAdapter(calcViewPagerAdapter);
         TabLayout tabLayout = findViewById(R.id.tab_layout_calc);
+
+        mViewPager.setCurrentItem(1);
 
         tabLayout.setupWithViewPager(mViewPager);
     }
@@ -121,7 +122,13 @@ public class CalculationActivity extends AppCompatActivity {
                 TripRoute tripRoute = (TripRoute)lvRoutes.getItemAtPosition(position);
                 String geoJSON = tripRoute.getGeoJSON();
 
-                mMapFragment.drawRoute(geoJSON,Color.GREEN);
+                boolean draw = false;
+                if(mViewPager.getCurrentItem() == 1){
+                    draw = true;
+                }
+                mMapFragment.updateCurrentRoute(geoJSON,draw);
+                mMapFragment.updateMarkers(tripRoute.getStops(),draw);
+                //mMapFragment.drawRoute(geoJSON,Color.GREEN);
 
                 //mMapFragment.drawRoute(startEndRouteJSON,Color.BLACK);
 
@@ -129,9 +136,11 @@ public class CalculationActivity extends AppCompatActivity {
                     if(tripLocation instanceof TripGasStation){
                         mStationFragment.setGasStationInfo((TripGasStation)tripLocation);
                     }
-                    mMapFragment.drawMarker(tripLocation,R.drawable.marker_default);
                 }
-
+                if(mViewPager.getCurrentItem() == 3){
+                    draw = true;
+                }
+                mRouteFragment.updateList(tripRoute);
             }
         });
     }

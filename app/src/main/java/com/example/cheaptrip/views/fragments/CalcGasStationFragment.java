@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
@@ -16,25 +17,67 @@ public class CalcGasStationFragment extends Fragment {
     private TripGasStation mTripGasStation;
 
     TextView mTextView;
-
-    @Nullable
-    @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_calc_gas, container, false);
 
-        mTextView = rootView.findViewById(R.id.text);
-        mTextView.setText("CalcMap");
+
+        mTextView = rootView.findViewById(R.id.tv_gasstation_info);
+
+
+        if(mTripGasStation != null){
+            String textToView = generateText(mTripGasStation);
+            mTextView.setText(textToView);
+        }else{
+            mTextView.setText("Chose a Route to display a Gas Station");
+        }
+
+        mTextView.invalidate();
+        rootView.invalidate();
+
         return rootView;
     }
 
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if(mTextView != null && mTripGasStation != null){
+            String textToView = generateText(mTripGasStation);
+            mTextView.setText(textToView);
+            mTextView.invalidate();
+        }
+
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        mTextView = view.findViewById(R.id.tv_gasstation_info);
+
+
+        if(mTripGasStation != null){
+            String textToView = generateText(mTripGasStation);
+            mTextView.setText(textToView);
+        }else{
+            mTextView.setText("Chose a Route to display a Gas Station");
+        }
+
+        mTextView.invalidate();
+        view.invalidate();
+    }
 
     public void setGasStationInfo(TripGasStation tripGasStation){
         mTripGasStation = tripGasStation;
 
         String textToView = generateText(tripGasStation);
-        mTextView.setText(textToView);
 
+        if(mTextView != null) {
+            mTextView.setText(textToView);
+            mTextView.invalidate();
+        }
     }
 
 

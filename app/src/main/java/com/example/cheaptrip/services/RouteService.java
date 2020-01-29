@@ -5,12 +5,9 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.example.cheaptrip.activities.CalculationActivity;
-import com.example.cheaptrip.dao.GasStationClient;
 import com.example.cheaptrip.handlers.CalculationListener;
-import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehiclePropertyHandler;
-import com.example.cheaptrip.handlers.rest.geo.GeoDirectionMatrixHandler;
 
 import com.example.cheaptrip.handlers.rest.station.GasStationForRadiusHandler;
 import com.example.cheaptrip.handlers.rest.station.GasStationHistoryHandler;
@@ -21,11 +18,7 @@ import com.example.cheaptrip.models.TripRoute;
 import com.example.cheaptrip.models.TripVehicle;
 
 import com.example.cheaptrip.models.fueleconomy.Vehicles;
-import com.example.cheaptrip.models.orservice.GeoMatrixResponse;
-import com.example.cheaptrip.models.orservice.ORServiceResponse;
-import com.example.cheaptrip.models.orservice.Segment;
 import com.example.cheaptrip.models.tankerkoenig.Station;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,8 +29,6 @@ import java.util.List;
 public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
     final static double RADIUS_EARTH = 6371e3;    // Radius of Earth in meters
-    final static double AVG_TANK_VOLUME = 30;
-    private static String BASE_URL = "https://api.openrouteservice.org/v2/";
 
     private TripVehicle tripVehicle;
     List<TripRoute> tripRouteList;
@@ -47,6 +38,8 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
     CalculationListener calculationListener;    // for Callbacks
 
     public RouteService(Context context, TripVehicle tripVehicle, CalculationListener calculationListener){
+        assert(tripVehicle != null);
+
         this.tripVehicle = tripVehicle;
         this.context = context;
         tripRouteList = new ArrayList<>();
@@ -85,23 +78,22 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
          * Determine Route from Start to End Location
          *==============================================================================================*/
         GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(Arrays.asList(tripLocations));
-        ORServiceResponse orServiceResponse = geoDirectionsHandler.makeSyncRequest();
+        TripRoute tripRoute = geoDirectionsHandler.makeSyncRequest();
 
-        if(orServiceResponse == null){
-            Log.e("CHEAPTRIP","OrServiceResponse is null");
+        if(tripRoute == null){
+            Log.e("CHEAPTRIP","Error on calling OpenrouteService: TripLocation is null");
             return null;
         }
 
-        double distance = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDistance();
-        double duration = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDuration();
+        double distance = tripRoute.getDistance();
+        double duration = tripRoute.getDuration();
 
         double hours = duration /3600;
         double avgSpeed = distance/hours;
 
         double maxRange = determineMaxRange(tripVehicle, avgSpeed);
 
-        List<List<Double>> routeCoordinates = orServiceResponse.getFeatures().get(0).getGeometry().getCoordinates();
-        List<TripLocation> tripLocationList = TripLocation.getAsTripLocationList(routeCoordinates);
+        List<TripLocation> tripLocationList = tripRoute.getPointsForPolyLine();
 
        /* if(context != null && context instanceof CalcMapFragment){
             ((CalculationActivity) context).drawRange(startTripLocation, maxRange);
@@ -110,7 +102,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         /*============================================================================================
          * Determine the Point on the Route from where to find Gas Stations nearby
          *============================================================================================*/
-        TripLocation pointInRange = findPointfromDistance(maxRange,tripLocationList,25);
+        TripLocation pointInRange = findPointfromDistance(maxRange,tripLocationList,5);
 
        /* if( calcMapFragment instanceof CalculationActivity) {
              CalculationActivity calculationActivity = (CalculationActivity) calcMapFragment;
@@ -127,7 +119,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             calculationActivity.drawStations(stationList);
         }*/
 
-        tripRouteList = determineRoutes(startTripLocation,endTripLocation,stationList,tripVehicle);
+        tripRouteList = determineTripRoutes(startTripLocation,endTripLocation,stationList,tripVehicle);
 
         //calculationActivity.onCalculationDone(tripRouteList);
         return null;
@@ -163,11 +155,8 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         return tripVehicle;
     }
 
-    public static double determineRouteCosts(TripRoute tripRoute, TripVehicle tripVehicle){
-        return 0.0;
-    }
 
-    public List<TripRoute> determineRoutes(TripLocation startLocation, TripLocation endLocation, List<Station> stationList, TripVehicle tripVehicle){
+    public List<TripRoute> determineTripRoutes(TripLocation startLocation, TripLocation endLocation, List<Station> stationList, TripVehicle tripVehicle){
         List<TripRoute> tripRouteList = new ArrayList<>();
         if(tripVehicle == null){
             Log.e("CHEAPTRIP","Cannot determine Routes: tripVehicle may not be null");
@@ -198,27 +187,24 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
                 continue;
             }
 
-
-            TripRoute tripRoute = new TripRoute();
             TripGasStation tripGasStation = new TripGasStation(station);
-            tripRoute.addTripLocation(startLocation,tripGasStation,endLocation);
 
-            GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(tripRoute.getStops());
-            ORServiceResponse orServiceResponse = geoDirectionsHandler.makeSyncRequest();
+            // Prepare Arguments
+            List<TripLocation> stops = new ArrayList<>();
+            stops.add(startLocation);
+            stops.add(tripGasStation);
+            stops.add(endLocation);
 
-            if(orServiceResponse == null){
-                Log.e("CHEAPTRIP","OrService Response is null");
+            GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(stops);
+            TripRoute tripRoute  = geoDirectionsHandler.makeSyncRequest();
+
+            if(tripRoute == null){
+                Log.e("CHEAPTRIP","Could not get TripRoute from OpenRouteService: result is null.");
                continue;
             }
 
-            double distance = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDistance();
-            double duration = orServiceResponse.getFeatures().get(0).getProperties().getSummary().getDuration();
-
-            List<Segment> segments = orServiceResponse.getFeatures().get(0).getProperties().getSegments();
-
-
-            Gson gson = new Gson();
-            String geoJSON = gson.toJson(orServiceResponse);
+            double distance = tripRoute.getDistance();
+            double duration = tripRoute.getDuration();
 
             double avgSpeed = distance/duration;
 
@@ -234,19 +220,25 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
             double costs = distance * pricePerLiter * avgConsumption/100;
 
-
             tripRoute.setCosts(costs);
-            tripRoute.setGeoJSON(geoJSON);
-            tripRoute.setDistance(distance);
-            tripRoute.setDuration(duration);
+            tripRoute.setStops(stops);
 
             tripRouteList.add(tripRoute);
+
            /* if(calcMapFragment instanceof CalculationActivity){
                 CalculationActivity calculationActivity = (CalculationActivity) calcMapFragment;
                 calculationActivity.drawRoute(geoJSON, Color.BLACK);
             }*/
 
+
+            try {
+                Thread.sleep(600);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
+
         return tripRouteList;
     }
 
@@ -254,7 +246,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         double lat = calcLocation.getLatitdue();
         double lon = calcLocation.getLongitude();
 
-        GasStationForRadiusHandler gasStationHandler = new GasStationForRadiusHandler(lat,lon, GasStationClient.FuelType.E10);
+        GasStationForRadiusHandler gasStationHandler = new GasStationForRadiusHandler(lat,lon, tripVehicle.getFueltype());
 
         List<Station> stations = gasStationHandler.getStations();
 
@@ -279,7 +271,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         double avgConsumption = interpolateConsumption(avgSpeed,cityMPG,highwayMPG);
         //double avgConsumption =  interpolateConsumption();
 
-        double maxRange = percentRest * AVG_TANK_VOLUME * avgConsumption;
+        double maxRange = percentRest * tripVehicle.getTANK_CAPACITY() * avgConsumption;
 
         return maxRange;
     }

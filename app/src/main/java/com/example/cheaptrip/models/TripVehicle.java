@@ -1,14 +1,21 @@
 package com.example.cheaptrip.models;
 
+import com.example.cheaptrip.dao.GasStationClient;
+
 import java.io.Serializable;
 
+
+
+
 public class TripVehicle implements Serializable {
-    final private double TANK_CAPACITY = 20;        // in Litre
+    final private double TANK_CAPACITY = 30;        // in Litre
 
     private String brand;                   // Brand of the Vehicle
     private String model;                   // Model of the Vehicle
     private String year;                    // Construction year of the Vehicle
     private double remainFuelPercent;    // remaining Fuel Capacity in Percent
+
+    private GasStationClient.FuelType fueltype;
 
     private double fuelConsumptionCity;
     private double getFuelConsumptionHighway;
@@ -18,12 +25,12 @@ public class TripVehicle implements Serializable {
 
     }
 
-    public TripVehicle(double tank_capacity, String brand, String model, String year) {
+    public TripVehicle(double tank_capacity, String brand, String model, String year ,GasStationClient.FuelType fuelType) {
         this.brand = brand;
         this.model = model;
         this.year = year;
+        fueltype = fuelType;
     }
-
 
 
     public String getBrand() {
@@ -74,4 +81,15 @@ public class TripVehicle implements Serializable {
         this.remainFuelPercent = remainFuelPercent;
     }
 
+    public GasStationClient.FuelType getFueltype() {
+        return fueltype;
+    }
+
+    public void setFueltype(GasStationClient.FuelType fueltype) {
+        this.fueltype = fueltype;
+    }
+
+    public double getTANK_CAPACITY() {
+        return TANK_CAPACITY;
+    }
 }

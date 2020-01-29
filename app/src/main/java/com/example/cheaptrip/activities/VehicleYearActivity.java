@@ -3,61 +3,75 @@ package com.example.cheaptrip.activities;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
+import android.widget.EditText;
+import android.widget.ListView;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.app.CheapTripApp;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.stream.JsonReader;
+import com.example.cheaptrip.dao.VehicleDatabaseClient;
+import com.example.cheaptrip.database.VehicleDatabase;
+import com.example.cheaptrip.handlers.view.adapters.SelectionListAdapter;
+import com.example.cheaptrip.models.TripVehicle;
 
-import java.io.InputStreamReader;
-import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-//https://www.codeproject.com/Articles/5165136/Retrofit-A-REST-Client-for-Android-Retrofit-2-X
-//TODO: https://stackoverflow.com/questions/29380844/how-to-set-timeout-in-retrofit-library
-//TODO: Search for Vehicle in Edit Text
 
+/**
+ * This Classes purpose is to provide all current Vehicle Models as List,
+ * so that the user can choose the relevant brand for further calculation.
+ *
+ * This is done by calling the web interface (REST-Api)
+ * of Fueleconomy and populating the list for further interaction.
+ *
+ * As the user chooses a vehicle model it will return to the calling activity whilst delivering the
+ * selection (model name) to it (as extra).
+ */
 public class VehicleYearActivity extends ListActivity {
+    private EditText edit_searchYear;      // Edit Field for searching Models
+
+    private SelectionListAdapter listDataAdapter;    // List Adapter for VehicleBrands
+
+    private TripVehicle tripVehicle;                // the TripVehicle to be filled
+    /**
+     * Gets Called when VehicleBrandActivity will be created.
+     * Starts Asynchronious Call of the Webservice-Rest-API
+     * @param savedInstanceState: State of this unique Instance
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((CheapTripApp)getApplication()).setCurrentActivity(this);
-        //setContentView(R.layout.activity_car_brand);
 
-        setList();
-    }
-    private void setList(){
-        List<String> carYearList = getCarYears();
+        // Initialize Views
+        setContentView(R.layout.activity_car_model);
+        edit_searchYear = findViewById(R.id.edit_model);
 
+        // Get tripVehicle
+        Intent intent = getIntent();
 
-        ArrayAdapter<String> listDataAdapter = new ArrayAdapter<String>(this, R.layout.selection_list_row, R.id.listText,carYearList){
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent){
-                // Get the current item from ListView
-                View view = super.getView(position,convertView,parent);
-                if(position %2 == 1) {
-                    // Set a background color for ListView regular row/item
-                    view.setBackgroundColor(Color.parseColor("#CCCCCC"));
-                }else{
-                    view.setBackgroundColor(Color.WHITE);
-                }
-                return view;
-            }
-        };
+        if(intent.hasExtra("vehicle")){
+            tripVehicle = (TripVehicle)intent.getSerializableExtra("vehicle");
+        }else{
+            Log.e("CHEAPTRIP", "Vehicle not passed to VehicleBrandActivity");
+            throw new IllegalStateException("Vehicle not passed to VehicleBrandActivity");
+        }
+
+        // Initialize ListAdapter
+        listDataAdapter = new SelectionListAdapter(this);
         setListAdapter(listDataAdapter);
+        setYearListView();
+        setTextChangedListener();
+        assertMembersInitialized();
     }
+
 
     @Override
     protected void onDestroy() {
@@ -72,6 +86,7 @@ public class VehicleYearActivity extends ListActivity {
 
     public void onResume(){
         super.onResume();
+
         CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
         cheapTripApp .setCurrentActivity( this ) ;
     }
@@ -86,78 +101,123 @@ public class VehicleYearActivity extends ListActivity {
             cheapTripApp.setCurrentActivity( null ) ;
     }
     /**
-     * Generates a list of Car Brands from REST-API 'https://vpic.nhtsa.dot.gov/api/'
+     * This is a Callback function, which gets triggered when an item gets clicked.
+     * It will send the Item Title (=Brand) back to calling Activity ( MainActivity) and finishes.
      *
-     * @return
+     * @param l:        the ListActivity's listView
+     * @param v:        the listItem (as View)
+     * @param position: the position of the clicked item in the List
+     * @param id:       Identifier of the clicked Item
      */
-    private List<String> getCarYears(){
-        List<String> carYearList = new ArrayList<>();
-
-        for(int i =2019 ; i >1908; i--){
-            carYearList.add(""+i);
-        }
-        return carYearList;
-
-        /*LinkedTreeMap data = getFuelEconomyData();
-        Set<String> years = getYears(data);
-        List yearsList = new ArrayList(years);
-        Collections.sort(yearsList, Collections.reverseOrder());
-        Set yearsSorted = new LinkedHashSet(yearsList);
-        //System.out.println(yearsSorted);
-
-        List<String> mainList = new ArrayList<String>();
-        mainList.addAll(yearsSorted);
-        return mainList;*/
-    }
-
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
+        assertMembersInitialized();
         super.onListItemClick(l, v, position, id);
-
-        String selectedItem = (String) getListView().getItemAtPosition(position);
+        /*----------------------------------------------------------
+         * Get the Brand from the selected  item of the  ListView
+         *---------------------------------------------------------*/
+        String selectedYear = (String) getListView().getItemAtPosition(position);
+        tripVehicle.setYear(selectedYear);
+        /*----------------------------------------------------------
+         * Send the Brand Name back to MainActivity
+         *----------------------------------------------------------*/
         Intent intent = new Intent(this, MainActivity.class);
 
-        intent.putExtra("selection", selectedItem);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("vehicle",tripVehicle);
+        intent.putExtras(bundle);
+
         setResult(Activity.RESULT_OK,intent);
+
         finish();
     }
 
-    private static Set<String> getYears(LinkedTreeMap data){
-        return data.keySet();
+    /**
+     * Populates the ListView by Calling the Rest-Interface of NHTSA and storing the response's
+     * data as List to  listDataAdapter (Type: VehicleBrandAdapter).
+     *
+     * The response is received asynchroniously and removes the Progressbar.
+     */
+    public void setYearListView() {
+        assertMembersInitialized();
+
+        List<String> yearList = getYearsFromDatabase();
+
+        listDataAdapter.setList(yearList);
+        listDataAdapter.notifyDataSetChanged();
+
+        assertMembersInitialized();
     }
 
-    private static LinkedTreeMap getFuelEconomyData(){
-        Object json = null;
-        try {
-            json = parse("http://data.cheaptrip.cf/vehicles.json");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    /**
+     * Sets a Listener to the EditText-View.
+     * When the text is changed a filter will be applied to ths List according to the entered Content
+     */
+    private void setTextChangedListener(){
+        assertMembersInitialized();
 
-        LinkedTreeMap root = (LinkedTreeMap) json;
-        LinkedTreeMap data = (LinkedTreeMap) root.get("data");
-
-        return data;
-    }
-
-    // https://javadeveloperzone.com/java-8/java-parse-large-json-file-gson-example/
-    private static Object parse(String urlString) {
-        Object o = null;
-        try {
-            URL url = new URL(urlString);
-            JsonReader jsonReader = new JsonReader(new InputStreamReader(url.openStream()));
-            Gson gson = new GsonBuilder().create();
-            jsonReader.beginArray();
-            int numberOfRecords = 0;
-            while (jsonReader.hasNext()) {
-                o = gson.fromJson(jsonReader, Object.class);
-                numberOfRecords++;
+        edit_searchYear.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                listDataAdapter.getFilter().filter(s.toString());
             }
-            jsonReader.endArray();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return o;
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                listDataAdapter.getFilter().filter(s.toString());
+            }
+        });
+
+        assertMembersInitialized();
     }
 
+
+    /**
+     * Gets all Construction-Years from Database.
+     * Filtered by the contents of the Trip-Vehicle.
+     *
+     * If the year of the Trip-Vehicle is set it will filter by year.
+     * The same procedure for the model of the TripVehicle
+     *
+     * @return List of filtered or unfiltered Names of Brands (String)
+     */
+    private List<String> getYearsFromDatabase(){
+
+        VehicleDatabaseClient dbClient = VehicleDatabase.getDatabase(this).vehicleDatabaseClient();
+
+        List<String> dataSetList;
+
+        if(tripVehicle == null){
+            dataSetList = dbClient.getAllYears();
+        }
+
+        String brand = tripVehicle.getBrand();
+        String model = tripVehicle.getModel();
+
+
+        if(brand != null && brand.length() > 0 && model != null && model.length() > 0){
+            dataSetList = dbClient.getYearForBrandAndModel(brand,model);
+        }else if(brand != null && brand.length() > 0){
+            dataSetList = dbClient.getModelForBrand(brand);
+        }else if(model != null && model.length() > 0){
+            dataSetList = dbClient.getYearForModel(model);
+        }else{
+            dataSetList = dbClient.getAllYears();
+        }
+
+        Collections.sort(dataSetList);
+
+        return dataSetList;
+    }
+
+    /**
+     * A Class Invariant.
+     * Reassures that all the relevant Member Variables are initialized.
+     */
+    private void assertMembersInitialized(){
+        assert (listDataAdapter != null);
+        assert (edit_searchYear != null);
+    }
 }

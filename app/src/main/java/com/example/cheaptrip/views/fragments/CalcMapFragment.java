@@ -37,6 +37,7 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.Polygon;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,15 +45,30 @@ public class CalcMapFragment extends Fragment {
     private static MapView  mMapView = null;
     private static IMapController mMapController = null;
 
-    private TripRouteListAdapter tripRouteListAdapter;
     private String startEndRouteJSON;
 
-    private ProgressBar progressBar;
     TripLocation startLocation;
     TripLocation endLocation;
 
     TripVehicle tripVehicle;
 
+    private String mCurrentRouteAsJSON;                 // JSON defining the route
+
+    private ArrayList<TripLocation> mTripLocationList;        // List of tripLocations on the list
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable("mTripLocationList", mTripLocationList);
+        outState.putString("mCurrentRouteAsJSON", mCurrentRouteAsJSON);
+    }
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
 
     @Nullable
     @Override
@@ -74,12 +90,33 @@ public class CalcMapFragment extends Fragment {
 
         mMapView = view.findViewById(R.id.mapView);
 
-
+        if(savedInstanceState != null) {
+            mTripLocationList = (ArrayList<TripLocation>) savedInstanceState.getSerializable("mTripLocationList");
+            mCurrentRouteAsJSON = (String) savedInstanceState.getSerializable("mCurrentRouteAsJSON");
+        }
         /*============================================================
          * Init the Views
          *============================================================*/
         initMap();
         getDirections();
+
+
+        /*=================================================================
+         * Draw the route
+         *=================================================================*/
+        if(mCurrentRouteAsJSON != null && mCurrentRouteAsJSON.length() > 0){
+            drawRoute(mCurrentRouteAsJSON,Color.GREEN);
+
+        }
+        /*================================================================
+         * Draw the Markers
+         *=================================================================*/
+        if(mTripLocationList != null && !mTripLocationList.isEmpty()){
+            for(TripLocation tripLocation : mTripLocationList){
+                drawMarker(tripLocation,R.drawable.marker_default);
+            }
+        }
+
 /*
         RouteService routeService = new RouteService(this,tripVehicle);
         routeService.execute(startLocation,endLocation);*/
@@ -140,15 +177,17 @@ public class CalcMapFragment extends Fragment {
         tripLocationList.add(endLocation);
 
         GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(tripLocationList);
-        geoDirectionsHandler.makeAsyncRequest(new RestListener<ORServiceResponse>() {
+
+
+        geoDirectionsHandler.makeAsyncRequest(new RestListener<TripRoute>() {
             @Override
-            public void OnRestSuccess(ORServiceResponse orServiceResponse) {
-                if(orServiceResponse == null){
+            public void OnRestSuccess(TripRoute tripRoute) {
+                if(tripRoute == null){
                     Log.e("CHEAPTRIP","Received null as ORService response.");
                     return;
                 }
-                Gson gson = new Gson();
-                String geoJSON = gson.toJson(orServiceResponse);
+
+                String geoJSON = tripRoute.getGeoJSON();
                 startEndRouteJSON = geoJSON;
                 drawRoute(geoJSON, Color.GREEN);
                 setDirectionBbox(geoJSON);
@@ -259,10 +298,23 @@ public class CalcMapFragment extends Fragment {
         }
     }
 
-    public void onCalculationDone(List<TripRoute> tripRouteList){
-        tripRouteListAdapter.setTripRouteList(tripRouteList);
-        tripRouteListAdapter.notifyDataSetChanged();
-        progressBar.setVisibility(View.INVISIBLE);
+
+
+    public void updateCurrentRoute(String geoJSON, boolean draw) {
+        this.mCurrentRouteAsJSON = geoJSON;
+
+        if(draw) {
+            drawRoute(geoJSON, Color.GREEN);
+        }
     }
 
+    public void updateMarkers(List<TripLocation> tripLocationList, boolean draw) {
+        this.mTripLocationList = (ArrayList<TripLocation>)tripLocationList;
+
+        if(draw){
+            for(TripLocation tripLocation : tripLocationList){
+                drawMarker(tripLocation,R.drawable.marker_default);
+            }
+        }
+    }
 }

@@ -67,4 +67,5 @@ public class TripGasStation extends TripLocation {
     public void setBrand(String mBrand) {
         this.mBrand = mBrand;
     }
+
 }
