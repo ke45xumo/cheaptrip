@@ -182,6 +182,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             return tripRouteList;
         }
 
+        Log.d("CHEAPTRIP","NUMBER OF GASSTATIONS: " + stationList.size());
         for(Station station : stationList){
             if(station == null){
                 continue;
