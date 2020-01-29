@@ -409,6 +409,8 @@ public class MapActivity extends Activity {
         marker.setPosition(new GeoPoint(latitude,longitude));
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         marker.setTitle("Loading Location Name...");
+
+
         marker.setInfoWindow(new TripInfoWindow("Loading Location Name...", mMapView));
         marker.showInfoWindow();
         /*===============================================================
@@ -435,6 +437,7 @@ public class MapActivity extends Activity {
             case LOADED:    markerIcon = getResources().getDrawable(R.drawable.osm_ic_center_map);
                             currentSelectedMarker = marker;
                             mMapView.getController().setZoom(20.0);
+                            marker.getInfoWindow().close();
                             break;
             default:
                 throw new IllegalStateException("Unexpected value: " + markertype);
@@ -448,6 +451,8 @@ public class MapActivity extends Activity {
             loadLocationTitle(marker);
         }else{
             marker.setTitle(title);
+            TripInfoWindow tripInfoWindow = (TripInfoWindow) marker.getInfoWindow();
+            tripInfoWindow.setText(title);
         }
 
 
