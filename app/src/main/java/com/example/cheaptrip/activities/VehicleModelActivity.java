@@ -196,7 +196,7 @@ public class VehicleModelActivity extends ListActivity {
         String year = tripVehicle.getYear();
 
 
-        if(brand != null && brand.length() > 0 && year != null && year.length() > 0){
+        /*if(brand != null && brand.length() > 0 && year != null && year.length() > 0){
             dataSetList = dbClient.getModelForBrandandYear(brand,year);
         } else if(brand != null && brand.length() > 0){
             dataSetList = dbClient.getModelForBrand(brand);
@@ -204,7 +204,9 @@ public class VehicleModelActivity extends ListActivity {
             dataSetList = dbClient.getModelForYear(year);
         }else{
             dataSetList = dbClient.getAllModels();
-        }
+        }*/
+
+        dataSetList = dbClient.getModelForBrand(brand);
 
 
         Collections.sort(dataSetList);

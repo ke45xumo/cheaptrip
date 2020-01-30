@@ -14,10 +14,12 @@ import android.widget.ListView;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.app.CheapTripApp;
+import com.example.cheaptrip.dao.GasStationClient;
 import com.example.cheaptrip.dao.VehicleDatabaseClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.view.adapters.SelectionListAdapter;
 import com.example.cheaptrip.models.TripVehicle;
+import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
 
 
 import java.util.ArrayList;
@@ -220,4 +222,5 @@ public class VehicleYearActivity extends ListActivity {
         assert (listDataAdapter != null);
         assert (edit_searchYear != null);
     }
+
 }

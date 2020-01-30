@@ -133,13 +133,6 @@ public class VehicleBrandActivity extends ListActivity {
          *---------------------------------------------------------*/
         String selectedBrand = (String) getListView().getItemAtPosition(position);
         tripVehicle.setBrand(selectedBrand);
-
-        /*-----------------------------------------------------------------------------
-         * Set FuelType
-         *----------------------------------------------------------------------------*/
-        if(tripVehicle.getModel() != null && tripVehicle.getBrand() != null && tripVehicle.getYear() != null){
-
-        }
         /*----------------------------------------------------------
          * Send the Brand Name back to MainActivity
          *----------------------------------------------------------*/
@@ -216,43 +209,20 @@ public class VehicleBrandActivity extends ListActivity {
         String model = tripVehicle.getModel();
         String year = tripVehicle.getYear();
 
-        if(model != null && model.length() > 0){
+      /*  if(model != null && model.length() > 0){
             dataSetList = dbClient.getBrandsForModel(model);
         } else if(year != null && year.length() > 0){
             dataSetList = dbClient.getBrandsForYear(year);
         }else{
             dataSetList = dbClient.getAllBrands();
-        }
+        }*/
 
+        dataSetList = dbClient.getAllBrands();
         Collections.sort(dataSetList);
 
         return dataSetList;
     }
 
-
-  /*  private GasStationClient.FuelType getFuelType(){
-        VehicleDatabaseClient dbClient = VehicleDatabase.getDatabase(this).vehicleDatabaseClient();
-
-        String brand = tripVehicle.getBrand();
-        String model = tripVehicle.getModel();
-        String year = tripVehicle.getYear();
-
-        if(brand == null || model == null || year == null){
-            return null;
-        }
-
-        VehicleDataSet vehicleDataSet = dbClient.findVehicle(brand,model,year);
-
-        if(vehicleDataSet == null){
-            return null;
-        }
-
-        if(vehicleDataSet.getConsumption_regular() != null){
-            return
-        }
-
-
-    }*/
     /**
      * A Class Invariant.
      * Reassures that all the relevant Member Variables are initialized.

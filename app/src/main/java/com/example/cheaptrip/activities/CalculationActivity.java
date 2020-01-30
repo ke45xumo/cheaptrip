@@ -3,6 +3,7 @@ package com.example.cheaptrip.activities;
 
 import android.os.Bundle;
 
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -14,6 +15,8 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.app.CheapTripApp;
+import com.example.cheaptrip.handlers.rest.RestListener;
+import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
 import com.example.cheaptrip.views.fragments.CalcGasStationFragment;
 import com.example.cheaptrip.views.fragments.CalcMapFragment;
 import com.example.cheaptrip.views.fragments.CalcRouteFragment;
@@ -119,28 +122,39 @@ public class CalculationActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mMapFragment.clearMap();
 
-                TripRoute tripRoute = (TripRoute)lvRoutes.getItemAtPosition(position);
-                String geoJSON = tripRoute.getGeoJSON();
+                final TripRoute oldTripRoute = (TripRoute)lvRoutes.getItemAtPosition(position);
 
-                boolean draw = false;
-                if(mViewPager.getCurrentItem() == 1){
-                    draw = true;
+                if(oldTripRoute.getGeoJSON() != null){
+                    fillFragments(oldTripRoute);
+                    return;
                 }
-                mMapFragment.updateCurrentRoute(geoJSON,draw);
-                mMapFragment.updateMarkers(tripRoute.getStops(),draw);
-                //mMapFragment.drawRoute(geoJSON,Color.GREEN);
 
-                //mMapFragment.drawRoute(startEndRouteJSON,Color.BLACK);
 
-                for(TripLocation tripLocation : tripRoute.getStops()){
-                    if(tripLocation instanceof TripGasStation){
-                        mStationFragment.setGasStationInfo((TripGasStation)tripLocation);
+                final GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(oldTripRoute.getStops(),oldTripRoute);
+
+                geoDirectionsHandler.makeAsyncRequest(new RestListener<TripRoute>() {
+                    @Override
+                    public void OnRestSuccess(TripRoute tripRoute) {
+                        List<TripRoute> tripRouteList = tripRouteListAdapter.getTripRouteList();
+                        int index = tripRouteList.indexOf(oldTripRoute);
+
+                        tripRouteList.set(index,tripRoute);
+
+                        tripRouteListAdapter.setTripRouteList(tripRouteList);
+                        tripRouteListAdapter.notifyDataSetChanged();
+
+                        fillFragments(tripRoute);
                     }
-                }
-                if(mViewPager.getCurrentItem() == 3){
-                    draw = true;
-                }
-                mRouteFragment.updateList(tripRoute);
+
+                    @Override
+                    public void OnRestFail() {
+
+                    }
+                });
+
+
+
+
             }
         });
     }
@@ -156,6 +170,54 @@ public class CalculationActivity extends AppCompatActivity {
         });
 
         routeService.execute(startLocation, endLocation);
+    }
+
+    private void getPropertiesforTripRoute(TripRoute tripRoute){
+
+        final TripRoute oldTripRoute = tripRoute;
+        final GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(tripRoute.getStops(),tripRoute);
+
+        geoDirectionsHandler.makeAsyncRequest(new RestListener<TripRoute>() {
+            @Override
+            public void OnRestSuccess(TripRoute tripRoute) {
+                List<TripRoute> tripRouteList = tripRouteListAdapter.getTripRouteList();
+                int index = tripRouteList.indexOf(oldTripRoute);
+
+                tripRouteList.set(index,tripRoute);
+
+                tripRouteListAdapter.setTripRouteList(tripRouteList);
+                tripRouteListAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void OnRestFail() {
+
+            }
+        });
+
+    }
+
+    private void fillFragments(TripRoute tripRoute){
+        boolean draw = false;
+        if(mViewPager.getCurrentItem() == 1){
+            draw = true;
+        }
+
+        String geoJSON = tripRoute.getGeoJSON();
+
+        mMapFragment.updateCurrentRoute(geoJSON,draw);
+        mMapFragment.updateMarkers(tripRoute.getStops(),draw);
+        //mMapFragment.drawRoute(geoJSON,Color.GREEN);
+
+        //mMapFragment.drawRoute(startEndRouteJSON,Color.BLACK);
+
+        for(TripLocation tripLocation : tripRoute.getStops()){
+            if(tripLocation instanceof TripGasStation){
+                mStationFragment.setGasStationInfo((TripGasStation)tripLocation);
+            }
+        }
+
+        mRouteFragment.updateList(tripRoute);
     }
 
 }

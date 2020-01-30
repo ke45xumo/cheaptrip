@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class TripRoute {
+public class TripRoute implements Cloneable{
     private List<TripLocation> stops;
 
     private String geoJSON;
@@ -32,6 +32,21 @@ public class TripRoute {
         stops = new ArrayList<>();
     }
 
+
+    /**
+     * Copy Constructor
+     *
+     * @param tripRoute tripRoute to be Copied
+     */
+    public TripRoute(TripRoute tripRoute) {
+        this.stops = tripRoute.getStops();
+        this.geoJSON = tripRoute.getGeoJSON();
+        this.costs = tripRoute.getCosts();
+        this.distance = tripRoute.getDistance();
+        this.duration = tripRoute.getDuration();
+        this.routeSegments = tripRoute.routeSegments;
+        this.pointsForPolyLine = tripRoute.getPointsForPolyLine();
+    }
 
     /**
      * Constructor

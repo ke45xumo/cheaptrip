@@ -216,6 +216,9 @@ public class Gauge extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        // Draw the scale
+        drawScale(canvas);
+
         // draw the text
         String textPoint = String.valueOf(mPoints);
         mTextPaint.getTextBounds(textPoint, 0, textPoint.length(), mTextRect);
@@ -229,7 +232,6 @@ public class Gauge extends View {
         canvas.drawArc(mArcRect, -180, 180, false, mArcPaint);
         canvas.drawArc(mArcRect, ANGLE_OFFSET, mProgressSweep, false, mProgressPaint);
 
-        drawScale(canvas);
 
         // Draw the needle
        /* Paint paint = new Paint();
@@ -259,8 +261,6 @@ public class Gauge extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
-            // 阻止父View去攔截onTouchEvent()事件，確保touch事件可以正確傳遞到此層View。
             this.getParent().requestDisallowInterceptTouchEvent(true);
 
             switch (event.getAction()) {

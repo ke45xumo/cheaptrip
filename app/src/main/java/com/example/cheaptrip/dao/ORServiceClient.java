@@ -50,13 +50,12 @@ public interface ORServiceClient {
     Call<ORServiceResponse> getDirections2(@Field("coordinates")List<List<Double>> coordinates,@Field("unit") String unit);
 
     @Json
-    @FormUrlEncoded
     @Headers({
             "Authorization: " + API_KEY ,
             "Accept: application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
-            "Content-Type: application/json"
+            "Content-Type: application/json; charset=utf-8"
     })
-    @POST("directions/driving-car/geojson")
+    @POST("matrix/driving-car")
     Call<GeoMatrixResponse> getMatrix(@Body String body);
 
 }

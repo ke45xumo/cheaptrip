@@ -15,7 +15,6 @@ import com.example.cheaptrip.models.orservice.Segment;
 import com.example.cheaptrip.models.orservice.Summary;
 import com.google.gson.Gson;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,10 +25,12 @@ public class GeoDirectionsHandler extends RestHandler<TripRoute,String> {
     private static final String BASE_URL = "https://api.openrouteservice.org/v2/";
 
     private List<TripLocation> tripLocationList;
+    private TripRoute mTripRoute;
 
-    public GeoDirectionsHandler(List<TripLocation> tripLocationList) {
+    public GeoDirectionsHandler(List<TripLocation> tripLocationList, TripRoute tripRoute) {
         super(BASE_URL);
         this.tripLocationList = tripLocationList;
+        mTripRoute = tripRoute;
 
         ORServiceClient orServiceClient = super.getRetrofit().create(ORServiceClient.class);
 
@@ -45,8 +46,14 @@ public class GeoDirectionsHandler extends RestHandler<TripRoute,String> {
 
 
         Gson gson = new Gson();
+        TripRoute tripRoute;
 
-        TripRoute tripRoute = new TripRoute();
+        // Create a copy
+        if(mTripRoute != null){
+            tripRoute = new TripRoute(mTripRoute);
+        }else{
+            tripRoute = new TripRoute();
+        }
 
         if(geoJSON == null){
             Log.e("CHEAPTRIP","GeoDirectionsHandler#extractDataFromResponse(): Cannot extract geoJSON from ORService.");

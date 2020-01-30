@@ -32,10 +32,16 @@ import com.example.cheaptrip.R;
 
 
 import com.example.cheaptrip.app.CheapTripApp;
+import com.example.cheaptrip.dao.GasStationClient;
+import com.example.cheaptrip.dao.VehicleDatabaseClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripVehicle;
+import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
 import com.example.cheaptrip.views.Gauge;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 //TODO:https://github.com/Q42/AndroidScrollingImageView
@@ -76,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         assignViewObjects();
         tripVehicle = new TripVehicle();
         btn_carModel.setEnabled(false);
+        btn_carYear.setEnabled(false);
 
 
         /*======================================
@@ -282,11 +289,13 @@ public class MainActivity extends AppCompatActivity {
             case ACTIVITY_REQ_CODE_MODEL:       tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
                                                 str_Model = tripVehicle.getModel();
                                                 btn_carModel.setText(str_Model);
+                                                btn_carYear.setEnabled(true);
                                                 break;
 
             case ACTIVITY_REQ_CODE_YEAR:        tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
                                                 str_Year = tripVehicle.getYear();
                                                 btn_carYear.setText(str_Year);
+
                                                 break;
 
             case ACTIVITY_REQ_CODE_START:       startLocation = (TripLocation) data.getSerializableExtra("Location");
@@ -328,6 +337,46 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this,"Location Permission Denied", Toast.LENGTH_SHORT).show();
             }
         }
+
+    }
+
+    //TODO Implement + create Views
+    private void setFuelTypeRadioButtons(TripVehicle tripVehicle){
+        List<GasStationClient.FuelType> fuelTypeList = determineFuelType(tripVehicle);
+
+        if(fuelTypeList.contains(GasStationClient.FuelType.DIESEL)){
+
+        }
+
+        if(fuelTypeList.contains(GasStationClient.FuelType.E5)){
+
+        }
+    }
+
+
+    private List<GasStationClient.FuelType> determineFuelType(TripVehicle tripVehicle){
+        List<GasStationClient.FuelType> fuelTypeList = new ArrayList<>();
+
+        VehicleDatabaseClient dbClient = VehicleDatabase.getDatabase(this).vehicleDatabaseClient();
+
+        String brand = tripVehicle.getBrand();
+        String model = tripVehicle.getModel();
+        String year = tripVehicle.getYear();
+
+
+        VehicleDataSet vehicleDataSet = dbClient.findVehicle(brand,model,year);
+
+        if(vehicleDataSet != null){
+            if(vehicleDataSet.getConsumption_regular() != null){
+                fuelTypeList.add(GasStationClient.FuelType.E5);
+            }
+
+            if(vehicleDataSet.getConsumption_diesel() != null){
+                fuelTypeList.add(GasStationClient.FuelType.DIESEL);
+            }
+        }
+
+        return fuelTypeList;
 
     }
 }

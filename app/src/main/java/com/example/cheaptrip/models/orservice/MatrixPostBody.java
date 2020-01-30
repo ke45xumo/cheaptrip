@@ -1,22 +1,23 @@
 package com.example.cheaptrip.models.orservice;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MatrixPostBody {
 
-    public enum METRICS{
+    public enum METRIC {
         DISTANCE("distance"),
         DURATION("duration");
 
         String metrics;
-        METRICS(String metrics) {
+        METRIC(String metrics) {
             this.metrics = metrics;
         }
     }
 
     public enum UNITS{
-        METERS("m"),
-        KILOMETERS("km");
+        m("m"),
+        km("km");
 
         String units;
         UNITS (String units) {
@@ -24,9 +25,11 @@ public class MatrixPostBody {
         }
     }
 
+
+
     private List<List<Double>> locations;
     private List<Integer> sources;
-    private METRICS metrics;
+    private List<METRIC> metrics;
     private UNITS units;
 
 
@@ -47,11 +50,11 @@ public class MatrixPostBody {
     }
 
 
-    public METRICS getMetrics() {
+    public List<METRIC> getMetrics() {
         return metrics;
     }
 
-    public void setMetrics(METRICS metrics) {
+    public void setMetrics(List<METRIC> metrics) {
         this.metrics = metrics;
     }
 
@@ -63,10 +66,13 @@ public class MatrixPostBody {
         this.units = units;
     }
 
-    public MatrixPostBody(List<List<Double>> locations, List<Integer> sources, METRICS metrics, UNITS units) {
+    public MatrixPostBody(List<List<Double>> locations, List<Integer> sources, UNITS units) {
         this.locations = locations;
         this.sources = sources;
-        this.metrics = metrics;
         this.units = units;
+
+        metrics = new ArrayList<>();
+        metrics.add(METRIC.DISTANCE);
+        metrics.add(METRIC.DURATION);
     }
 }

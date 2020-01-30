@@ -176,7 +176,7 @@ public class CalcMapFragment extends Fragment {
         tripLocationList.add(startLocation);
         tripLocationList.add(endLocation);
 
-        GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(tripLocationList);
+        GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(tripLocationList,null);
 
 
         geoDirectionsHandler.makeAsyncRequest(new RestListener<TripRoute>() {
@@ -223,6 +223,8 @@ public class CalcMapFragment extends Fragment {
                 FolderOverlay myOverLay = (FolderOverlay) kmlDocument.mKmlRoot.buildOverlay(mMapView, null, styler, kmlDocument);
                 mMapView.getOverlays().add(myOverLay);
                 mMapView.invalidate();
+
+
                 setDirectionBbox(geoJSON);
             }catch(IllegalStateException e){
                 Log.e("CHEAPTRIP","Cannot draw Route from GeoJSON: " +  e.getLocalizedMessage());
@@ -302,6 +304,9 @@ public class CalcMapFragment extends Fragment {
 
     public void updateCurrentRoute(String geoJSON, boolean draw) {
         this.mCurrentRouteAsJSON = geoJSON;
+        if(startEndRouteJSON != null){
+            drawRoute(startEndRouteJSON, Color.BLACK);
+        }
 
         if(draw) {
             drawRoute(geoJSON, Color.GREEN);

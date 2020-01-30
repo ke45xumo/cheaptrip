@@ -10,6 +10,11 @@ public class GeoMatrixResponse {
     @SerializedName("distances")
     @Expose
     private List<List<Double>> distances = new ArrayList<List<Double>>();
+
+    @SerializedName("durations")
+    @Expose
+    private List<List<Double>> durations = new ArrayList<List<Double>>();
+
     @SerializedName("destinations")
     @Expose
     private List<Destination> destinations = new ArrayList<Destination>();
@@ -52,4 +57,11 @@ public class GeoMatrixResponse {
         this.metadata = metadata;
     }
 
+    public List<List<Double>>getDurations() {
+        return durations;
+    }
+
+    public void setDurations(List<List<Double>> durations) {
+        this.durations = durations;
+    }
 }

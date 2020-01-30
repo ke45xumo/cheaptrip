@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.example.cheaptrip.activities.CalculationActivity;
 import com.example.cheaptrip.handlers.CalculationListener;
+import com.example.cheaptrip.handlers.rest.geo.GeoDirectionMatrixHandler;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehiclePropertyHandler;
 
@@ -22,6 +23,7 @@ import com.example.cheaptrip.models.tankerkoenig.Station;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -77,7 +79,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         /*==============================================================================================
          * Determine Route from Start to End Location
          *==============================================================================================*/
-        GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(Arrays.asList(tripLocations));
+        GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(Arrays.asList(tripLocations),null);
         TripRoute tripRoute = geoDirectionsHandler.makeSyncRequest();
 
         if(tripRoute == null){
@@ -94,34 +96,17 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         double maxRange = determineMaxRange(tripVehicle, avgSpeed);
 
         List<TripLocation> tripLocationList = tripRoute.getPointsForPolyLine();
-
-       /* if(context != null && context instanceof CalcMapFragment){
-            ((CalculationActivity) context).drawRange(startTripLocation, maxRange);
-        }*/
-
         /*============================================================================================
          * Determine the Point on the Route from where to find Gas Stations nearby
          *============================================================================================*/
-        TripLocation pointInRange = findPointfromDistance(maxRange,tripLocationList,5);
-
-       /* if( calcMapFragment instanceof CalculationActivity) {
-             CalculationActivity calculationActivity = (CalculationActivity) calcMapFragment;
-            calculationActivity.drawRange(pointInRange, 25);
-
-        }*/
+        TripLocation pointInRange = findPointfromDistance(maxRange,tripLocationList,25);
         /*============================================================================================
          * Determine the Point on the Route from where to find Gas Stations nearby
          *============================================================================================*/
         List<Station> stationList = getStationsInRange(pointInRange);
 
-        /*if (calcMapFragment instanceof CalculationActivity){
-            CalculationActivity calculationActivity = (CalculationActivity) calcMapFragment;
-            calculationActivity.drawStations(stationList);
-        }*/
-
         tripRouteList = determineTripRoutes(startTripLocation,endTripLocation,stationList,tripVehicle);
 
-        //calculationActivity.onCalculationDone(tripRouteList);
         return null;
     }
 
@@ -157,7 +142,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
 
     public List<TripRoute> determineTripRoutes(TripLocation startLocation, TripLocation endLocation, List<Station> stationList, TripVehicle tripVehicle){
-        List<TripRoute> tripRouteList = new ArrayList<>();
+
         if(tripVehicle == null){
             Log.e("CHEAPTRIP","Cannot determine Routes: tripVehicle may not be null");
             return tripRouteList;
@@ -183,6 +168,89 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         }
 
         Log.d("CHEAPTRIP","NUMBER OF GASSTATIONS: " + stationList.size());
+
+        /*==========================================================================================
+         * Generate the Coordinate List for the POST Body of Matrix Request (ORService)
+         *========================================================================================*/
+        List<List<Double>> matrixCoordinateList = new ArrayList<>();
+
+        matrixCoordinateList.add(startLocation.getAsDoubleList());
+        matrixCoordinateList.add(endLocation.getAsDoubleList());
+
+        for(Station station : stationList) {
+            if (station == null) {
+                continue;
+            }
+
+            List<Double> stationCoordinates = new ArrayList<>();
+
+            double lon = station.getLng();
+            double lat = station.getLat();
+
+            stationCoordinates.add(lon);
+            stationCoordinates.add(lat);
+
+            matrixCoordinateList.add(stationCoordinates);
+        }
+        /*==========================================================================================
+         * Get TripRoutes with Durations and Distances from ORService API
+         *========================================================================================*/
+        List<Integer> locationPosition = new ArrayList<Integer>();     // Location of start and end
+        locationPosition.add(0);
+        locationPosition.add(1);
+
+        GeoDirectionMatrixHandler matrixHandler =  new GeoDirectionMatrixHandler(matrixCoordinateList,locationPosition,null);
+        List<TripRoute> tripRouteList = matrixHandler.makeSyncRequest();
+        /*================================================================
+         * Initialize the TripRoute ( Set Stops and Costs)
+         *================================================================*/
+        List<TripRoute> resultList = new ArrayList<>();         // list with all routes that hold costs
+
+        Iterator tripListIterator = tripRouteList.iterator();
+
+        for(Station station : stationList){
+            TripGasStation tripGasStation = new TripGasStation(station);
+
+
+            TripRoute tripRoute = (TripRoute) tripListIterator.next();
+
+            if(tripRoute == null){
+                Log.w("CHEAPTRIP", "RouteService->determineTripRoutes: tripRoute is null. " +
+                        "This should not happen (stationList size and tripRoute List size shout be the same");
+                continue;
+            }
+
+            double distance = tripRoute.getDistance();
+            double duration = tripRoute.getDuration();
+
+            tripRoute.addTripLocation(startLocation,tripGasStation,endLocation);
+
+            double avgSpeed = distance/(duration/3600);     // in KMH
+
+            double cityMPG = tripVehicle.getFuelConsumptionCity();
+            double highwayMPG = tripVehicle.getFuelConsumptionCity();
+
+            double avgConsumption = interpolateConsumption(avgSpeed,cityMPG,highwayMPG);
+            Double pricePerLiter = station.getE5();
+
+            if(pricePerLiter == null){
+                continue;
+            }
+
+            double costs = distance * pricePerLiter * avgConsumption/100;
+
+            if(costs == 0){
+                continue;
+            }
+
+
+            tripRoute.setCosts(costs);
+            resultList.add(tripRoute);
+
+        }
+       /* /*================================================================
+         * Iterate over the Received Stations
+         *================================================================*//*
         for(Station station : stationList){
             if(station == null){
                 continue;
@@ -226,10 +294,10 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
             tripRouteList.add(tripRoute);
 
-           /* if(calcMapFragment instanceof CalculationActivity){
+           *//* if(calcMapFragment instanceof CalculationActivity){
                 CalculationActivity calculationActivity = (CalculationActivity) calcMapFragment;
                 calculationActivity.drawRoute(geoJSON, Color.BLACK);
-            }*/
+            }*//*
 
 
             try {
@@ -238,9 +306,9 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
                 e.printStackTrace();
             }
 
-        }
+        }*/
 
-        return tripRouteList;
+        return resultList;
     }
 
     public List<Station> getStationsInRange(TripLocation calcLocation){
@@ -276,46 +344,6 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
         return maxRange;
     }
-
-  /*  public List<Double> determinePointFromDistance(final double maxRange, List<List<Double>> coordinateList){
-        final int countCoordinates = coordinateList.size();
-
-        final List<List<Double>> currentCoordinates = new ArrayList<>();
-
-        final int step = countCoordinates/10;
-
-        for(int i = 0 ; i < countCoordinates; i+= step ){
-            currentCoordinates.add(coordinateList.get(i));
-        }
-
-        GeoDirectionMatrixHandler geoDirectionMatrixHandler = new GeoDirectionMatrixHandler(currentCoordinates);
-
-        geoDirectionMatrixHandler.makeAsyncRequest(new RestListener<GeoMatrixResponse>() {
-            @Override
-            public void OnRestSuccess(GeoMatrixResponse geoMatrixResponse) {
-                int index = 0;
-                for( Double distance : geoMatrixResponse.getDistances().get(0)){
-                    while (maxRange < distance ){
-                        index += step;
-                    }
-                }
-                int upperBound = Math.min(index,countCoordinates);
-                List<List<Double>> newSection = currentCoordinates.subList(index, upperBound);
-
-                determinePointFromDistance(maxRange,newSection);
-            }
-
-            @Override
-            public void OnRestFail() {
-
-            }
-        });
-
-        return null;
-    }
-*/
-
-
 
     public TripLocation findPointfromDistance(double radius, List<TripLocation> tripLocations, double offset){
         int indexLowerBound = 0;
