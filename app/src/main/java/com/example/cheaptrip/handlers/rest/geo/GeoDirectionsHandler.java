@@ -2,7 +2,7 @@ package com.example.cheaptrip.handlers.rest.geo;
 
 import android.util.Log;
 
-import com.example.cheaptrip.dao.ORServiceClient;
+import com.example.cheaptrip.dao.rest.ORServiceClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripRoute;

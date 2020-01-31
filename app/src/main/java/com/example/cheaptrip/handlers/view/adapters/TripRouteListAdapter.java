@@ -79,7 +79,7 @@ public class TripRouteListAdapter extends BaseAdapter {
 
         String strTime = String.format("%d h %d m %d s",hours, mins, secs);
 
-        String text = String.format(Locale.GERMANY,"Costs %20.2f €\nDuration:%20s\nDistance:%20.2f km",costs, strTime, distance);
+        String text = String.format(Locale.GERMANY,"Costs %23.2f €\nDuration:%22s\nDistance:%20.2f km",costs, strTime, distance);
 
         textView.setText(text);
 

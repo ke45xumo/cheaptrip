@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,7 +15,6 @@ import com.example.cheaptrip.R;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
 import com.example.cheaptrip.handlers.view.MyKmlStyler;
-import com.example.cheaptrip.handlers.view.adapters.TripRouteListAdapter;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripRoute;
 import com.example.cheaptrip.models.TripVehicle;
@@ -37,38 +35,32 @@ import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.Polygon;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class represents the Fragment of {@link com.example.cheaptrip.activities.CalculationActivity}
+ * (on tap Map).
+ *
+ * It displays a map holding the information of the current Route and the Route Selected from
+ * the Activity's list of Routes ( with gas station as intermediate stop).
+ *
+ * It displays the route and the markers (stops) of the trip.
+ */
 public class CalcMapFragment extends Fragment {
     private static MapView  mMapView = null;
     private static IMapController mMapController = null;
 
+    private TripRoute mTripRoute;
+
     private String startEndRouteJSON;
 
-    TripLocation startLocation;
-    TripLocation endLocation;
+    private TripLocation startLocation;
+    private TripLocation endLocation;
 
-    TripVehicle tripVehicle;
-
-    private String mCurrentRouteAsJSON;                 // JSON defining the route
-
-    private ArrayList<TripLocation> mTripLocationList;        // List of tripLocations on the list
+    TripVehicle tripVehicle;                            // TripVehicle
 
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putSerializable("mTripLocationList", mTripLocationList);
-        outState.putString("mCurrentRouteAsJSON", mCurrentRouteAsJSON);
-    }
-
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Nullable
     @Override
@@ -83,61 +75,35 @@ public class CalcMapFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view,savedInstanceState);
 
+        /*============================================================
+         * Init the Views
+         *============================================================*/
         startLocation = (TripLocation) getActivity().getIntent().getSerializableExtra("start");
         endLocation = (TripLocation) getActivity().getIntent().getSerializableExtra("end");
 
         tripVehicle = (TripVehicle) getActivity().getIntent().getSerializableExtra("tripVehicle");
 
         mMapView = view.findViewById(R.id.mapView);
-
-        if(savedInstanceState != null) {
-            mTripLocationList = (ArrayList<TripLocation>) savedInstanceState.getSerializable("mTripLocationList");
-            mCurrentRouteAsJSON = (String) savedInstanceState.getSerializable("mCurrentRouteAsJSON");
-        }
-        /*============================================================
-         * Init the Views
-         *============================================================*/
-        initMap();
-        getDirections();
-
-
-        /*=================================================================
-         * Draw the route
-         *=================================================================*/
-        if(mCurrentRouteAsJSON != null && mCurrentRouteAsJSON.length() > 0){
-            drawRoute(mCurrentRouteAsJSON,Color.GREEN);
-
-        }
         /*================================================================
-         * Draw the Markers
+         * Init the Map and get
          *=================================================================*/
-        if(mTripLocationList != null && !mTripLocationList.isEmpty()){
-            for(TripLocation tripLocation : mTripLocationList){
-                drawMarker(tripLocation,R.drawable.marker_default);
-            }
+        initMap();
+        getBaseRoute(startLocation,endLocation);
+        /*================================================================
+         * Draw the current Selected Route
+         *=================================================================*/
+        if(mTripRoute != null){
+            updateMap(mTripRoute);
         }
-
-/*
-        RouteService routeService = new RouteService(this,tripVehicle);
-        routeService.execute(startLocation,endLocation);*/
-
     }
 
     public void onResume() {
         super.onResume();
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
         mMapView.onResume(); //needed for compass, my location overlays, v6.0.0 and up
     }
 
     public void onPause() {
         super.onPause();
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().save(this, prefs);
         mMapView.onPause();  //needed for compass, my location overlays, v6.0.0 and up
     }
 
@@ -170,14 +136,22 @@ public class CalcMapFragment extends Fragment {
 
     }
 
-    public void getDirections(){
+    private void getBaseRoute(TripLocation startLocation, TripLocation endLocation){
+        if(startLocation == null){
+            Log.e("CHEAPTRIP","CalcMapFragment->getBaseRoute: Cannot get the base Route: startLocation is null");
+            return;
+        }
+
+        if(endLocation == null){
+            Log.e("CHEAPTRIP","CalcMapFragment->getBaseRoute: Cannot get the base Route: endLocation is null");
+            return;
+        }
 
         List<TripLocation> tripLocationList = new ArrayList<>();
         tripLocationList.add(startLocation);
         tripLocationList.add(endLocation);
 
         GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(tripLocationList,null);
-
 
         geoDirectionsHandler.makeAsyncRequest(new RestListener<TripRoute>() {
             @Override
@@ -202,7 +176,7 @@ public class CalcMapFragment extends Fragment {
     }
 
 
-    public void drawMarker(TripLocation tripLocation, int resourceIcon){
+    private void drawMarker(TripLocation tripLocation, int resourceIcon){
         Marker marker= new Marker(mMapView);
         marker.setPosition(new GeoPoint(tripLocation.getLatitdue(),tripLocation.getLongitude()));
         marker.setTitle(tripLocation.getLocationName());
@@ -256,12 +230,6 @@ public class CalcMapFragment extends Fragment {
 
     }
 
-    public void onDirectionsLoaded(String geoJSON){
-        startEndRouteJSON = geoJSON;
-        drawRoute(geoJSON,Color.GREEN);
-        setDirectionBbox(geoJSON);
-    }
-
     public void drawRange(TripLocation centeredLocation, final double radius) {
         /*-------------------------------------------------------------------------
          * Draw the a circle for the max Radius to reach with current tank contents
@@ -283,6 +251,7 @@ public class CalcMapFragment extends Fragment {
         mMapView.invalidate();
     }
 
+
     public void drawStations(List<Station> stations){
         /*--------------------------------------------------------
          * Set the Markers for the Gas Stations
@@ -300,26 +269,29 @@ public class CalcMapFragment extends Fragment {
         }
     }
 
+    private void updateCurrentRoute(String geoJSON) {
+        drawRoute(geoJSON, Color.GREEN);
 
-
-    public void updateCurrentRoute(String geoJSON, boolean draw) {
-        this.mCurrentRouteAsJSON = geoJSON;
         if(startEndRouteJSON != null){
             drawRoute(startEndRouteJSON, Color.BLACK);
         }
 
-        if(draw) {
-            drawRoute(geoJSON, Color.GREEN);
-        }
+        setDirectionBbox(geoJSON);
     }
 
-    public void updateMarkers(List<TripLocation> tripLocationList, boolean draw) {
-        this.mTripLocationList = (ArrayList<TripLocation>)tripLocationList;
-
-        if(draw){
-            for(TripLocation tripLocation : tripLocationList){
-                drawMarker(tripLocation,R.drawable.marker_default);
-            }
+    private void updateMarkers(List<TripLocation> tripLocationList) {
+        for(TripLocation tripLocation : tripLocationList){
+            drawMarker(tripLocation,R.drawable.marker_default);
         }
+
+    }
+
+    public void updateMap(TripRoute tripRoute){
+        mTripRoute = tripRoute;
+        String geoJSON = tripRoute.getGeoJSON();
+
+        updateCurrentRoute(geoJSON);
+        updateMarkers(tripRoute.getStops());
+
     }
 }

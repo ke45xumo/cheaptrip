@@ -1,6 +1,7 @@
 package com.example.cheaptrip.activities;
 
 
+import android.app.Activity;
 import android.os.Bundle;
 
 import android.util.Log;
@@ -17,6 +18,7 @@ import com.example.cheaptrip.R;
 import com.example.cheaptrip.app.CheapTripApp;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
+import com.example.cheaptrip.views.Gauge;
 import com.example.cheaptrip.views.fragments.CalcGasStationFragment;
 import com.example.cheaptrip.views.fragments.CalcMapFragment;
 import com.example.cheaptrip.views.fragments.CalcRouteFragment;
@@ -43,23 +45,24 @@ import java.util.List;
 
 public class CalculationActivity extends AppCompatActivity {
 
-    private static IMapController mMapController = null;
+    private ListView lvRoutes;                              // List view for the TripRoutes
+    private TripRouteListAdapter tripRouteListAdapter;      // Adapter for the List of TripRoutes
 
-    private ListView lvRoutes;
-    private TripRouteListAdapter tripRouteListAdapter;
+    private Gauge progressBar;                        // Progress bar to be shown on load of
+                                                            // the list entries
 
-    private ProgressBar progressBar;
-    TripLocation startLocation;
-    TripLocation endLocation;
+    TripLocation startLocation;                             // Starting Location
+    TripLocation endLocation;                               // End Location (Destination)
 
-    TripVehicle tripVehicle;
+    TripVehicle tripVehicle;                                // Vehicle to be used for Calculation
 
-    private CalcGasStationFragment mStationFragment;
-    private CalcMapFragment mMapFragment;
-    private CalcRouteFragment mRouteFragment;
+    private CalcGasStationFragment mStationFragment;        // Fragment of the tab for GasStation info
+    private CalcMapFragment mMapFragment;                   // Fragment of the tab for Map info
+    private CalcRouteFragment mRouteFragment;               // Fragment of the tab for Route info
 
-    private ViewPager mViewPager;
+    private ViewPager mViewPager;                           // The View pager for the fragments
 
+    private volatile boolean mIsListLoaded = false;         // will be set as soon the TripRoute List is loaded
 
     /**
      * This function will be called on Activity creation
@@ -91,9 +94,53 @@ public class CalculationActivity extends AppCompatActivity {
         initFragments();
         initList();
         startCalculation();
-
     }
 
+    /**
+     * Called on Destruction of the Activity
+     * The Activity gets removed from the stack -> registers removal to the app
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
+    /**
+     * Called on Resume of the Activity
+     * The Activity will be added on top of the stack (-> registration) to the app
+     */
+    public void onResume(){
+        super.onResume();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        cheapTripApp .setCurrentActivity( this ) ;
+    }
+
+    /**
+     * Called on Pause of the Activity
+     * The Activity will be removed from top of the stack (-> registration to the app)
+     */
+    public void onPause(){
+        super.onPause();
+
+        CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+        Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+        if ( this .equals(currActivity))
+            cheapTripApp.setCurrentActivity( null ) ;
+    }
+
+    /**
+     * Initializes the Fragments for
+     *      * Gas station details
+     *      * Map details
+     *      * Route details ( steps to be taken for navigation)
+     */
     private void initFragments(){
         mMapFragment = new CalcMapFragment();
         mStationFragment = new CalcGasStationFragment();
@@ -111,8 +158,24 @@ public class CalculationActivity extends AppCompatActivity {
         mViewPager.setCurrentItem(1);
 
         tabLayout.setupWithViewPager(mViewPager);
+
+        animateTankIndicator();
     }
 
+    /**
+     * Initializes the List of Calculated routes.
+     *
+     * Sets a ItemClicked Listener updating the fragments for
+     *          * GasStation details ({@link CalcGasStationFragment}
+     *          * Map details   ({@link CalcGasStationFragment}
+     *          * Route details ({@link CalcRouteFragment}
+     *
+     * 1) The GasStation details will be loaded from the list item (pre-initialized)
+     * 2) the Map Details will be loaded either
+     *          * from the item if initialized before
+     *          * per Rest-API request (getting the geoJSON to be drawn to the map)
+     * 3) the
+     */
     private void initList(){
         tripRouteListAdapter = new TripRouteListAdapter(this);
         lvRoutes.setAdapter(tripRouteListAdapter);
@@ -124,15 +187,24 @@ public class CalculationActivity extends AppCompatActivity {
 
                 final TripRoute oldTripRoute = (TripRoute)lvRoutes.getItemAtPosition(position);
 
+                /*=====================================================================
+                 * Set the Fragments if Item (TripRoute) already contains the GeoJSON
+                 * (set by previous API-Request
+                 *=====================================================================*/
                 if(oldTripRoute.getGeoJSON() != null){
                     fillFragments(oldTripRoute);
                     return;
                 }
-
-
+                /*=====================================================================
+                 * Get the GeoJSON for setting the Route to the MapFragment
+                 * (not already in ListItem (= TripRoute) )
+                 *=====================================================================*/
                 final GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(oldTripRoute.getStops(),oldTripRoute);
 
                 geoDirectionsHandler.makeAsyncRequest(new RestListener<TripRoute>() {
+                    /*================================================
+                     * REST SUCCESS -> Fill Fragments
+                     *================================================*/
                     @Override
                     public void OnRestSuccess(TripRoute tripRoute) {
                         List<TripRoute> tripRouteList = tripRouteListAdapter.getTripRouteList();
@@ -145,20 +217,30 @@ public class CalculationActivity extends AppCompatActivity {
 
                         fillFragments(tripRoute);
                     }
-
+                    /*================================================
+                     * REST FAIL -> Log error
+                     *================================================*/
                     @Override
                     public void OnRestFail() {
-
+                        Log.e("CHEAPTRIP","CalculationActivity-> initList(): Could not set GeoJSON to MapFragment");
                     }
                 });
-
-
-
 
             }
         });
     }
 
+    /**
+     * This will be called to get the Lists of Routes with weights:
+     *      * Costs
+     *      * Duration
+     *      * distance
+     *
+     * This is done by calling a AsyncTask which callbacks the Inner function calculationDone()
+     * with parameter tripRouteList, containing all Routes with the previous mentioned weights.
+     *
+     * The List Adapter of the ListView will be set and notified for data change
+     */
     private void startCalculation(){
         RouteService routeService = new RouteService(this, tripVehicle, new CalculationListener() {
             @Override
@@ -166,50 +248,54 @@ public class CalculationActivity extends AppCompatActivity {
                 tripRouteListAdapter.setTripRouteList(tripRouteList);
                 tripRouteListAdapter.notifyDataSetChanged();
                 progressBar.setVisibility(View.INVISIBLE);
+                mIsListLoaded = true;
             }
         });
 
         routeService.execute(startLocation, endLocation);
+
     }
 
-    private void getPropertiesforTripRoute(TripRoute tripRoute){
 
-        final TripRoute oldTripRoute = tripRoute;
-        final GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(tripRoute.getStops(),tripRoute);
-
-        geoDirectionsHandler.makeAsyncRequest(new RestListener<TripRoute>() {
+    private void animateTankIndicator(){
+        Thread thread = new Thread(new Runnable() {
             @Override
-            public void OnRestSuccess(TripRoute tripRoute) {
-                List<TripRoute> tripRouteList = tripRouteListAdapter.getTripRouteList();
-                int index = tripRouteList.indexOf(oldTripRoute);
+            public void run() {
+                try {
+                    while (!mIsListLoaded) {
+                        // Load from 0% to 100%
+                        for (int i = 0; i <= 100; i++) {
+                            progressBar.setProgress(i);
+                            Thread.sleep(5);
+                        }
 
-                tripRouteList.set(index,tripRoute);
-
-                tripRouteListAdapter.setTripRouteList(tripRouteList);
-                tripRouteListAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void OnRestFail() {
-
+                        // Load from 100% to 0%
+                        for (int i = 100; i >= 0; i--) {
+                            progressBar.setProgress(i);
+                            Thread.sleep(5);
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
+        thread.start();
+
     }
-
+    /**
+     * This function will set the details of the fragments
+     *      * {@link CalcGasStationFragment}
+     *      * {@link CalcMapFragment}
+     *      * {@link CalcRouteFragment}
+     *
+     * for the selection of the TripRoute tripRoute (provided by Arguments
+     *
+     * @param tripRoute     Selected TripRoute from the list lvRoutes.
+     */
     private void fillFragments(TripRoute tripRoute){
-        boolean draw = false;
-        if(mViewPager.getCurrentItem() == 1){
-            draw = true;
-        }
-
-        String geoJSON = tripRoute.getGeoJSON();
-
-        mMapFragment.updateCurrentRoute(geoJSON,draw);
-        mMapFragment.updateMarkers(tripRoute.getStops(),draw);
-        //mMapFragment.drawRoute(geoJSON,Color.GREEN);
-
-        //mMapFragment.drawRoute(startEndRouteJSON,Color.BLACK);
+        mMapFragment.updateMap(tripRoute);
 
         for(TripLocation tripLocation : tripRoute.getStops()){
             if(tripLocation instanceof TripGasStation){

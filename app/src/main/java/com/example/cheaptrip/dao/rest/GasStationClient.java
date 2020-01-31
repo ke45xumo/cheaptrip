@@ -1,4 +1,4 @@
-package com.example.cheaptrip.dao;
+package com.example.cheaptrip.dao.rest;
 
 import com.example.cheaptrip.handlers.converter.annotations.Csv;
 import com.example.cheaptrip.handlers.converter.annotations.Raw;
@@ -7,8 +7,6 @@ import com.example.cheaptrip.models.tankerkoenig.Station;
 
 import java.util.List;
 
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
@@ -23,7 +21,7 @@ public interface GasStationClient {
     /**
      * Enum to determine the Fuel Type for the REST-API Call
      */
-    public enum FuelType
+    enum FuelType
     {
         E5("e5"),
         E10("e10"),
@@ -43,7 +41,7 @@ public interface GasStationClient {
     /**
      * Enum to determine how to sort the results of the REST-API Call
      */
-    public enum Sort
+    enum Sort
     {
         PRICE("price"),
         DISTANCE("dist");
@@ -110,7 +108,6 @@ public interface GasStationClient {
     @Streaming
     @GET("items")
     Call<List<Station>> getHistory(@Query("path") String path);
-
 
 
     @Raw

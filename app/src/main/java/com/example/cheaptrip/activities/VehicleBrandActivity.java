@@ -9,28 +9,18 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.app.CheapTripApp;
-import com.example.cheaptrip.dao.GasStationClient;
-import com.example.cheaptrip.dao.VehicleDatabaseClient;
+import com.example.cheaptrip.dao.database.VehicleDatabaseClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.view.adapters.SelectionListAdapter;
-import com.example.cheaptrip.handlers.view.adapters.VehicleBrandAdapter;
-import com.example.cheaptrip.handlers.rest.RestListener;
-import com.example.cheaptrip.handlers.rest.vehicle.VehicleBrandHandler;
 import com.example.cheaptrip.models.TripVehicle;
-import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
-import com.example.cheaptrip.models.nhtsa.VehicleBrand;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -88,6 +78,10 @@ public class VehicleBrandActivity extends ListActivity {
     }
 
 
+    /**
+     * Called on Destruction of the Activity
+     * The Activity gets removed from the stack -> registers removal to the app
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -98,7 +92,10 @@ public class VehicleBrandActivity extends ListActivity {
         if ( this .equals(currActivity))
             cheapTripApp.setCurrentActivity( null ) ;
     }
-
+    /**
+     * Called on Resume of the Activity
+     * The Activity will be added on top of the stack (-> registration) to the app
+     */
     public void onResume(){
         super.onResume();
 
@@ -106,6 +103,10 @@ public class VehicleBrandActivity extends ListActivity {
         cheapTripApp .setCurrentActivity( this ) ;
     }
 
+    /**
+     * Called on Pause of the Activity
+     * The Activity will be removed from top of the stack (-> registration to the app)
+     */
     public void onPause(){
         super.onPause();
 
@@ -115,6 +116,7 @@ public class VehicleBrandActivity extends ListActivity {
         if ( this .equals(currActivity))
             cheapTripApp.setCurrentActivity( null ) ;
     }
+
     /**
      * This is a Callback function, which gets triggered when an item gets clicked.
      * It will send the Item Title (=Brand) back to calling Activity ( MainActivity) and finishes.

@@ -11,29 +11,27 @@ import android.os.Bundle;
 
 
 import android.util.Pair;
-import android.view.MenuInflater;
 import android.view.View;
 
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 
 import android.widget.EditText;
-import android.widget.ImageView;
 
-import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.PopupMenu;
-import androidx.room.Room;
 
 import com.example.cheaptrip.BuildConfig;
 import com.example.cheaptrip.R;
 
 
 import com.example.cheaptrip.app.CheapTripApp;
-import com.example.cheaptrip.dao.GasStationClient;
-import com.example.cheaptrip.dao.VehicleDatabaseClient;
+import com.example.cheaptrip.dao.rest.GasStationClient;
+import com.example.cheaptrip.dao.database.VehicleDatabaseClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripVehicle;
@@ -43,8 +41,26 @@ import com.example.cheaptrip.views.Gauge;
 import java.util.ArrayList;
 import java.util.List;
 
-
-//TODO:https://github.com/Q42/AndroidScrollingImageView
+/**
+ * This is the main activity of this application.
+ * Its purpose is to assign the TripObject,
+ * such as
+ *      * {@link TripVehicle}:          the Vehicle to be used for the route calculation
+ *      * {@link TripLocation} start:   the Starting location of the route
+ *      * {@link TripLocation} end:     the destination of the route
+ *      * {@link Gauge} Tank Contents:  Remaining fuel capacity of the fuel tank.
+ *
+ * These get set by user input by either collecting it from the view on this Activity ( tankGauge)
+ * or from other Activities:
+ *      * {@link VehicleBrandActivity}  ( Activity to select the vehicle make)
+ *      * {@link VehicleModelActivity}  ( Activity to select the vehicle model)
+ *      * {@link VehicleYearActivity}   ( Activity to select the vehicle construction year)
+ *      * {@link MapActivity} for start ( Activity to select the starting point of the route)
+ *      * {@link MapActivity} for start ( Activity to select the end point/Destination of the route)
+ *
+ * After the previous mention selections were made the user may click the button find to start the
+ * calculation.
+ */
 public class MainActivity extends AppCompatActivity {
     // Request Codes for the Acitivities
     final static int ACTIVITY_REQ_CODE_BRAND    = 1;
@@ -59,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     Button btn_carBrand;        // Selection for car brands
     Button btn_carModel;        // Selection for car models
     Button btn_carYear;         // Selection for car construction year
+    Spinner spin_carFuel;       // Spinner (Drop Down for Fuel Type)
 
     EditText edit_start;        // Edit-Text for Starting Location input
     EditText edit_end;          // Edit-Text for Destination input
@@ -70,9 +87,15 @@ public class MainActivity extends AppCompatActivity {
     TripLocation  startLocation;    // Selected Stating Location
     TripLocation  endLocation;      // Selected End Locaiton ( Destination
 
-
     TripVehicle tripVehicle;        // Vehicle to be created with the properties (Brand,Model,Year)
 
+    /**
+     * This function gets called on Activity Creation.
+     * It takes care of assignment of the views.
+     *
+     * @param savedInstanceState    Saved State of this instance when getting back on top of the
+     *                              stack (e.g. when returning from other activities)
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,12 +104,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         assignViewObjects();
         tripVehicle = new TripVehicle();
-        btn_carModel.setEnabled(false);
-        btn_carYear.setEnabled(false);
 
 
         /*======================================
-         * Set tripVehicle (in debug mode)
+         * Set tripVehicle Mock (in debug mode)
          *======================================*/
         if (BuildConfig.DEBUG) {
             if(tripVehicle == null || tripVehicle.getBrand() == null || tripVehicle.getModel() == null) {
@@ -98,8 +119,12 @@ public class MainActivity extends AppCompatActivity {
                 tripVehicle.setModel("318i");
             }
         }
-
     }
+
+    /**
+     * Called on Destruction of the Activity
+     * The Activity gets removed from the stack -> registers removal to the app
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -110,7 +135,10 @@ public class MainActivity extends AppCompatActivity {
         if ( this .equals(currActivity))
             cheapTripApp.setCurrentActivity( null ) ;
     }
-
+    /**
+     * Called on Resume of the Activity
+     * The Activity will be added on top of the stack (-> registration) to the app
+     */
     public void onResume(){
         super.onResume();
 
@@ -118,6 +146,10 @@ public class MainActivity extends AppCompatActivity {
         cheapTripApp .setCurrentActivity( this ) ;
     }
 
+    /**
+     * Called on Pause of the Activity
+     * The Activity will be removed from top of the stack (-> registration to the app)
+     */
     public void onPause(){
         super.onPause();
 
@@ -128,14 +160,9 @@ public class MainActivity extends AppCompatActivity {
             cheapTripApp.setCurrentActivity( null ) ;
     }
 
-    public void showPopup(View v) {
-        PopupMenu popup = new PopupMenu(this, v);
-        MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.menu, popup.getMenu());
-        popup.show();
-    }
-
-
+    /**
+     * Assigns the Views to the object of this activity
+     */
     private void assignViewObjects(){
         /*===============================================
          * Assign Views
@@ -143,19 +170,44 @@ public class MainActivity extends AppCompatActivity {
         btn_carBrand = findViewById(R.id.btn_car_brand);
         btn_carModel = findViewById(R.id.btn_car_model);
         btn_carYear = findViewById(R.id.btn_car_year);
-
-        //pic = findViewById(R.id.img_gas_pump);
+        spin_carFuel = findViewById(R.id.spin_fuel_type);
 
         edit_start = findViewById(R.id.edit_start);
         edit_end = findViewById(R.id.edit_destination);
 
         gauge = findViewById(R.id.tank_indicator);
+
+        spin_carFuel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String strFuelType = (String) spin_carFuel.getSelectedItem();
+
+                if(strFuelType.equals(GasStationClient.FuelType.DIESEL.getFuelType())){
+                    tripVehicle.setFueltype(GasStationClient.FuelType.DIESEL);
+                }
+
+                if(strFuelType.equals(GasStationClient.FuelType.E5.getFuelType())){
+                    tripVehicle.setFueltype(GasStationClient.FuelType.E5);
+                }
+
+                if(strFuelType.equals(GasStationClient.FuelType.E10.getFuelType())){
+                    tripVehicle.setFueltype(GasStationClient.FuelType.E10);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+
+        });
     }
 
-
     /**
-     * This function is a Handler for all Views of activity_main
-     * @param view
+     * This function is a Handler for all Views of activity_main.
+     * Decision to have one centralized Click Handler to match onActivityResult.
+     *
+     * @param view Clicked View by User
      */
     public void viewClickHandler(View view){
         Intent intent;
@@ -170,6 +222,9 @@ public class MainActivity extends AppCompatActivity {
         Bundle bundle = new Bundle();
 
         switch(view.getId()){
+            /*===================================================================================
+             * Clicked the BrandButton (sends the uninitiliazed tripvehicle
+             *===================================================================================*/
             case R.id.btn_car_brand:
                 intent = new Intent(this, VehicleBrandActivity.class);
 
@@ -177,7 +232,9 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtras(bundle);
                 requestCode = ACTIVITY_REQ_CODE_BRAND;
                 break;
-
+            /*====================================================================================
+             * Clicked the BrandButton
+             *====================================================================================*/
             case R.id.btn_car_model:
                 // TODO Check for str_carBrand
 
@@ -186,19 +243,23 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtras(bundle);
                 requestCode = ACTIVITY_REQ_CODE_MODEL;
                 break;
-
+            /*====================================================================================
+             * Clicked the BrandButton
+             *====================================================================================*/
             case R.id.btn_car_year:
                 intent = new Intent(this, VehicleYearActivity.class);
                 bundle.putSerializable("vehicle",tripVehicle);
                 intent.putExtras(bundle);
                 requestCode = 3;
                 break;
-
-
+            /*====================================================================================
+             * Clicked the BrandButton
+             *====================================================================================*/
             case R.id.edit_start:
                 intent = new Intent(this, MapActivity.class);
                 bundle.putSerializable("vehicle",tripVehicle);
                 intent.putExtras(bundle);
+
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
 
                     Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.tank_indicator),"image_to_map");
@@ -209,7 +270,9 @@ public class MainActivity extends AppCompatActivity {
 
                 requestCode = ACTIVITY_REQ_CODE_START;
                 break;
-
+            /*====================================================================================
+             * Clicked the BrandButton
+             *====================================================================================*/
             case R.id.edit_destination:
                 intent = new Intent(this, MapActivity.class);
                 intent.putExtra("end", endLocation);
@@ -224,8 +287,9 @@ public class MainActivity extends AppCompatActivity {
 
                 requestCode = ACTIVITY_REQ_CODE_END;
                 break;
-
-
+            /*====================================================================================
+             * Clicked the BrandButton
+             *====================================================================================*/
             case R.id.btn_find:
 
                 boolean bIsIncomplete = false;
@@ -258,16 +322,26 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("tripVehicle",tripVehicle);
                 requestCode = ACTIVITY_REQ_CODE_CALC;
                 break;
+            /*=========================================================
+             * Nothing to do
+             *=========================================================*/
             default:                        return;
 
-
         }
-
+        /*=========================================================
+         * Start the Activity
+         *=========================================================*/
         startActivityForResult(intent, requestCode, optionsBundle);
-        
-        //finish();
     }
 
+    /**
+     * This is a callback function which will be called on returning from other activities
+     * The other activity, which will be calling this method gets identified by request code.
+     *
+     * @param requestCode   Identifier of the activity which returns to the MainActivity
+     * @param resultCode    The result code of the calling activity
+     * @param data          Data send from calling activity to this
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -276,50 +350,62 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         switch (requestCode){
-
+            /*================================================================================================
+             * Return from CarBrandActivity
+             *================================================================================================*/
             case ACTIVITY_REQ_CODE_BRAND:       tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
                                                 str_Brand = tripVehicle.getBrand();
                                                 btn_carBrand.setText(str_Brand);
                                                 btn_carModel.setEnabled(true);
                                                 break;
-
-
+            /*================================================================================================
+             * Return from CarModelActivity
+             *================================================================================================*/
             case ACTIVITY_REQ_CODE_MODEL:       tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
                                                 str_Model = tripVehicle.getModel();
                                                 btn_carModel.setText(str_Model);
                                                 btn_carYear.setEnabled(true);
                                                 break;
-
+            /*================================================================================================
+             * Return from CarYearActivity
+             *================================================================================================*/
             case ACTIVITY_REQ_CODE_YEAR:        tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
                                                 str_Year = tripVehicle.getYear();
                                                 btn_carYear.setText(str_Year);
-
+                                                spin_carFuel.setEnabled(true);
+                                                setFuelSpinner(tripVehicle);
                                                 break;
-
+            /*================================================================================================
+             * Return from MapActivity for the Starting Location
+             *================================================================================================*/
             case ACTIVITY_REQ_CODE_START:       startLocation = (TripLocation) data.getSerializableExtra("Location");
                                                 String strStart = startLocation.getLocationName();
                                                 edit_start.setText(strStart);
                                                 break;
-
+            /*================================================================================================
+             * Return from MapActivity for the End Location/Destination
+             *================================================================================================*/
             case ACTIVITY_REQ_CODE_END:         endLocation = (TripLocation) data.getSerializableExtra("Location");
                                                 String strEnd = endLocation.getLocationName();
                                                 edit_end.setText(strEnd);
                                                 break;
-
+            /*================================================================================================
+             * No known activity
+             *================================================================================================*/
             default:    break;
         }
 
     }
 
-    private VehicleDatabase initDatabase(){
-        VehicleDatabase db = Room.databaseBuilder(getApplicationContext(),
-                VehicleDatabase.class, "database-name").build();
-
-        return db;
-    }
-
+    /**
+     * This function will be called after Asking for specific App permissions.
+     * In this case the only app permission asked for is GPS-Permission(identified by requestCode 4711)
+     *
+     * @param requestCode   RequestCode of the Permission request
+     * @param permissions   The permission the user gets asked for
+     * @param grantResults  The result of the request (users acceptance or rejection)
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode,@NonNull String[] permissions, @NonNull int[] grantResults)
     {
@@ -329,7 +415,6 @@ public class MainActivity extends AppCompatActivity {
 
             // Checking whether user granted the permission or not.
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
                 // Showing the toast message
                 Toast.makeText(MainActivity.this,"Location Permission Granted", Toast.LENGTH_SHORT).show();
             }
@@ -341,19 +426,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //TODO Implement + create Views
-    private void setFuelTypeRadioButtons(TripVehicle tripVehicle){
+    private void setFuelSpinner(TripVehicle tripVehicle){
         List<GasStationClient.FuelType> fuelTypeList = determineFuelType(tripVehicle);
 
-        if(fuelTypeList.contains(GasStationClient.FuelType.DIESEL)){
+       List<String> choices = new ArrayList<>();
 
-        }
+       for(GasStationClient.FuelType fuelType : fuelTypeList){
+           choices.add(fuelType.getFuelType());
+       }
 
-        if(fuelTypeList.contains(GasStationClient.FuelType.E5)){
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,R.layout.fueltype_item,choices);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        }
+        spin_carFuel.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
     }
 
-
+    /**
+     * This function determines the Fuel types for a given TripVehicle,
+     * by given Make, Model and construction year.
+     *
+     * This is done by getting the fuel types from existent consumption entries of the database
+     * for these specific values.
+     *
+     * @param tripVehicle   TripVehicle with set Make, Model and construction year
+     * @return              List of available fuel Types for this TripVehicle
+     */
     private List<GasStationClient.FuelType> determineFuelType(TripVehicle tripVehicle){
         List<GasStationClient.FuelType> fuelTypeList = new ArrayList<>();
 
@@ -369,6 +467,11 @@ public class MainActivity extends AppCompatActivity {
         if(vehicleDataSet != null){
             if(vehicleDataSet.getConsumption_regular() != null){
                 fuelTypeList.add(GasStationClient.FuelType.E5);
+                fuelTypeList.add(GasStationClient.FuelType.E10);
+            }
+
+            if(vehicleDataSet.getConsumption_premium() != null && !fuelTypeList.contains(GasStationClient.FuelType.E10)){
+                fuelTypeList.add(GasStationClient.FuelType.E10);
             }
 
             if(vehicleDataSet.getConsumption_diesel() != null){

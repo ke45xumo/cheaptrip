@@ -71,7 +71,7 @@
             android:layout_marginLeft="6dp"
             android:layout_marginTop="6dp"
             android:layout_marginRight="6dp"
-            android:background="@drawable/location_search_box">
+            android:background="@drawable/shape_layout_round_corners">
 
 
             <EditText

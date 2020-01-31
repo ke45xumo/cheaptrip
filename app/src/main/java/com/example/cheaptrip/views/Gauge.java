@@ -22,57 +22,43 @@ import com.example.cheaptrip.R;
 
 public class Gauge extends View {
 
-    public static final int MAX = 100;
-    public static final int MIN = 0;
-
-    /**
-     * Offset = -90 indicates that the progress starts from 12 o'clock.
-     */
-    private static final int ANGLE_OFFSET = -180;
-
-    /**
-     * The current points value.
-     */
-    private int mPoints = MIN;
-
-    /**
-     * The min value of progress value.
-     */
-    private int mMin = MIN;
-
-    /**
-     * The Maximum value that this SeekArc can be set to
-     */
-    private int mMax = MAX;
-
-    /**
-     * The increment/decrement value for each movement of progress.
-     */
-    private int mStep = 10;
+    public static final int MAX = 100;      // maximum stepsize of the seekbar (100 means 100%)
+    public static final int MIN = 0;        // minimum stepsize of the seekbar (0 means 0%)
 
 
-    private int mProgressWidth = 12;
-    private int mArcWidth = 12;
+    private static final int ANGLE_OFFSET = -180;   // this means it starts as a half circle
 
-    //
-    // internal variables
-    //
-    private float mCurrentProgress = 0;
+    private int mPoints = MIN;              // The value of the current progress
 
-    private RectF mArcRect = new RectF();
-    private Paint mArcPaint;
+    private int mMin = MIN;                 //The min value of progress value.
+    private int mMax = MAX;                 // The Maximum value that this SeekArc can be set to
 
-    private float mProgressSweep = 0;
-    private Paint mProgressPaint;
+    private int mStep = 10;                 // Steps to be taken when moving the progress
 
-    private float mTextSize = 72;
-    private Paint mTextPaint;
-    private Rect mTextRect = new Rect();
+    private int mProgressWidth = 12;        // progress circle width
+    private int mArcWidth = 12;             // arc width
 
-    private boolean bIsinitiliazied = false;
+    private float mCurrentProgress = 0;     // starting with this progress values
 
-    private boolean mGlow    = true;                // glow effect
+    private RectF mArcRect = new RectF();   // Rectangle measuring the arc
+    private Paint mArcPaint;                // Paint to be used for the arc
 
+    private float mProgressSweep = 0;       // current progress value
+    private Paint mProgressPaint;           // paint of the current progress
+
+    private float mTextSize = 72;           // Inner text size
+    private Paint mTextPaint;               // Inner text paint
+    private Rect mTextRect = new Rect();    // Rect measuring the inner textbox
+
+    private boolean bIsinitiliazied = false;    // indicator to determine if it has been initiliazed
+                                                // (ensuring the animation is only used once)
+
+    private boolean mGlow    = true;            // glow effect
+    private boolean mTextEnabled = false;       // Indeicator to wheter enable or disable text
+
+    private Paint mNeedlePaint;                 // Color of the needle
+
+    private boolean mAnimate = false;           // inidcator if it should be animated on startup
 
     /**
      * The current touch angle of arc.
@@ -100,6 +86,7 @@ public class Gauge extends View {
         int arcColor = ContextCompat.getColor(context, R.color.color_arc);
         int progressColor = ContextCompat.getColor(context, R.color.color_progress);
         int textColor = ContextCompat.getColor(context, R.color.color_text);
+        int needleColor = ContextCompat.getColor(context,R.color.needle_color);
 
         mProgressWidth = (int) (mProgressWidth * density);
         mArcWidth = (int) (mArcWidth * density);
@@ -127,6 +114,11 @@ public class Gauge extends View {
             textColor = a.getColor(R.styleable.Gauge_textColor, textColor);
 
             mGlow = a.getBoolean(R.styleable.Gauge_glow, mGlow);
+            mTextEnabled = a.getBoolean(R.styleable.Gauge_text_enabled, mGlow);
+
+            needleColor = a.getColor(R.styleable.Gauge_needle_color, needleColor);
+
+            mAnimate = a.getBoolean(R.styleable.Gauge_animate, mAnimate);
 
             a.recycle();
         }
@@ -144,6 +136,12 @@ public class Gauge extends View {
         mArcPaint.setAntiAlias(true);
         mArcPaint.setStyle(Paint.Style.STROKE);
         mArcPaint.setStrokeWidth(mArcWidth);
+
+        if(mGlow){
+            BlurMaskFilter filter = new BlurMaskFilter(mArcWidth/2, BlurMaskFilter.Blur.SOLID);
+            mArcPaint.setMaskFilter(filter);
+        }
+
         /*=======================================================================
          * Initialize Progress Paint
          *=======================================================================*/
@@ -182,6 +180,11 @@ public class Gauge extends View {
         mScalePaint.setAntiAlias(true);
         mScalePaint.setStyle(Paint.Style.STROKE);
         mScalePaint.setStrokeWidth(50);
+
+        if(mGlow){
+            BlurMaskFilter filter = new BlurMaskFilter(25, BlurMaskFilter.Blur.SOLID);
+            mScalePaint.setMaskFilter(filter);
+        }
         /*=======================================================================
          * Set inner Scale Paint
          *=======================================================================*/
@@ -190,8 +193,34 @@ public class Gauge extends View {
         mInnerScalePaint.setAntiAlias(true);
         mInnerScalePaint.setStyle(Paint.Style.STROKE);
         mInnerScalePaint.setStrokeWidth(25);
+
+        if(mGlow){
+            BlurMaskFilter filter = new BlurMaskFilter(12, BlurMaskFilter.Blur.SOLID);
+            mScalePaint.setMaskFilter(filter);
+        }
+        /*=======================================================================
+         * Set Needle Paint
+         *=======================================================================*/
+        mNeedlePaint = new Paint();
+        mNeedlePaint.setColor(needleColor);
+        mNeedlePaint.setAntiAlias(true);
+        mNeedlePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        mNeedlePaint.setStrokeWidth(4);
+
+        if(mGlow){
+            BlurMaskFilter filter = new BlurMaskFilter(4, BlurMaskFilter.Blur.SOLID);
+            mNeedlePaint.setMaskFilter(filter);
+        }
     }
 
+    /**
+     * This will be called constantly.
+     * It will be measuring and updating the current Values of the Gauge.
+     * It will update the field variables, which will be used for the painting.
+     *
+     * @param widthMeasureSpec      width of the gauge view
+     * @param heightMeasureSpec     height of the gauge view
+     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
@@ -213,20 +242,34 @@ public class Gauge extends View {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
     }
-
+    /**
+     * This is a callback function which gets consistently called to draw the components to
+     * the screen.
+     *
+     * It draws
+     *      * Arc of the gauge
+     *      * Progress of the gauge
+     *      * text of the gauge
+     *      * the needle of the gauge
+     *
+     * @param canvas        Canvas to draw the Gauge
+     */
     @Override
     protected void onDraw(Canvas canvas) {
         // Draw the scale
         drawScale(canvas);
 
-        // draw the text
-        String textPoint = String.valueOf(mPoints);
-        mTextPaint.getTextBounds(textPoint, 0, textPoint.length(), mTextRect);
+        // Draw the Text if( enabled)
+        if (mTextEnabled){
+            // draw the text
+            String textPoint = String.valueOf(mPoints);
+            mTextPaint.getTextBounds(textPoint, 0, textPoint.length(), mTextRect);
 
-        // center the text
-        int xPos = canvas.getWidth() / 2 - mTextRect.width() / 2;
-        int yPos = (int) ((mArcRect.centerY()) - ((mTextPaint.descent() + mTextPaint.ascent()) / 2));
-        canvas.drawText(String.valueOf(mPoints), xPos  , yPos - 50, mTextPaint);
+            // center the text
+            int xPos = canvas.getWidth() / 2 - mTextRect.width() / 2;
+            int yPos = (int) ((mArcRect.centerY()) - ((mTextPaint.descent() + mTextPaint.ascent()) / 2));
+            canvas.drawText(String.valueOf(mPoints), xPos, yPos - 50, mTextPaint);
+        }
 
         // draw the arc and progress
         canvas.drawArc(mArcRect, -180, 180, false, mArcPaint);
@@ -234,14 +277,9 @@ public class Gauge extends View {
 
 
         // Draw the needle
-       /* Paint paint = new Paint();
-        paint.setColor(Color.RED);
-        paint.setAntiAlias(true);
+        canvas.drawArc(mArcRect,mProgressSweep +180,2,true, mNeedlePaint);
 
-        canvas.drawCircle(canvas.getWidth()/2,canvas.getHeight(),canvas.getHeight()/10, paint);*/
-        canvas.drawArc(mArcRect,mProgressSweep +180,2,true, mTextPaint);
-
-        if(bIsinitiliazied == false){
+        if(bIsinitiliazied == false && mAnimate){
             ValueAnimator animation = ValueAnimator.ofInt(0, 75);
             animation.setDuration(1000);
             animation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -259,6 +297,13 @@ public class Gauge extends View {
 
     }
 
+    /**
+     * Gets called when user touches this View.
+     * It updates the current Progress Sweep based on the coordinates of the Motion event.
+     *
+     * @param event     Motion event that triggered the call of this function
+     * @return          true, always
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
             this.getParent().requestDisallowInterceptTouchEvent(true);
@@ -296,22 +341,35 @@ public class Gauge extends View {
     }
 
 
+    /**
+     * Draws the scale of the Gauge.
+     * 4 long Scale bars at the quarters of the Arc.
+     * Between the long Scale Bars another 4 short scale bars.
+     * In sum there are 16 scale bars to be drawn to the arc.
+     *
+     * @param canvas    Canvas the scale will be drawn to
+     */
     void drawScale(Canvas canvas){
         drawReserve(canvas);
 
         int quarterStep = (180/4)-1;
 
+        // Draw thick bars (4 times)
         for(int angle =-177 ; angle <= 10 ; angle+= quarterStep){
             canvas.drawArc(mScaleRect, angle, Math.signum(angle)*2,false,mScalePaint);
 
+            // Draw inner thin bars (4 times)
             for(int innerAngle = angle; innerAngle < angle + quarterStep ; innerAngle += quarterStep/4){
                 canvas.drawArc(mScaleRect, innerAngle, Math.signum(innerAngle) * 1, false,mInnerScalePaint);
             }
-
         }
-
     }
 
+    /**
+     * Draws the reserve area of the Gauge
+     *
+     * @param canvas    Canvas the Reserve area will be drawn to
+     */
     void drawReserve(Canvas canvas){
         Paint paint = new Paint();
         paint.setColor(Color.RED);
@@ -323,7 +381,15 @@ public class Gauge extends View {
         canvas.drawArc(mScaleRect, ANGLE_OFFSET , tankPercentReserve ,false,paint);
     }
 
-
+    /**
+     * This function will be used to convert the coordinates of the touch event
+     * to an angle to draw the progress sweep.
+     *
+     * @param xPos  X postion of the touch event
+     * @param yPos  Y position of the touch event
+     *
+     * @return  return the converted Angle the touch event
+     */
     private double convertTouchEventPointToAngle(float xPos, float yPos) {
         // transform touch coordinate into component coordinate
         float midX = mArcRect.centerX();
@@ -338,14 +404,31 @@ public class Gauge extends View {
         return angle;
     }
 
+    /**
+     * Converts an selected Angle to the amount of porgress steps betwen the mMax and mMin in points.
+     * (In this case it is in percent)
+     *
+     * @param angle     Angle to convert to progress steps
+     * @return          progress steps, that refer to given angle
+     */
     private int convertAngleToProgress(double angle) {
         return (int) Math.round(valuePerDegree() * angle);
     }
 
+    /**
+     * Gets the progress ratio to Angle.
+     * @return  Angle to progress ratio of the gauge
+     */
     private float valuePerDegree() {
         return (float) (mMax) / 180.0f;
     }
 
+    /**
+     * Updates the progress fields of the Gauge from given progress points.
+     *
+     * @param progress      progress steps
+     * @param fromUser      boolean determining, if it is set from function of the user
+     */
     private void updateProgress(int progress, boolean fromUser) {
         if(progress > mMax ){
             mCurrentProgress = mMax;
@@ -362,10 +445,22 @@ public class Gauge extends View {
         invalidate();
     }
 
+    /**
+     * Gets the current progress steps.
+     * This can be called by the user.
+     *
+     * @return the current progress steps
+     */
     public float getProgress() {
         return mCurrentProgress;
     }
 
+    /**
+     * Sets the current progress steps.
+     * This can be called by the user.
+     *
+     * @param progress progress set by user programmatically
+     */
     public void setProgress(int progress) {
         mCurrentProgress = progress;
         updateProgress(progress,false);

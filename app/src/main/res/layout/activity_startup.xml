@@ -12,5 +12,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="@string/description_image"
-        app:srcCompat="@drawable/gas_pump" />
+        app:srcCompat="@drawable/img_gas_pump" />
 </LinearLayout>

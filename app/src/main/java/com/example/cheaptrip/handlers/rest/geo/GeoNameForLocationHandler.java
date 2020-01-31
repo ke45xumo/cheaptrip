@@ -2,12 +2,11 @@ package com.example.cheaptrip.handlers.rest.geo;
 
 import android.util.Log;
 
-import com.example.cheaptrip.dao.GeoCompletionClient;
+import com.example.cheaptrip.dao.rest.GeoCompletionClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.photon.Location;
 import com.example.cheaptrip.models.photon.PhotonResponse;
-import com.example.cheaptrip.models.photon.Properties;
 
 
 import retrofit2.Call;

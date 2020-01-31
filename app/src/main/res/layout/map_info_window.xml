@@ -5,9 +5,10 @@
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:orientation="horizontal"
-android:background="@android:drawable/zoom_plate">
-
-    <!--    android:layout_weight="1"/>-->
+    android:background="@drawable/shape_layout_round_corners"
+>
+    <!--android:background="@android:color/background_dark"-->
+    <!--android:background="@android:drawable/zoom_plate"-->
 
     <TextView
         android:id="@+id/tv_curr_location"
@@ -21,11 +22,11 @@ android:background="@android:drawable/zoom_plate">
         android:textStyle="bold" />
 
     <Button
-    style="@style/Base.TextAppearance.AppCompat.Widget.Button.Colored"
-    android:layout_width="50dp"
-    android:layout_height="wrap_content"
-    android:background="@android:drawable/ic_menu_send"
-    android:onClick="onLocationSelected" />
-<!--    android:layout_weight="2"-->
+        style="@style/Base.TextAppearance.AppCompat.Widget.Button.Colored"
+        android:layout_width="50dp"
+        android:id="@+id/btn_infowindow_select"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/ic_menu_send"
+        android:onClick="onLocationSelected" />
 
 </LinearLayout>

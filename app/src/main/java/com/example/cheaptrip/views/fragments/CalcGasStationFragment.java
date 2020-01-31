@@ -13,26 +13,32 @@ import androidx.fragment.app.Fragment;
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.models.TripGasStation;
 
-public class CalcGasStationFragment extends Fragment {
-    private TripGasStation mTripGasStation;
 
-    TextView mTextView;
+public class CalcGasStationFragment extends Fragment {
+    private TripGasStation mTripGasStation;         // Gas station of the route
+
+    private TextView mTextViewTitle;                // Textview displaying the title
+    private TextView mTextViewPrices;               // TextView displaying the prices
+    private TextView mTextViewLocation;          // TextView displaying the location info
+    private TextView mTextViewBrand;
+
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_calc_gas, container, false);
 
 
-        mTextView = rootView.findViewById(R.id.tv_gasstation_info);
-
+        mTextViewTitle = rootView.findViewById(R.id.tv_gasstation_title);
+        mTextViewPrices = rootView.findViewById(R.id.tv_gasstation_prices);
+        mTextViewLocation= rootView.findViewById(R.id.tv_gasstation_location);
+        mTextViewBrand = rootView.findViewById(R.id.tv_gasstation_brand);
 
         if(mTripGasStation != null){
             String textToView = generateText(mTripGasStation);
-            mTextView.setText(textToView);
+            mTextViewTitle.setText(textToView);
         }else{
-            mTextView.setText("Chose a Route to display a Gas Station");
+            mTextViewTitle.setText("Chose a Route to display a Gas Station");
         }
 
-        mTextView.invalidate();
         rootView.invalidate();
 
         return rootView;
@@ -43,10 +49,9 @@ public class CalcGasStationFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        if(mTextView != null && mTripGasStation != null){
-            String textToView = generateText(mTripGasStation);
-            mTextView.setText(textToView);
-            mTextView.invalidate();
+        if(mTextViewTitle != null && mTextViewLocation != null && mTextViewPrices !=  null
+                &&  mTextViewBrand != null&&  mTripGasStation != null){
+            setGasStationInfo(mTripGasStation);
         }
 
     }
@@ -55,29 +60,62 @@ public class CalcGasStationFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mTextView = view.findViewById(R.id.tv_gasstation_info);
 
+        mTextViewTitle = view.findViewById(R.id.tv_gasstation_title);
+        mTextViewPrices = view.findViewById(R.id.tv_gasstation_prices);
+        mTextViewLocation= view.findViewById(R.id.tv_gasstation_location);
+        mTextViewBrand = view.findViewById(R.id.tv_gasstation_brand);
 
         if(mTripGasStation != null){
-            String textToView = generateText(mTripGasStation);
-            mTextView.setText(textToView);
+          setGasStationInfo(mTripGasStation);
         }else{
-            mTextView.setText("Chose a Route to display a Gas Station");
+            mTextViewTitle.setText("Chose a Route to display a Gas Station");
         }
-
-        mTextView.invalidate();
         view.invalidate();
     }
 
     public void setGasStationInfo(TripGasStation tripGasStation){
         mTripGasStation = tripGasStation;
 
-        String textToView = generateText(tripGasStation);
+        String city = tripGasStation.getCity();
+        String street = tripGasStation.getStreet();
+        String housNumber = tripGasStation.getHousenumber();
+        String postCode = tripGasStation.getPostcode();
 
-        if(mTextView != null) {
-            mTextView.setText(textToView);
-            mTextView.invalidate();
+        String brand = tripGasStation.getBrand();
+        String locationName = tripGasStation.getName();
+
+        double e5 = tripGasStation.getPriceE5();
+        double e10 = tripGasStation.getPriceE10();
+        double diesel = tripGasStation.getPriceDiesel();
+
+
+        String strE5 = (e5 == 0) ? "n/a" : "" + e5;
+        String strE10 = (e10 == 0) ? "n/a" : "" + e10;
+        String strDiesel = (diesel == 0) ? "n/a" : "" + diesel;
+
+        String title = locationName;
+        String prices = String.format("Prices:\n\tE5: %s\n\tE10: %s\n\tDiesel %s", strE5,strE10,strDiesel);
+        String address = String.format("LocationInfo:\n\t%s %s\n\t%s %s", postCode,city,street,housNumber);
+
+        if(mTextViewBrand != null){
+            mTextViewBrand.setText(brand);
         }
+
+        if(mTextViewTitle != null){
+            mTextViewTitle.setText(title);
+            mTextViewTitle.invalidate();
+        }
+
+        if(mTextViewPrices != null){
+            mTextViewPrices.setText(prices);
+            mTextViewPrices.invalidate();
+        }
+
+        if(mTextViewLocation != null){
+            mTextViewLocation.setText(address);
+        }
+
     }
 
 

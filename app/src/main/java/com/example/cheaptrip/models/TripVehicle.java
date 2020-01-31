@@ -1,6 +1,6 @@
 package com.example.cheaptrip.models;
 
-import com.example.cheaptrip.dao.GasStationClient;
+import com.example.cheaptrip.dao.rest.GasStationClient;
 
 import java.io.Serializable;
 

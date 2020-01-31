@@ -6,12 +6,16 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.example.cheaptrip.dao.VehicleDataClient;
-import com.example.cheaptrip.dao.VehicleDatabaseClient;
+import com.example.cheaptrip.dao.database.VehicleDatabaseClient;
 import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
-import com.example.cheaptrip.models.nhtsa.VehicleBrand;
-import com.example.cheaptrip.dao.DAOVehicleBrand;
 
+
+/**
+ * Database holding all the informations of vehicles
+ * This is done by using Library Room.
+ *
+ * (see https://developer.android.com/topic/libraries/architecture/room)
+ */
 @Database(entities = {VehicleDataSet.class}, version = 1,exportSchema = false)
 public abstract class VehicleDatabase extends RoomDatabase {
 

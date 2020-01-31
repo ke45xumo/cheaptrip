@@ -3,6 +3,7 @@ package com.example.cheaptrip.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuInflater;
 import android.view.View;
 
@@ -12,15 +13,26 @@ import androidx.appcompat.widget.PopupMenu;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.app.CheapTripApp;
+import com.example.cheaptrip.dao.database.GasStationDatabaseClient;
+import com.example.cheaptrip.database.GasStationDatabase;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.StartupListener;
 import com.example.cheaptrip.handlers.rest.RestListener;
+import com.example.cheaptrip.handlers.rest.station.GasStationHistoryHandler;
+import com.example.cheaptrip.handlers.rest.station.GasStationHistoryPriceHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleDataSetHandler;
 import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
+import com.example.cheaptrip.models.tankerkoenig.Station;
 import com.example.cheaptrip.services.DatabasePopulationService;
 
 import java.util.List;
 
+/**
+ * This class represents the splash screen when starting the app.
+ * It takes care of updating the Vehicle Database
+ * by getting the current VehicleDataset from JValue ODS.
+ *
+ */
 public class StartUpActivity extends AppCompatActivity {
 
     @Override
@@ -37,9 +49,46 @@ public class StartUpActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
         databasePopulationService.execute();
+
+
+     /*   GasStationHistoryHandler gasStationHistoryHandler = new GasStationHistoryHandler(2019,9,1);
+
+        gasStationHistoryHandler.makeAsyncRequest(new RestListener<List<Station>>() {
+            @Override
+            public void OnRestSuccess(List<Station> stations) {
+                GasStationDatabaseClient dbClient  = GasStationDatabase.getDatabase(getApplicationContext()).gasStationDatabaseClient();
+                dbClient.insertAll(stations);
+            }
+
+            @Override
+            public void OnRestFail() {
+
+            }
+        });
+
+
+        GasStationHistoryPriceHandler gasStationHistoryPriceHandler = new GasStationHistoryPriceHandler(2019,1,1);
+        gasStationHistoryPriceHandler.makeAsyncRequest(new RestListener<List<Station>>() {
+            @Override
+            public void OnRestSuccess(List<Station> stations) {
+                for(Station station :stations){
+
+                }
+            }
+
+            @Override
+            public void OnRestFail() {
+
+            }
+        });*/
     }
 
+    /**
+     * Called on Destruction of the Activity
+     * The Activity gets removed from the stack -> registers removal to the app
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -50,15 +99,24 @@ public class StartUpActivity extends AppCompatActivity {
         if ( this .equals(currActivity))
             cheapTripApp.setCurrentActivity( null ) ;
     }
-
+    /**
+     * Called on Resume of the Activity
+     * The Activity will be added on top of the stack (-> registration) to the app
+     */
     public void onResume(){
         super.onResume();
+
         CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
         cheapTripApp .setCurrentActivity( this ) ;
     }
 
+    /**
+     * Called on Pause of the Activity
+     * The Activity will be removed from top of the stack (-> registration to the app)
+     */
     public void onPause(){
         super.onPause();
+
         CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
         Activity currActivity = cheapTripApp.getCurrentActivity() ;
 

@@ -1,6 +1,6 @@
 package com.example.cheaptrip.handlers.rest.station;
 
-import com.example.cheaptrip.dao.GasStationClient;
+import com.example.cheaptrip.dao.rest.GasStationClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
 import com.example.cheaptrip.models.tankerkoenig.Station;
 
@@ -41,7 +41,10 @@ public class GasStationHistoryHandler extends RestHandler<List<Station>,List<Sta
     }
 
     private String buildPath(int year, int month, int day){
-        String path = String.format("stations/%d/%d/%d-%d-%d-stations.csv", year,month,year,month,day);
+        String strMonth = (month < 10) ? "0"+month : ""+month;
+        String strDay = (day < 10) ? "0"+day: ""+day;
+
+        String path = String.format("stations/%d/%s/%d-%s-%s-stations.csv", year,strMonth,year,strMonth,strDay);
         return path;
     }
 }

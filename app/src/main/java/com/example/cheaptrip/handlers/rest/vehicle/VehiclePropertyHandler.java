@@ -1,22 +1,15 @@
 package com.example.cheaptrip.handlers.rest.vehicle;
 
-import android.util.Xml;
+import android.util.Log;
 
-import com.example.cheaptrip.activities.CalculationActivity;
-import com.example.cheaptrip.dao.CarPropertyClient;
+import com.example.cheaptrip.dao.rest.CarPropertyClient;
 import com.example.cheaptrip.models.TripVehicle;
-import com.example.cheaptrip.models.fueleconomy.FuelEconomyResponse;
 import com.example.cheaptrip.models.fueleconomy.Vehicle;
 import com.example.cheaptrip.models.fueleconomy.Vehicles;
-
-import org.simpleframework.xml.convert.AnnotationStrategy;
-import org.simpleframework.xml.core.Persister;
 
 import java.io.IOException;
 import java.util.List;
 
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -92,9 +85,12 @@ public class VehiclePropertyHandler {
             vehicles = response.body();
 
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ioException) {
+            Log.e("CHAEAPTRIP","VehiclePropertyHandler->makeRequest(): Received IOException: " + ioException.getLocalizedMessage());
+        } catch (Exception e2){
+            Log.e("CHEAPTRIP","VehiclePropertyHandler->makeRequest(): Cannot extract vehicleProperty: " + e2.getLocalizedMessage());
         }
+
 
         return vehicles;
     }

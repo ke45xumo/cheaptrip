@@ -1,18 +1,11 @@
 package com.example.cheaptrip.handlers.rest.vehicle;
 
-import android.util.Log;
-
 import com.example.cheaptrip.handlers.rest.RestListener;
-import com.example.cheaptrip.dao.CarSpecClient;
-import com.example.cheaptrip.models.fueleconomy.Vehicle;
+import com.example.cheaptrip.dao.rest.CarSpecClient;
 import com.example.cheaptrip.models.nhtsa.VehicleBrand;
 import com.example.cheaptrip.models.nhtsa.VehicleBrandResponse;
 import com.example.cheaptrip.handlers.rest.RestHandler;
-import com.example.cheaptrip.models.nhtsa.VehicleModel;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import retrofit2.Call;

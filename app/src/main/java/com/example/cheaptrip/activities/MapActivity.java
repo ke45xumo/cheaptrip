@@ -34,6 +34,7 @@ import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.photon.Location;
 import com.example.cheaptrip.models.photon.Properties;
 import com.example.cheaptrip.services.GPSService;
+import com.example.cheaptrip.views.TripInfoWindow;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -69,9 +70,6 @@ public class MapActivity extends Activity {
     private Marker currentLocationMarker;               // Marker, representing the current current Location
     private Marker customLocationMarker;                // Marker, representing a Location picked form the map
 
-
-    private volatile boolean bFinished = false;          // Indicator to show wheter activity is destroyed
-                                                        // as consequence all running async tasks get cancelled
 
     /**
      * Enum, to identify the purpose of a Marker
@@ -122,11 +120,13 @@ public class MapActivity extends Activity {
         editLocationInput.requestFocus();   // Request Focus (to start writing to the Edit text)
     }
 
-
+    /**
+     * Called on Destruction of the Activity
+     * The Activity gets removed from the stack -> registers removal to the app
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        bFinished = true;
 
         CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
         Activity currActivity = cheapTripApp.getCurrentActivity() ;
@@ -134,26 +134,24 @@ public class MapActivity extends Activity {
         if ( this .equals(currActivity))
             cheapTripApp.setCurrentActivity( null ) ;
     }
-
+    /**
+     * Called on Resume of the Activity
+     * The Activity will be added on top of the stack (-> registration) to the app
+     */
     public void onResume(){
         super.onResume();
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
-        mMapView.onResume(); //needed for compass, my location overlays, v6.0.0 and up
-
+        mMapView.onResume();
         CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
         cheapTripApp .setCurrentActivity( this ) ;
     }
 
+    /**
+     * Called on Pause of the Activity
+     * The Activity will be removed from top of the stack (-> registration to the app)
+     */
     public void onPause(){
         super.onPause();
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().save(this, prefs);
-        mMapView.onPause();  //needed for compass, my location overlays, v6.0.0 and up
+        mMapView.onPause();
 
         CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
         Activity currActivity = cheapTripApp.getCurrentActivity() ;
@@ -442,7 +440,9 @@ public class MapActivity extends Activity {
             default:
                 throw new IllegalStateException("Unexpected value: " + markertype);
         }
-
+        /*==============================================================================
+         * Set the Icon, the Title and the InfoWindow Text
+         *===============================================================================*/
         marker.setIcon(markerIcon);
 
         String title = location.getInfoWindowText();
@@ -534,6 +534,12 @@ public class MapActivity extends Activity {
         });
     }
 
+    /**
+     * This function is used to load several Markers.
+     * The Markers get determined by locationList, provided by Argument.
+     *
+     * @param locationList  List of {@link TripLocation TripLocations} to draw to the map
+     */
     public void loadMarkers(List<TripLocation> locationList){
         if (locationList == null || locationList.size() <= 0){
             return;
@@ -609,71 +615,46 @@ public class MapActivity extends Activity {
         });
     }
 
-    private static String generateMarkerLabel(Location location){
-        Properties properties = location.getProperties();
-
-        /*====================================================
-         * Extract Values
-         *====================================================*/
-        String city = properties.getCity();
-        if (city == null){
-            city = "";
-        }
-
-        String locationName = properties.getName();
-        if (locationName == null){
-            locationName = "";
-        }
-
-        String street = properties.getStreet();
-
-        if (street == null){
-            street = "";
-        }
-
-        String housenumber = properties.getHousenumber();
-        if (housenumber == null){
-            housenumber = "";
-        }
-        final String labelText = locationName + "\nCity: " + city + "\nStreet: " + street + " " + housenumber;
-
-        return labelText;
-    }
-
+    /**
+     * Sets the Click Listener of the Marker.
+     * When a Marker is selected the Info-Window of the Previous selected Marker will be closed
+     * and the marker ( provided by argument) will be the current Selected Marker (field currentSelectedMarker).
+     *
+     * @param marker
+     */
     public void setMarkerClickListener(Marker marker){
-
 
         marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker, final MapView mapView) {
 
                 if (marker != null){
-                    double latitude = marker.getPosition().getLatitude();
-                    double longitude = marker.getPosition().getLongitude();
-                    String locationName = marker.getTitle();
-
-                    tripLocation = new TripLocation(locationName,latitude,longitude);
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    intent.putExtra("Location",tripLocation);
-
-                    setResult(Activity.RESULT_OK,intent);
-
-                    TripInfoWindow tripInfoWindow = (TripInfoWindow)marker.getInfoWindow();
-                    tripInfoWindow.setText(locationName);
-
                     updateCurrentMarker(marker);
-
-                    //txtView_currentLocation.setText(locationName);
                 }
-
-                mMapView.invalidate();
                 return true;
             }
         });
     }
 
+    /**
+     * This is called when the Button within the InfoWindow of the current selected Marker (currentSelectedMarker)
+     * is clicked.
+     *
+     * It will result in building a {@link TripLocation} and returning it to the {@link MainActivity}
+     *
+     * @param view
+     */
     public void onLocationSelected(View view){
-
+        /*=================================================================
+         * This is called by another view
+         * (than the button within the TripInfoWindow)
+         *=================================================================*/
+        if(view != findViewById(R.id.btn_infowindow_select)){
+            return;
+        }
+        /*=================================================================
+         * Build the Intent and return to MainActivity
+         *=================================================================*/
         double latitude = currentSelectedMarker.getPosition().getLatitude();
         double longitude = currentSelectedMarker.getPosition().getLongitude();
         String locationName = currentSelectedMarker.getTitle();
@@ -691,7 +672,25 @@ public class MapActivity extends Activity {
         }
     }
 
-
+    /**
+     * Determines the Bounding Box of a List of TripLocations.
+     *
+     * This is the Frame on the Map, so that all locations (list provided by argument)
+     * can be shown.
+     *
+     * It is determined by the
+     *      * highest coordinate for the top border
+     *      * lowest coordinate for the bottom border
+     *      * most left coordinate for the left border
+     *      * most right coordinate for the right border
+     * of the frame.
+     *
+     * This is done by determining the max and minLatitude
+     * and Longtitude of all TripLocations in the locationList.
+     *
+     * @param locationList  to determine the Bounding Box for.
+     * @return  a {@link BoundingBox} where all {@link TripLocation} of the List will be shown
+     */
     private static BoundingBox determineBoundingBox(List<TripLocation> locationList){
 
         if (locationList == null || locationList.size() <= 0){
@@ -729,39 +728,5 @@ public class MapActivity extends Activity {
         return new BoundingBox(maxLat, maxLon, minLat, minLon);
     }
 
-    private class TripInfoWindow extends InfoWindow{
 
-        private TextView tvLocation;
-        public TripInfoWindow(String locationText, MapView mapView) {
-            super(R.layout.info_window, mapView);
-            tvLocation = super.mView.findViewById(R.id.tv_curr_location);
-            tvLocation.setText(locationText);
-
-        }
-
-        public void setText(String locationName){
-
-            tvLocation.setText(locationName);
-            tvLocation.invalidate();
-
-            // Workaround for wrapping Content (Fitting the box around)
-            int visibility = tvLocation.getVisibility();
-            tvLocation.setVisibility(View.GONE);
-            tvLocation.setVisibility(visibility);
-
-            visibility = mView.getVisibility();
-            mView.setVisibility(View.GONE);
-            mView.setVisibility(visibility);
-
-        }
-        @Override
-        public void onOpen(Object item) {
-
-        }
-
-        @Override
-        public void onClose() {
-
-        }
-    }
 }

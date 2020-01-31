@@ -1,10 +1,7 @@
 package com.example.cheaptrip.handlers.rest.geo;
 
-import android.text.Editable;
-
-import com.example.cheaptrip.dao.GeoCompletionClient;
+import com.example.cheaptrip.dao.rest.GeoCompletionClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
-import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.models.photon.Location;
 import com.example.cheaptrip.models.photon.PhotonResponse;
 

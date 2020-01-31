@@ -25,10 +25,11 @@ public class TripGasStation extends TripLocation {
         setLongitude(lon);
         setName(name);
 
-        setLocationName(place);
+        setLocationName(name);
         setStreet(street);
         setHousenumber(houseNumber);
         setPostcode(""+postcode);
+        setCity(place);
 
         mPriceE5 = station.getE5();
         mPriceE10 = station.getE10();

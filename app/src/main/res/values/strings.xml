@@ -5,11 +5,17 @@
     <string name="car_model">Select Car Model</string>
     <string name="car_year">Select Year</string>
     <string name="tank_contents">Tank Contents</string>
-    <string name="location_start">Start Location</string>
+    <string name="location_start">Start</string>
     <string name="location_dest">Destination</string>
-    <string name="btn_find">Find</string>
+    <string name="btn_find">Find Routes</string>
     <string name="hint_edit_start">The Location to start</string>
     <string name="hint_edit_dest">The trip\'s Destination</string>
+    <string name="car_image_attribution">Photo by Albin Berlin from Pexels</string>
+    <string name="route_image_attribution">Image Extracted from pexels</string>
+    <string name="select_fuel_type">Select Fuel Type</string>
 
+    <string-array name="fuel_type_array">
+        <item>Select Fuel Type</item>
+    </string-array>
 
 </resources>

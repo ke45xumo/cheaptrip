@@ -1,6 +1,6 @@
 package com.example.cheaptrip.handlers.rest.vehicle;
 
-import com.example.cheaptrip.dao.CarSpecClient;
+import com.example.cheaptrip.dao.rest.CarSpecClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.models.TripVehicle;

@@ -1,15 +1,11 @@
 package com.example.cheaptrip.handlers.rest.vehicle;
 
 import android.util.Log;
-import android.widget.Toast;
 
-import com.example.cheaptrip.dao.CarSpecClient;
-import com.example.cheaptrip.dao.VehicleDataClient;
+import com.example.cheaptrip.dao.rest.VehicleDataClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
-import com.example.cheaptrip.models.nhtsa.VehicleBrand;
-import com.example.cheaptrip.models.nhtsa.VehicleBrandResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;

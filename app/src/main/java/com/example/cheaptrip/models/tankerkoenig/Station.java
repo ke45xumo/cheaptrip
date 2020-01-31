@@ -9,11 +9,11 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 
-@Entity
+@Entity(tableName = "STATIONS")
 public class Station {
     @NonNull
-    @PrimaryKey
-    @SerializedName("id")
+    @PrimaryKey()
+    @SerializedName(value="id", alternate={"station_uuid"})
     @Expose
     @ColumnInfo(name="ID")
     private String id;
@@ -21,42 +21,58 @@ public class Station {
     @SerializedName("name")
     @Expose
     private String name;
+
     @SerializedName("brand")
     @Expose
     private String brand;
+
     @SerializedName("street")
     @Expose
     private String street;
+
     @SerializedName("place")
     @Expose
     private String place;
+
     @SerializedName("lat")
     @Expose
     private double lat;
+
     @SerializedName("lng")
     @Expose
     private double lng;
+
     @SerializedName("dist")
     @Expose
     private double dist;
+
     @SerializedName("diesel")
     @Expose
     private double diesel;
+
     @SerializedName("e5")
     @Expose
     private double e5;
+
     @SerializedName("e10")
     @Expose
     private double e10;
+
     @SerializedName("isOpen")
     @Expose
     private Boolean isOpen;
+
     @SerializedName("houseNumber")
     @Expose
     private String houseNumber;
+
     @SerializedName("postCode")
     @Expose
     private Integer postCode;
+
+    @SerializedName("date")
+    @ColumnInfo(name="DATE")
+    private String date;
 
     public String getId() {
         return id;
@@ -146,7 +162,7 @@ public class Station {
         this.e10 = e10;
     }
 
-    public Boolean getIsOpen() {
+    public Boolean isOpen() {
         return isOpen;
     }
 
@@ -170,4 +186,11 @@ public class Station {
         this.postCode = postCode;
     }
 
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
 }

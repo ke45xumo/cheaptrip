@@ -1,4 +1,4 @@
-package com.example.cheaptrip.dao;
+package com.example.cheaptrip.dao.rest;
 
 import com.example.cheaptrip.handlers.converter.annotations.Raw;
 

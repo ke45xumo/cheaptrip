@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.example.cheaptrip.activities.CalculationActivity;
+import com.example.cheaptrip.dao.rest.GasStationClient;
 import com.example.cheaptrip.handlers.CalculationListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionMatrixHandler;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
@@ -209,6 +210,11 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         Iterator tripListIterator = tripRouteList.iterator();
 
         for(Station station : stationList){
+
+            if(!station.isOpen()){
+                continue;
+            }
+
             TripGasStation tripGasStation = new TripGasStation(station);
 
 
@@ -220,6 +226,9 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
                 continue;
             }
 
+            /*=========================================================
+             * Determine Consumption
+             *=========================================================*/
             double distance = tripRoute.getDistance();
             double duration = tripRoute.getDuration();
 
@@ -231,12 +240,30 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             double highwayMPG = tripVehicle.getFuelConsumptionCity();
 
             double avgConsumption = interpolateConsumption(avgSpeed,cityMPG,highwayMPG);
-            Double pricePerLiter = station.getE5();
+
+            GasStationClient.FuelType fuelType = tripVehicle.getFueltype();
+            /*=========================================================
+             * Get GasStation Price
+             *=========================================================*/
+            Double pricePerLiter = null;
+            if(fuelType == GasStationClient.FuelType.E5) {
+                pricePerLiter = station.getE5();
+            }
+
+            if(fuelType == GasStationClient.FuelType.E10) {
+                pricePerLiter = station.getE10();
+            }
+
+            if(fuelType == GasStationClient.FuelType.DIESEL) {
+                pricePerLiter = station.getDiesel();
+            }
 
             if(pricePerLiter == null){
                 continue;
             }
-
+            /*=========================================================
+             * Determine Costs
+             *=========================================================*/
             double costs = distance * pricePerLiter * avgConsumption/100;
 
             if(costs == 0){
@@ -354,8 +381,8 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         TripLocation middleLocation = tripLocations.get(indexUpperBound);
 
         TripLocation lowerLocation = startLocation;
-        double distance = calculateDistance2(startLocation, middleLocation);
-        //double areaToFind = (1- precision) * radius;
+        double distance = calculateDistance(startLocation, middleLocation);
+
         double areaToFind =  radius - offset;
 
 
@@ -368,7 +395,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             //lowerLocation = tripLocations.get(indexLowerBound);
             middleLocation = tripLocations.get(indexMiddle);
 
-            distance = calculateDistance2(startLocation, middleLocation);
+            distance = calculateDistance(startLocation, middleLocation);
 
             if(areaToFind < distance){
                 indexUpperBound = indexMiddle;
@@ -376,40 +403,15 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
                 indexLowerBound = indexMiddle;
             }
 
-            //calculationActivity.drawMarker(middleLocation, R.drawable.person);
-            ratio = Math.abs(distance - areaToFind)/areaToFind;
         }
 
         return  middleLocation;
     }
 
 
+
+
     public static double calculateDistance(TripLocation location1, TripLocation location2){
-        double latitude1 = location1.getLatitdue();
-        double longitude1 = location1.getLongitude();
-
-        double latitude2 = location2.getLatitdue();
-        double longitude2 = location2.getLongitude();
-
-        double phi1 = Math.toRadians(latitude1);
-        double phi2 = Math.toRadians(location2.getLatitdue());
-
-        double deltaPhi = Math.toRadians(latitude2 - latitude2);
-        double deltaLambda = Math.toRadians(longitude2 -longitude1);
-
-
-        double a = Math.pow(Math.sin(deltaPhi/2),2)
-                    + Math.cos(phi1) * Math.cos(phi2) * Math.pow(Math.sin(deltaLambda/2),2);
-
-        double c = 2* Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-
-        double distance = RADIUS_EARTH * c;
-
-        return distance/1000;
-    }
-
-
-    public static double calculateDistance2(TripLocation location1, TripLocation location2){
         double latitude1 = location1.getLatitdue();
         double longitude1 = location1.getLongitude();
 
