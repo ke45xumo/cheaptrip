@@ -117,6 +117,8 @@ public class MainActivity extends AppCompatActivity {
                 tripVehicle = new TripVehicle();
                 tripVehicle.setBrand("BMW");
                 tripVehicle.setModel("318i");
+                tripVehicle.setYear("1991");
+                tripVehicle.setFueltype(GasStationClient.FuelType.E10);
             }
         }
     }
