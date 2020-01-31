@@ -18,11 +18,23 @@ public class TripVehicle implements Serializable {
     private GasStationClient.FuelType fueltype;
 
     private double fuelConsumptionCity;
-    private double getFuelConsumptionHighway;
+    private double fuelConsumptionHighway;
 
 
     public TripVehicle(){
 
+    }
+
+    public TripVehicle(TripVehicle tripVehicle){
+        brand = tripVehicle.getBrand();
+        model = tripVehicle.getModel();
+        year = tripVehicle.getYear();
+        remainFuelPercent = tripVehicle.getRemainFuelPercent();
+
+        fueltype = tripVehicle.getFueltype();
+
+        fuelConsumptionCity = tripVehicle.getFuelConsumptionCity();
+        fuelConsumptionHighway = tripVehicle.getFuelConsumptionHighway();
     }
 
     public TripVehicle(double tank_capacity, String brand, String model, String year ,GasStationClient.FuelType fuelType) {
@@ -57,12 +69,12 @@ public class TripVehicle implements Serializable {
         this.year = year;
     }
 
-    public double getGetFuelConsumptionHighway() {
-        return getFuelConsumptionHighway;
+    public double getFuelConsumptionHighway() {
+        return fuelConsumptionHighway;
     }
 
-    public void setGetFuelConsumptionHighway(double getFuelConsumptionHighway) {
-        this.getFuelConsumptionHighway = getFuelConsumptionHighway;
+    public void setFuelConsumptionHighway(double fuelConsumptionHighway) {
+        this.fuelConsumptionHighway = fuelConsumptionHighway;
     }
 
     public double getFuelConsumptionCity() {

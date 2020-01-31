@@ -55,7 +55,7 @@ public class VehiclePropertyHandler {
                         double consumptionHighway = Double.parseDouble((vehicle.getHighway08U()));
 
                         tripVehicle.setFuelConsumptionCity(consumptionCity);
-                        tripVehicle.setGetFuelConsumptionHighway(consumptionHighway);
+                        tripVehicle.setFuelConsumptionHighway(consumptionHighway);
 
                         //CalculationActivity.onVehiclePropertiesLoaded(tripVehicle);
 

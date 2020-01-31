@@ -8,6 +8,7 @@ import com.example.cheaptrip.database.GasStationDatabase;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.StartupListener;
 import com.example.cheaptrip.handlers.rest.RestListener;
+import com.example.cheaptrip.handlers.rest.station.GasStationHistoryHandler;
 import com.example.cheaptrip.handlers.rest.station.GasStationHistoryPriceHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleDataSetHandler;
 import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
@@ -45,14 +46,14 @@ public class DatabasePopulationService extends AsyncTask<Void,Void,Void>  {
 
 
 
-/*        GasStationHistoryHandler gasStationHistoryHandler = new GasStationHistoryHandler(2019,9,1);
+       /* GasStationHistoryHandler gasStationHistoryHandler = new GasStationHistoryHandler(2019,9,1);
 
        List<Station> stationList = gasStationHistoryHandler.makeSyncRequest();
 
        GasStationDatabaseClient dbClient = GasStationDatabase.getDatabase(mContext).gasStationDatabaseClient();
-       dbClient.insertAll(stationList);*/
+       dbClient.insertAll(stationList);
 
-        GasStationHistoryPriceHandler gasStationHistoryPriceHandler = new GasStationHistoryPriceHandler(2019,10,1);
+        GasStationHistoryPriceHandler gasStationHistoryPriceHandler = new GasStationHistoryPriceHandler(2019,10,1);*/
         /*gasStationHistoryPriceHandler.makeAsyncRequest(new RestListener<List<Station>>() {
             @Override
             public void OnRestSuccess(List<Station> stations) {
@@ -68,9 +69,9 @@ public class DatabasePopulationService extends AsyncTask<Void,Void,Void>  {
             }
         });*/
 
-/*        List<Station> stationList = gasStationHistoryPriceHandler.makeSyncRequest();
-        GasStationDatabaseClient dbClient = GasStationDatabase.getDatabase(mContext).gasStationDatabaseClient();*/
-        //dbClient.insertAll(stations);
+      /*  List<Station> stationList = gasStationHistoryPriceHandler.makeSyncRequest();
+        GasStationDatabaseClient dbClient = GasStationDatabase.getDatabase(mContext).gasStationDatabaseClient();
+        //dbClient.insertAll(stations);*/
 
 
         return null;

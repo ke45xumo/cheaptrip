@@ -1,6 +1,8 @@
 package com.example.cheaptrip.views.fragments;
 
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,12 +11,14 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.handlers.rest.RestListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
 import com.example.cheaptrip.handlers.view.MyKmlStyler;
+import com.example.cheaptrip.models.TripGasStation;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripRoute;
 import com.example.cheaptrip.models.TripVehicle;
@@ -129,8 +133,8 @@ public class CalcMapFragment extends Fragment {
             GeoPoint startPoint = new GeoPoint(startLocation.getLatitdue(), startLocation.getLongitude());
             mMapController.setCenter(startPoint);
 
-            drawMarker(startLocation,R.drawable.marker_default);
-            drawMarker(endLocation,R.drawable.marker_default);
+            drawMarker(startLocation);
+            drawMarker(endLocation);
 
         }
 
@@ -176,14 +180,28 @@ public class CalcMapFragment extends Fragment {
     }
 
 
-    private void drawMarker(TripLocation tripLocation, int resourceIcon){
+    private void drawMarker(TripLocation tripLocation){
         Marker marker= new Marker(mMapView);
         marker.setPosition(new GeoPoint(tripLocation.getLatitdue(),tripLocation.getLongitude()));
         marker.setTitle(tripLocation.getLocationName());
 
-        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        marker.setIcon(getResources().getDrawable(resourceIcon));
 
+
+        Drawable icon;
+        Drawable defaultIcon = getResources().getDrawable(R.drawable.marker_default);
+        if(tripLocation instanceof TripGasStation){
+
+            icon = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_gas_station, null);
+            //icon = getResources().getDrawable(R.drawable.ic_gas_station);
+            //icon.setBounds(0,0,defaultIcon.getIntrinsicWidth(), defaultIcon.getIntrinsicHeight());
+            icon.setBounds(defaultIcon.getBounds());
+
+        }else{
+            icon = defaultIcon;
+        }
+
+        marker.setIcon(icon);
+        marker.setAnchor(0.3f, 0.3f);
         mMapView.getOverlays().add(marker);
         mMapView.invalidate();
     }
@@ -234,7 +252,7 @@ public class CalcMapFragment extends Fragment {
         /*-------------------------------------------------------------------------
          * Draw the a circle for the max Radius to reach with current tank contents
          *-------------------------------------------------------------------------*/
-        drawMarker(startLocation,R.drawable.marker_default);
+        drawMarker(startLocation);
         ArrayList<OverlayItem> overlayItems = new ArrayList<>();
         OverlayItem overlayCircle = new OverlayItem("Radius", null, new GeoPoint(centeredLocation.getLatitdue(), centeredLocation.getLongitude()));
         overlayItems.add(overlayCircle);
@@ -281,7 +299,7 @@ public class CalcMapFragment extends Fragment {
 
     private void updateMarkers(List<TripLocation> tripLocationList) {
         for(TripLocation tripLocation : tripLocationList){
-            drawMarker(tripLocation,R.drawable.marker_default);
+            drawMarker(tripLocation);
         }
 
     }

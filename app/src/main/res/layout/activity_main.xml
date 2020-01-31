@@ -19,7 +19,7 @@
         app:arcColor="@android:color/white"
         app:arcWidth="2dp"
         app:max="100"
-        app:min="-3"
+        app:min="0"
         app:progressColor="@color/color_progress"
         app:progressWidth="12dp"
         app:step="1"

@@ -19,7 +19,24 @@ android {
         }
     }
 
+    testOptions {
+        unitTests.includeAndroidResources = true
 
+        unitTests.all {
+            if (it.name == 'ExampleUnitTest') {
+                systemProperty 'debug', 'true'
+            }
+        }
+    }
+}
+
+
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat "full"
+        events "started", "skipped", "passed", "failed"
+        showStandardStreams true
+    }
 }
 
 configurations{

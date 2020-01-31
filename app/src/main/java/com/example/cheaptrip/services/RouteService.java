@@ -24,6 +24,9 @@ import com.example.cheaptrip.models.tankerkoenig.Station;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -32,6 +35,9 @@ import java.util.List;
 public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
     final static double RADIUS_EARTH = 6371e3;    // Radius of Earth in meters
+
+    final static double GAS_STATION_SEARCH_RADIUS = 25; // Radius to search for Gas-Stations
+                                                        // 25 max allowed by tankerkoenig
 
     private TripVehicle tripVehicle;
     List<TripRoute> tripRouteList;
@@ -87,28 +93,172 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             Log.e("CHEAPTRIP","Error on calling OpenrouteService: TripLocation is null");
             return null;
         }
-
-        double distance = tripRoute.getDistance();
-        double duration = tripRoute.getDuration();
-
-        double hours = duration /3600;
-        double avgSpeed = distance/hours;
-
-        double maxRange = determineMaxRange(tripVehicle, avgSpeed);
-
+        /*============================================================================================
+         * Get the distance the user will get with the Consumption and and tank capacity
+         *============================================================================================*/
+        double maxRange = determineMaxRange(tripVehicle, tripRoute);
+        /*============================================================================================
+         * Get the Points describing the PolyLine (to be drawn)
+         * This is just a connection of points via linear lines
+         *============================================================================================*/
         List<TripLocation> tripLocationList = tripRoute.getPointsForPolyLine();
         /*============================================================================================
          * Determine the Point on the Route from where to find Gas Stations nearby
          *============================================================================================*/
-        TripLocation pointInRange = findPointfromDistance(maxRange,tripLocationList,25);
+        TripLocation pointInRange = findPointfromDistance(maxRange,tripLocationList,GAS_STATION_SEARCH_RADIUS);
         /*============================================================================================
          * Determine the Point on the Route from where to find Gas Stations nearby
          *============================================================================================*/
-        List<Station> stationList = getStationsInRange(pointInRange);
+        List<TripGasStation> stationList = getStationsInRange(pointInRange);
 
         tripRouteList = determineTripRoutes(startTripLocation,endTripLocation,stationList,tripVehicle);
 
         return null;
+    }
+
+    private TripRoute recursiveCalculation(TripVehicle tripVehicle ,TripLocation ... tripLocations){
+        /*==========================================================================================
+         * Sanity Checks
+         *=========================================================================================*/
+
+        if (tripVehicle == null){
+            return null;
+        }
+
+        if(tripLocations == null || tripLocations.length < 2){
+            Log.e("CHEAPTRIP","RouteService: Cannot determine Route: Start and end location not set");
+            return null;
+        }
+
+        // Get the last 2 TripLocations of the route to calculate
+        TripLocation startTripLocation = tripLocations[tripLocations.length-2];
+        TripLocation endTripLocation = tripLocations[tripLocations.length-1];
+        /*==============================================================================================
+         * Determine Route from Start to End Location
+         *==============================================================================================*/
+        GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(Arrays.asList(tripLocations),null);
+        TripRoute nextTripRoute = geoDirectionsHandler.makeSyncRequest();
+
+        if(nextTripRoute == null){
+            Log.e("CHEAPTRIP","Error on calling OpenrouteService: TripLocation is null");
+            return null;
+        }
+        /*============================================================================================
+         * compare
+         * -------------
+         *      1) the distance the user will get with the Consumption and and tank capacity
+         *      2) the distance between the startPoint and the Endpoint
+         * if
+         * -------------
+         *      1) distance < maxRange: The user will get to the Destination without refuel
+         *      2) else:                The user has to refuel
+         *                              ->  Calculate the route from the next station to the destination
+         *                                  (recursive call)
+         *============================================================================================*/
+        double distance = calculateDistance(startTripLocation,endTripLocation);
+        double maxRange = determineMaxRange(tripVehicle, nextTripRoute);
+
+
+        List<List<TripGasStation>> listOfStationLists = new ArrayList<>();
+
+        while(distance > maxRange){
+            List<TripLocation> locationsForPolyLine = nextTripRoute.getPointsForPolyLine();
+            TripLocation pointInRange = findPointfromDistance(maxRange,locationsForPolyLine,GAS_STATION_SEARCH_RADIUS);
+
+            List<TripGasStation> stationList = getStationsInRange(pointInRange);
+
+            tripRouteList = determineTripRoutes(startTripLocation,endTripLocation,stationList,tripVehicle);
+
+            List<TripRoute> cheapestTripRoutes = getCheapestRoutes(tripRouteList,20);
+
+            List<TripGasStation> cheapestStations = new ArrayList<>();
+
+            for(TripRoute tripRoute : cheapestTripRoutes){
+
+                for(TripLocation tripLocation :tripRoute.getStops()){
+                    if (tripLocation instanceof TripGasStation){
+                        cheapestStations.add((TripGasStation)tripLocation);
+                    }
+                }
+
+            }
+            listOfStationLists.add(stationList);
+        }
+
+        if(distance < maxRange){
+            /*============================================================================================
+             * Get the Points describing the PolyLine (to be drawn)
+             * This is just a connection of points via linear lines
+             *============================================================================================*/
+            List<TripLocation> locationsForPolyLine = nextTripRoute.getPointsForPolyLine();
+            /*============================================================================================
+             * Determine the Point on the Route from where to find Gas Stations nearby
+             *============================================================================================*/
+            TripLocation pointInRange = findPointfromDistance(maxRange,locationsForPolyLine,GAS_STATION_SEARCH_RADIUS);
+            /*============================================================================================
+             * Determine the Point on the Route from where to find Gas Stations nearby
+             *==========================================================================================*/
+            List<TripGasStation> stationList = getStationsInRange(pointInRange);
+
+            tripRouteList = determineTripRoutes(startTripLocation,endTripLocation,stationList,tripVehicle);
+            return nextTripRoute;
+        }
+        /*============================================================================================
+         * Get the Points describing the PolyLine (to be drawn)
+         * This is just a connection of points via linear lines
+         *============================================================================================*/
+        List<TripLocation> locationsForPolyLine = nextTripRoute.getPointsForPolyLine();
+        /*============================================================================================
+         * Determine the Point on the Route from where to find Gas Stations nearby
+         *============================================================================================*/
+        TripLocation pointInRange = findPointfromDistance(maxRange,locationsForPolyLine,GAS_STATION_SEARCH_RADIUS);
+        /*============================================================================================
+         * Determine the Point on the Route from where to find Gas Stations nearby
+         *==========================================================================================*/
+        List<TripGasStation> stationList = getStationsInRange(pointInRange);
+
+        tripRouteList = determineTripRoutes(startTripLocation,endTripLocation,stationList,tripVehicle);
+
+
+        if(tripRouteList == null || tripRouteList.isEmpty()){
+            Log.e("CHEAPTRIP","RouteService: Calculation returned empty List or Error");
+            return null;
+        }
+
+        List<TripRoute> cheapestTripRoutes = getCheapestRoutes(tripRouteList,20);
+
+        for(TripRoute tripRoute :tripRouteList){
+
+        }
+        /*=========================================================================================
+         * Get a Route to test whether the next Station to peek is in the radius of the destination
+         * (it doesen't matter which one)
+         * This is just a representation for the other distances between GasStation and
+         * Destinations (because the other stations are within the same radius
+        *=========================================================================================*/
+        TripRoute tripRoutePeek = tripRouteList.get(0);
+        List<TripLocation> stopsAmongTheRoute = tripRoutePeek.getStops();
+
+        // Must have at least three stops (Start -> Station ( -> Station -> ...) -> Destination)
+        if(stopsAmongTheRoute == null || stopsAmongTheRoute.size() < 3){
+            Log.e("CHEAPTRIP","RouteService: Route is null or has less then 3 stops");
+            return null;
+        }
+
+        // Ensure that the Stop in the middle is a gasStation
+        if(!(stopsAmongTheRoute.get(1) instanceof TripGasStation)){
+            Log.e("CHEAPTRIP","RouteService: the intermediate TripLocaiton is not a TripGasStation");
+            return null;
+        }
+
+        TripGasStation tripGasStation = (TripGasStation) stopsAmongTheRoute.get(1);
+
+        // Reset the Tank of the Vehicle to 100% capacity
+        TripVehicle vehicleFullTank = new TripVehicle(tripVehicle);
+        vehicleFullTank.setRemainFuelPercent(100);
+
+        //recursiveCalculation(tripRoutePeek,vehicleFullTank,tripGasStation,endTripLocation);
+        return tripRoutePeek;
     }
 
     public TripVehicle initTripVehicle(TripVehicle tripVehicle){
@@ -135,14 +285,14 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         double cityKML = convertMPGto100KML(cityMPG);
         double highwayKML = convertMPGto100KML(highwayMPG);
 
-        tripVehicle.setGetFuelConsumptionHighway(highwayKML);
+        tripVehicle.setFuelConsumptionHighway(highwayKML);
         tripVehicle.setFuelConsumptionCity(cityKML);
 
         return tripVehicle;
     }
 
 
-    public List<TripRoute> determineTripRoutes(TripLocation startLocation, TripLocation endLocation, List<Station> stationList, TripVehicle tripVehicle){
+    public List<TripRoute> determineTripRoutes(TripLocation startLocation, TripLocation endLocation, List<TripGasStation> stationList, TripVehicle tripVehicle){
 
         if(tripVehicle == null){
             Log.e("CHEAPTRIP","Cannot determine Routes: tripVehicle may not be null");
@@ -178,15 +328,15 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         matrixCoordinateList.add(startLocation.getAsDoubleList());
         matrixCoordinateList.add(endLocation.getAsDoubleList());
 
-        for(Station station : stationList) {
+        for(TripGasStation station : stationList) {
             if (station == null) {
                 continue;
             }
 
             List<Double> stationCoordinates = new ArrayList<>();
 
-            double lon = station.getLng();
-            double lat = station.getLat();
+            double lon = station.getLongitude();
+            double lat = station.getLatitdue();
 
             stationCoordinates.add(lon);
             stationCoordinates.add(lat);
@@ -200,22 +350,28 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         locationPosition.add(0);
         locationPosition.add(1);
 
-        GeoDirectionMatrixHandler matrixHandler =  new GeoDirectionMatrixHandler(matrixCoordinateList,locationPosition,null);
+        GeoDirectionMatrixHandler matrixHandler = new GeoDirectionMatrixHandler(matrixCoordinateList, locationPosition, null);
         List<TripRoute> tripRouteList = matrixHandler.makeSyncRequest();
-        /*================================================================
+
+
+        for(int i = 0 ;i < 10; i++){
+            matrixHandler = new GeoDirectionMatrixHandler(matrixCoordinateList, locationPosition, null);
+            tripRouteList = matrixHandler.makeSyncRequest();
+        }
+        /*==========================================================================================
          * Initialize the TripRoute ( Set Stops and Costs)
-         *================================================================*/
+         *========================================================================================*/
         List<TripRoute> resultList = new ArrayList<>();         // list with all routes that hold costs
 
         Iterator tripListIterator = tripRouteList.iterator();
+        /*==========================================================================================
+         * Iterate over the stations and calculate the costs
+         *========================================================================================*/
+        for(TripGasStation tripGasStation : stationList){
 
-        for(Station station : stationList){
-
-            if(!station.isOpen()){
+            if(!tripGasStation.isOpen()){
                 continue;
             }
-
-            TripGasStation tripGasStation = new TripGasStation(station);
 
 
             TripRoute tripRoute = (TripRoute) tripListIterator.next();
@@ -225,7 +381,6 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
                         "This should not happen (stationList size and tripRoute List size shout be the same");
                 continue;
             }
-
             /*=========================================================
              * Determine Consumption
              *=========================================================*/
@@ -237,7 +392,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             double avgSpeed = distance/(duration/3600);     // in KMH
 
             double cityMPG = tripVehicle.getFuelConsumptionCity();
-            double highwayMPG = tripVehicle.getFuelConsumptionCity();
+            double highwayMPG = tripVehicle.getFuelConsumptionHighway();
 
             double avgConsumption = interpolateConsumption(avgSpeed,cityMPG,highwayMPG);
 
@@ -247,15 +402,15 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
              *=========================================================*/
             Double pricePerLiter = null;
             if(fuelType == GasStationClient.FuelType.E5) {
-                pricePerLiter = station.getE5();
+                pricePerLiter = tripGasStation.getPriceE5();
             }
 
             if(fuelType == GasStationClient.FuelType.E10) {
-                pricePerLiter = station.getE10();
+                pricePerLiter = tripGasStation.getPriceE10();
             }
 
             if(fuelType == GasStationClient.FuelType.DIESEL) {
-                pricePerLiter = station.getDiesel();
+                pricePerLiter = tripGasStation.getPriceDiesel();
             }
 
             if(pricePerLiter == null){
@@ -264,92 +419,44 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             /*=========================================================
              * Determine Costs
              *=========================================================*/
-            double costs = distance * pricePerLiter * avgConsumption/100;
+            double costs = calculateCostsForRoute(distance,pricePerLiter,avgConsumption);
 
             if(costs == 0){
                 continue;
             }
 
-
             tripRoute.setCosts(costs);
             resultList.add(tripRoute);
-
         }
-       /* /*================================================================
-         * Iterate over the Received Stations
-         *================================================================*//*
-        for(Station station : stationList){
-            if(station == null){
-                continue;
-            }
-
-            TripGasStation tripGasStation = new TripGasStation(station);
-
-            // Prepare Arguments
-            List<TripLocation> stops = new ArrayList<>();
-            stops.add(startLocation);
-            stops.add(tripGasStation);
-            stops.add(endLocation);
-
-            GeoDirectionsHandler geoDirectionsHandler = new GeoDirectionsHandler(stops);
-            TripRoute tripRoute  = geoDirectionsHandler.makeSyncRequest();
-
-            if(tripRoute == null){
-                Log.e("CHEAPTRIP","Could not get TripRoute from OpenRouteService: result is null.");
-               continue;
-            }
-
-            double distance = tripRoute.getDistance();
-            double duration = tripRoute.getDuration();
-
-            double avgSpeed = distance/duration;
-
-            double cityMPG = tripVehicle.getFuelConsumptionCity();
-            double highwayMPG = tripVehicle.getFuelConsumptionCity();
-
-            double avgConsumption = interpolateConsumption(avgSpeed,cityMPG,highwayMPG);
-            Double pricePerLiter = station.getE5();
-
-            if(pricePerLiter == null){
-                pricePerLiter = new Double(0);
-            }
-
-            double costs = distance * pricePerLiter * avgConsumption/100;
-
-            tripRoute.setCosts(costs);
-            tripRoute.setStops(stops);
-
-            tripRouteList.add(tripRoute);
-
-           *//* if(calcMapFragment instanceof CalculationActivity){
-                CalculationActivity calculationActivity = (CalculationActivity) calcMapFragment;
-                calculationActivity.drawRoute(geoJSON, Color.BLACK);
-            }*//*
-
-
-            try {
-                Thread.sleep(600);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        }*/
-
         return resultList;
     }
 
-    public List<Station> getStationsInRange(TripLocation calcLocation){
+    /**
+     * TODO: Document
+     * @param calcLocation
+     * @return
+     */
+    public List<TripGasStation> getStationsInRange(TripLocation calcLocation){
         double lat = calcLocation.getLatitdue();
         double lon = calcLocation.getLongitude();
 
         GasStationForRadiusHandler gasStationHandler = new GasStationForRadiusHandler(lat,lon, tripVehicle.getFueltype());
 
-        List<Station> stations = gasStationHandler.getStations();
+        List<TripGasStation> tripGasStations = gasStationHandler.makeSyncRequest();
 
-        return stations;
+        return tripGasStations;
     }
 
-    public Double interpolateConsumption(double avgSpeed, double cityMPG, double highwayMPG){
+    /**
+     * Determines the Average consumption by interpolating
+     * the values
+     *      *
+     * @param avgSpeed
+     * @param cityMPG
+     * @param highwayMPG
+     * @return
+     */
+    public static Double interpolateConsumption(double avgSpeed, double cityMPG, double highwayMPG){
         double citySpeed = 50.0;
         double highwaySpeed = 100.0;
 
@@ -358,8 +465,47 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         return avgConsumtion;
     }
 
+    /**
+     * Gets a List of the N Cheapest Routes in the List provided by Argument
+     *
+     * @param tripRouteList     List of TripRoute to get a List of the Cheapest N Routes for
+     * @param topN              Number of TripRoutes to be in the list (The N Cheapest)
+     *
+     * @return
+     */
+    public static List<TripRoute> getCheapestRoutes(List<TripRoute> tripRouteList, int topN){
+        Comparator<TripRoute> comparator = new Comparator<TripRoute>() {
+            @Override
+            public int compare(TripRoute tripRoute_1, TripRoute tripRoute_2) {
+                if(tripRoute_2 == null || tripRoute_2.getCosts() <= 0){
+                    return 1;
+                }
 
-    public double determineMaxRange(TripVehicle tripVehicle, double avgSpeed){
+                if(tripRoute_1 == null || tripRoute_1.getCosts() <= 0){
+                    return -1;
+                }
+
+                return Double.compare(tripRoute_1.getCosts() , tripRoute_2.getCosts());
+            }
+        };
+
+        List<TripRoute> resultTripRoute = new ArrayList<>(tripRouteList);
+        Collections.sort(resultTripRoute,comparator);
+
+        return resultTripRoute;
+    }
+
+    public static double calculateCostsForRoute( double distance , double pricePerLiter, double  avgConsumption){
+        return distance * pricePerLiter * avgConsumption/100;
+    }
+
+    public static double determineMaxRange(TripVehicle tripVehicle, TripRoute tripRoute){
+        double distance = tripRoute.getDistance();
+        double duration = tripRoute.getDuration();
+
+        double hours = duration /3600;
+        double avgSpeed = distance/hours;
+
         double percentRest = tripVehicle.getRemainFuelPercent();
         double cityMPG = tripVehicle.getFuelConsumptionCity();
         double highwayMPG = tripVehicle.getFuelConsumptionCity();
@@ -372,7 +518,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         return maxRange;
     }
 
-    public TripLocation findPointfromDistance(double radius, List<TripLocation> tripLocations, double offset){
+    public static TripLocation findPointfromDistance(double radius, List<TripLocation> tripLocations, double offset){
         int indexLowerBound = 0;
         int indexUpperBound = tripLocations.size()-1;
         int indexMiddle;
@@ -409,8 +555,6 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
     }
 
 
-
-
     public static double calculateDistance(TripLocation location1, TripLocation location2){
         double latitude1 = location1.getLatitdue();
         double longitude1 = location1.getLongitude();
@@ -428,14 +572,14 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         return (dist);
     }
 
-    public List<Station> loadHistoricPrices(int year, int month, int day){
+    public static List<Station> loadHistoricPrices(int year, int month, int day){
         GasStationHistoryPriceHandler gasStationHistoryPriceHandler = new GasStationHistoryPriceHandler(year,month,day);
         List<Station> priceList = gasStationHistoryPriceHandler.getHistory(year, month, day);
 
         return priceList;
     }
 
-    public List<Station> loadHistoricStationProperties(int year, int month, int day){
+    public static List<Station> loadHistoricStationProperties(int year, int month, int day){
         GasStationHistoryHandler gasStationHistoryHandler = new GasStationHistoryHandler(2019,12, 10);
         List<Station> stationList = gasStationHistoryHandler.getHistory();
 

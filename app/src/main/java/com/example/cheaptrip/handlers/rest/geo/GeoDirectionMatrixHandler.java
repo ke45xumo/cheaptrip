@@ -65,7 +65,6 @@ public class GeoDirectionMatrixHandler extends RestHandler<List<TripRoute>,GeoMa
             return null;
         }
 
-
         /*=======================================================================================
          * Generate Sum of duration and distance for Every Route ( Start -> Station -> End)
          *=======================================================================================*/

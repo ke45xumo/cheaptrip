@@ -10,11 +10,14 @@ public class TripGasStation extends TripLocation {
 
     private String mBrand;
 
+    private boolean bIsOpen;
+
     public TripGasStation(Station station) {
 
         double lat = station.getLat();
         double lon  = station.getLng();
         String name = station.getName();
+
 
         String place = station.getPlace();
         String houseNumber = station.getHouseNumber();
@@ -35,6 +38,7 @@ public class TripGasStation extends TripLocation {
         mPriceE10 = station.getE10();
         mPriceDiesel = station.getDiesel();
         mBrand = station.getBrand();
+        bIsOpen = station.isOpen();
     }
 
     public double getPriceE5() {
@@ -69,4 +73,7 @@ public class TripGasStation extends TripLocation {
         this.mBrand = mBrand;
     }
 
+    public boolean isOpen() {
+        return bIsOpen;
+    }
 }
