@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         Bundle optionsBundle = null;    // For Transition
 
 
-       // double tankPercent = (double)seek_tankContents.getProgress()/ (double)seek_tankContents.getMax();
+        // double tankPercent = (double)seek_tankContents.getProgress()/ (double)seek_tankContents.getMax();
         double tankPercent = (double)gauge.getProgress()/ 100;
         tripVehicle.setRemainFuelPercent(tankPercent);
 
@@ -357,41 +357,41 @@ public class MainActivity extends AppCompatActivity {
              * Return from CarBrandActivity
              *================================================================================================*/
             case ACTIVITY_REQ_CODE_BRAND:       tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
-                                                str_Brand = tripVehicle.getBrand();
-                                                btn_carBrand.setText(str_Brand);
-                                                btn_carModel.setEnabled(true);
-                                                break;
+                str_Brand = tripVehicle.getBrand();
+                btn_carBrand.setText(str_Brand);
+                btn_carModel.setEnabled(true);
+                break;
             /*================================================================================================
              * Return from CarModelActivity
              *================================================================================================*/
             case ACTIVITY_REQ_CODE_MODEL:       tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
-                                                str_Model = tripVehicle.getModel();
-                                                btn_carModel.setText(str_Model);
-                                                btn_carYear.setEnabled(true);
-                                                break;
+                str_Model = tripVehicle.getModel();
+                btn_carModel.setText(str_Model);
+                btn_carYear.setEnabled(true);
+                break;
             /*================================================================================================
              * Return from CarYearActivity
              *================================================================================================*/
             case ACTIVITY_REQ_CODE_YEAR:        tripVehicle = (TripVehicle)data.getSerializableExtra("vehicle");
-                                                str_Year = tripVehicle.getYear();
-                                                btn_carYear.setText(str_Year);
-                                                spin_carFuel.setEnabled(true);
-                                                setFuelSpinner(tripVehicle);
-                                                break;
+                str_Year = tripVehicle.getYear();
+                btn_carYear.setText(str_Year);
+                spin_carFuel.setEnabled(true);
+                setFuelSpinner(tripVehicle);
+                break;
             /*================================================================================================
              * Return from MapActivity for the Starting Location
              *================================================================================================*/
             case ACTIVITY_REQ_CODE_START:       startLocation = (TripLocation) data.getSerializableExtra("Location");
-                                                String strStart = startLocation.getLocationName();
-                                                edit_start.setText(strStart);
-                                                break;
+                String strStart = startLocation.getLocationName();
+                edit_start.setText(strStart);
+                break;
             /*================================================================================================
              * Return from MapActivity for the End Location/Destination
              *================================================================================================*/
             case ACTIVITY_REQ_CODE_END:         endLocation = (TripLocation) data.getSerializableExtra("Location");
-                                                String strEnd = endLocation.getLocationName();
-                                                edit_end.setText(strEnd);
-                                                break;
+                String strEnd = endLocation.getLocationName();
+                edit_end.setText(strEnd);
+                break;
             /*================================================================================================
              * No known activity
              *================================================================================================*/
@@ -431,11 +431,11 @@ public class MainActivity extends AppCompatActivity {
     private void setFuelSpinner(TripVehicle tripVehicle){
         List<GasStationClient.FuelType> fuelTypeList = determineFuelType(tripVehicle);
 
-       List<String> choices = new ArrayList<>();
+        List<String> choices = new ArrayList<>();
 
-       for(GasStationClient.FuelType fuelType : fuelTypeList){
-           choices.add(fuelType.getFuelType());
-       }
+        for(GasStationClient.FuelType fuelType : fuelTypeList){
+            choices.add(fuelType.getFuelType());
+        }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,R.layout.fueltype_item,choices);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -464,23 +464,27 @@ public class MainActivity extends AppCompatActivity {
         String year = tripVehicle.getYear();
 
 
-        VehicleDataSet vehicleDataSet = dbClient.findVehicle(brand,model,year);
+        List<String> fuelTypes = dbClient.getFuelTypes(brand,model,year);
 
-        if(vehicleDataSet != null){
-            if(vehicleDataSet.getConsumption_regular() != null){
+        for(String fuelType : fuelTypes) {
+
+            if(fuelType.equals(GasStationClient.FuelType.E5)){
                 fuelTypeList.add(GasStationClient.FuelType.E5);
-                fuelTypeList.add(GasStationClient.FuelType.E10);
+
             }
 
-            if(vehicleDataSet.getConsumption_premium() != null && !fuelTypeList.contains(GasStationClient.FuelType.E10)){
+            if(fuelType.equals(GasStationClient.FuelType.E10)){
                 fuelTypeList.add(GasStationClient.FuelType.E10);
+
             }
 
-            if(vehicleDataSet.getConsumption_diesel() != null){
+            if(fuelType.equals(GasStationClient.FuelType.DIESEL)){
                 fuelTypeList.add(GasStationClient.FuelType.DIESEL);
-            }
-        }
 
+            }
+
+
+        }
         return fuelTypeList;
 
     }

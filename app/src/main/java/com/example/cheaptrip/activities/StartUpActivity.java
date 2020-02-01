@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 
@@ -45,7 +46,7 @@ public class StartUpActivity extends AppCompatActivity {
         DatabasePopulationService databasePopulationService = new DatabasePopulationService(this, new StartupListener() {
             @Override
             public void onVehiclesLoaded() {
-                Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
             }
         });

@@ -5,7 +5,9 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.example.cheaptrip.activities.CalculationActivity;
+import com.example.cheaptrip.dao.database.VehicleDatabaseClient;
 import com.example.cheaptrip.dao.rest.GasStationClient;
+import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.CalculationListener;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionMatrixHandler;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
@@ -37,7 +39,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
     final static double RADIUS_EARTH = 6371e3;    // Radius of Earth in meters
 
     final static double GAS_STATION_SEARCH_RADIUS = 25; // Radius to search for Gas-Stations
-                                                        // 25 max allowed by tankerkoenig
+    // 25 max allowed by tankerkoenig
 
     private TripVehicle tripVehicle;
     List<TripRoute> tripRouteList;
@@ -235,7 +237,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
          * (it doesen't matter which one)
          * This is just a representation for the other distances between GasStation and
          * Destinations (because the other stations are within the same radius
-        *=========================================================================================*/
+         *=========================================================================================*/
         TripRoute tripRoutePeek = tripRouteList.get(0);
         List<TripLocation> stopsAmongTheRoute = tripRoutePeek.getStops();
 
@@ -266,7 +268,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             Log.e("CHEAPTRIP","Cannot assign Properties to tripVehicle: tripVehicle is null");
             return null;
         }
-
+/*
         VehiclePropertyHandler vehiclePropertyHandler = new VehiclePropertyHandler(tripVehicle);
 
         Vehicles vehicles = vehiclePropertyHandler.makeRequest();
@@ -281,6 +283,12 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
 
         String strHighwayMPG = vehicles.getVehicleList().get(0).getHighway08();
         double highwayMPG = Double.parseDouble(strHighwayMPG);
+*/
+        VehicleDatabaseClient dbClient = VehicleDatabase.getDatabase(context).vehicleDatabaseClient();
+
+
+        Double cityMPG = dbClient.getConsumptionCity(tripVehicle.getBrand(),tripVehicle.getModel(),tripVehicle.getYear());
+        Double highwayMPG = dbClient.getConsumptionHighway(tripVehicle.getBrand(),tripVehicle.getModel(),tripVehicle.getYear());
 
         double cityKML = convertMPGto100KML(cityMPG);
         double highwayKML = convertMPGto100KML(highwayMPG);

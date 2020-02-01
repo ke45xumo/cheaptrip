@@ -2,14 +2,17 @@ package com.example.cheaptrip.activities;
 
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.viewpager.widget.ViewPager;
@@ -35,6 +38,7 @@ import com.example.cheaptrip.models.TripVehicle;
 
 import com.example.cheaptrip.services.RouteService;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 
 
@@ -49,7 +53,7 @@ public class CalculationActivity extends AppCompatActivity {
     private TripRouteListAdapter tripRouteListAdapter;      // Adapter for the List of TripRoutes
 
     private Gauge progressBar;                        // Progress bar to be shown on load of
-                                                            // the list entries
+    // the list entries
 
     TripLocation startLocation;                             // Starting Location
     TripLocation endLocation;                               // End Location (Destination)
@@ -63,6 +67,7 @@ public class CalculationActivity extends AppCompatActivity {
     private ViewPager mViewPager;                           // The View pager for the fragments
 
     private volatile boolean mIsListLoaded = false;         // will be set as soon the TripRoute List is loaded
+    private BottomNavigationView bottomNavigation;
 
     /**
      * This function will be called on Activity creation
@@ -94,6 +99,8 @@ public class CalculationActivity extends AppCompatActivity {
         initFragments();
         initList();
         startCalculation();
+
+
     }
 
     /**

@@ -74,6 +74,10 @@ public class Station {
     @ColumnInfo(name="DATE")
     private String date;
 
+    @SerializedName("openingtimes_json")
+    @ColumnInfo(name="OPENING_TIMES")
+    private String openingtimes_json;
+
     public String getId() {
         return id;
     }
@@ -192,5 +196,13 @@ public class Station {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getOpeningtimes_json() {
+        return openingtimes_json;
+    }
+
+    public void setOpeningtimes_json(String openingtimes_json) {
+        this.openingtimes_json = openingtimes_json;
     }
 }
