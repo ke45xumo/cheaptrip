@@ -23,9 +23,9 @@ android {
         unitTests.includeAndroidResources = true
 
         unitTests.all {
-            if (it.name == 'ExampleUnitTest') {
+            //if (it.name == 'ExampleUnitTest') {
                 systemProperty 'debug', 'true'
-            }
+            //}
         }
     }
 }
