@@ -1,0 +1,3 @@
+Portions of the scripts included in this folder use the following open source software:
+
+csvquote version commit baf37fa4cccc656282551db4ea7ce4ec6b9c318e, copyrighted by Dan Brown under the terms of the MIT license. The license can be downloaded from: https://github.com/dbro/csvquote/blob/master/LICENSE.md. The source code for this software is available from: https://github.com/dbro/csvquote.
