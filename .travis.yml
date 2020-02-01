@@ -21,6 +21,7 @@ android:
 
 before_install:
   - chmod +x gradlew
+  - mkdir -p .android && touch ~/.android/repositories.cfg
   - ./gradlew test
   - yes | sdkmanager "platforms;android-29"
   - yes | sdkmanager "platforms;android-29"
