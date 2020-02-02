@@ -2,6 +2,7 @@ package com.example.cheaptrip.handlers.view.adapters;
 
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,7 +19,9 @@ import com.example.cheaptrip.models.TripRoute;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+
 
 public class GasStationListAdapter extends BaseAdapter {
     private Context context;
@@ -44,9 +47,13 @@ public class GasStationListAdapter extends BaseAdapter {
      * @param tripStationRoutes A list for this adapter
      */
     public GasStationListAdapter(@NonNull Context context, List<TripRoute> tripStationRoutes) {
-        //super(context, R.layout.selection_list_row);
         this.tripStationRoutes = tripStationRoutes;
 
+        //super(context, R.layout.list_row_vehicle_selection);
+        if(tripStationRoutes != null){
+            sortForDistance();
+        }
+        //this.tripStationRoutes = tripStationRoutes;
         this.context = context;
     }
 
@@ -68,7 +75,11 @@ public class GasStationListAdapter extends BaseAdapter {
 
     public void setList(List<TripRoute> tripStationRoutes){
         this.tripStationRoutes = tripStationRoutes;
-        notifyDataSetChanged();
+        if(tripStationRoutes != null){
+            sortForDistance();
+        }else {
+            Log.w("CHEAPTRIP","GasStationListAdapter->setList(): Cannot set list: provided list is null");
+        }
     }
 
     public List<TripRoute> getList(){
@@ -159,6 +170,48 @@ public class GasStationListAdapter extends BaseAdapter {
         return row;
     }
 
+    /**
+     * Sorts the list in place by costs
+     *
+     * @return
+     */
+    public void sortForCosts(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            tripStationRoutes.sort(new Comparator<TripRoute>() {
+                @Override
+                public int compare(TripRoute route1, TripRoute route2) {
+                    return Double.compare(route1.getCosts(),route2.getCosts());
+                }
+            });
+        }
+
+        notifyDataSetChanged();
+    }
+
+    public void sortForDistance(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            tripStationRoutes.sort(new Comparator<TripRoute>() {
+                @Override
+                public int compare(TripRoute route1, TripRoute route2) {
+                    return Double.compare(route1.getDistance(),route2.getDistance());
+                }
+            });
+        }
+        notifyDataSetChanged();
+    }
+
+    public void sortForDuration(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            tripStationRoutes.sort(new Comparator<TripRoute>() {
+                @Override
+                public int compare(TripRoute route1, TripRoute route2) {
+                    return Double.compare(route1.getDuration(),route2.getDuration());
+                }
+            });
+        }
+        notifyDataSetChanged();
+
+    }
 
 
 

@@ -23,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:background="@color/colorPrimaryDark"
+        android:background="@drawable/shape_info_window"
         android:elevation="20dp">
 
 
@@ -54,7 +54,58 @@
         android:layout_weight="1"
         android:background="@drawable/shape_main_background">
 
+        <LinearLayout
+            android:id="@+id/linear_layout_list_filter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:text="Sort Criteria"
+                android:textAlignment="center"
+                android:layout_gravity="center"
+                android:textColor="@android:color/white"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="50dp"/>
+
+            <ImageButton
+                android:id="@+id/btn_filter_costs"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:scaleType="fitXY"
+                android:background="@android:color/transparent"
+                android:onClick="onSortButtonClicked"
+                android:src="@drawable/sort_costs_green"
+                android:text="Costs"
+                android:textColor="@android:color/white"
+                />
+
+            <ImageButton
+                android:id="@+id/btn_filter_duration"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:scaleType="fitXY"
+                android:background="@android:color/transparent"
+                android:onClick="onSortButtonClicked"
+                android:src="@drawable/sort_time"
+                android:text="Duration"
+                android:textColor="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/btn_filter_distance"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:scaleType="fitXY"
+                android:background="@android:color/transparent"
+                android:onClick="onSortButtonClicked"
+                android:padding="0dp"
+                android:src="@drawable/sort_distance"
+                android:text="Distance"
+                android:textColor="@android:color/white" />
+
+        </LinearLayout>
         <ListView
+            android:layout_below="@id/linear_layout_list_filter"
             android:id="@+id/list_routes"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -69,7 +120,7 @@
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:layout_gravity="center"
-            android:layout_marginTop="100dp"
+            android:layout_centerInParent="true"
             android:padding="64dp"
             android:visibility="visible"
             app:arcColor="@android:color/white"

@@ -7,6 +7,7 @@ import com.example.cheaptrip.handlers.rest.RestHandler;
 import com.example.cheaptrip.models.TripGasStation;
 import com.example.cheaptrip.models.tankerkoenig.ODSResponse;
 import com.example.cheaptrip.models.tankerkoenig.Station;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Response;
 
-public class GasStationHandler extends RestHandler<List<TripGasStation>,ODSResponse> {
+public class GasStationHandler extends RestHandler<List<Station>,String> {
     private final static String BASE_URL = "http://data.cheaptrip.cf/";
     private ODSStationClient gasStationClient;
 
@@ -32,23 +33,33 @@ public class GasStationHandler extends RestHandler<List<TripGasStation>,ODSRespo
      * @return
      */
     @Override
-    public List<TripGasStation> extractDataFromResponse(Response<ODSResponse> response) {
-        ODSResponse responses = response.body();
+    public List<Station> extractDataFromResponse(Response<String> response) {
+        String json = response.body();
 
-        if(responses == null ){
+        if(json == null ){
             Log.e("CHEAPTRIP","GasStationHandler->extractDataFromResponse: response is null");
             return null;
         }
 
-        List<Station> stations = responses.getData();
-        List<TripGasStation> tripGasStationList = new ArrayList<>();
+        json = json.replace("\"\",","\"n/a\",");        // replace empty Entries
+        json = json.replace("\"\"","\\\"");             // escape double quotes
+
+        Gson gson = new Gson();
+
+        ODSResponse odsResponse = gson.fromJson(json,ODSResponse.class);
+
+        List<Station> stations = odsResponse.getData();
+
+
+       /* List<TripGasStation> tripGasStationList = new ArrayList<>();
 
         for(Station station : stations) {
             TripGasStation tripGasStation = new TripGasStation(station);
             tripGasStationList.add(tripGasStation);
         }
-        return tripGasStationList;
-    }
+*/
 
+        return stations;
+    }
 
 }

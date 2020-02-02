@@ -87,6 +87,7 @@
                 android:layout_marginRight="8dp"
                 android:autofillHints="@string/hint_edit_start"
                 android:hint="@string/location_start"
+                android:textColor="@android:color/white"
                 android:focusable="true"
                 android:layout_weight="1"/>
 

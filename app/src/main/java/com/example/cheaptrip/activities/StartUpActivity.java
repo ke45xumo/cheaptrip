@@ -53,20 +53,10 @@ public class StartUpActivity extends AppCompatActivity {
             }
         });
 
-        //databasePopulationService.execute();
+        databasePopulationService.execute();
 
-        GasStationHandler gasStationHandler = new GasStationHandler();
-        gasStationHandler.makeAsyncRequest(new RestListener<List<TripGasStation>>() {
-            @Override
-            public void OnRestSuccess(List<TripGasStation> tripGasStations) {
-                tripGasStations.get(0);
-            }
 
-            @Override
-            public void OnRestFail() {
 
-            }
-        });
 
 
 

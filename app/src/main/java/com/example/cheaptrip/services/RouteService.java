@@ -363,12 +363,12 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         locationPosition.add(0);
         locationPosition.add(1);
 
-        GeoDirectionMatrixHandler matrixHandler = new GeoDirectionMatrixHandler(matrixCoordinateList, locationPosition, null);
+        GeoDirectionMatrixHandler matrixHandler = new GeoDirectionMatrixHandler(matrixCoordinateList, locationPosition, null,false);
         List<TripRoute> tripRouteList = matrixHandler.makeSyncRequest();
 
 
         for(int i = 0 ;i < 10; i++){
-            matrixHandler = new GeoDirectionMatrixHandler(matrixCoordinateList, locationPosition, null);
+            matrixHandler = new GeoDirectionMatrixHandler(matrixCoordinateList, locationPosition, null,false);
             tripRouteList = matrixHandler.makeSyncRequest();
         }
         /*==========================================================================================
@@ -385,7 +385,6 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             if(!tripGasStation.isOpen()){
                 continue;
             }
-
 
             TripRoute tripRoute = (TripRoute) tripListIterator.next();
 
@@ -454,7 +453,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         double lat = calcLocation.getLatitdue();
         double lon = calcLocation.getLongitude();
 
-        GasStationForRadiusHandler gasStationHandler = new GasStationForRadiusHandler(lat,lon, tripVehicle.getFueltype());
+        GasStationForRadiusHandler gasStationHandler = new GasStationForRadiusHandler(context, lat,lon, GAS_STATION_SEARCH_RADIUS,tripVehicle.getFueltype());
 
         List<TripGasStation> tripGasStations = gasStationHandler.makeSyncRequest();
 

@@ -26,11 +26,13 @@ public class GeoDirectionMatrixHandler extends RestHandler<List<TripRoute>,GeoMa
 
     List<TripLocation> mTripLocationList;
     private List<Integer> mSources;
+    private boolean mSetStops;
 
-    public GeoDirectionMatrixHandler(List<TripLocation> tripLocationList, List<Integer> sources, List<Integer> destinations) {
+    public GeoDirectionMatrixHandler(List<TripLocation> tripLocationList, List<Integer> sources, List<Integer> destinations, boolean bSetStops) {
         super(BASE_URL);
         mTripLocationList = tripLocationList;
         mSources = sources;
+        mSetStops = bSetStops;
 
         orServiceClient = super.getRetrofit().create(ORServiceClient.class);
 
@@ -97,7 +99,7 @@ public class GeoDirectionMatrixHandler extends RestHandler<List<TripRoute>,GeoMa
          * Init TripRouteObject and pass values to it (Ignore first two entries
          * ( properties between other point and self)
          *=================================================================================*/
-        for(int i = distances.size()-1 ;i < distanceSumList.size() ; i++){
+        for(int i = distances.size() ;i < distanceSumList.size() ; i++){
             double distance = distanceSumList.get(i);
             double duration = durationSumList.get(i);
 
@@ -108,22 +110,23 @@ public class GeoDirectionMatrixHandler extends RestHandler<List<TripRoute>,GeoMa
              * Set the tripLocations
              * (consisting of the sources one of the other locations)
              *===================================================*/
-            List<TripLocation> stops = new ArrayList<>();
 
-            // Add the intermediate location (=GasStation)
+            if(mSetStops) {
+                List<TripLocation> stops = new ArrayList<>();
+                // Add the sources (Start + End Location)
+                for (int index : mSources) {
+                    stops.add(mTripLocationList.get(index));
+                }
 
-            // Add the sources (Start + End Location)
-            for(int index : mSources){
-                stops.add(mTripLocationList.get(index));
+                // Add the intermediate location (=GasStation)
+                if (mTripLocationList.get(i) instanceof TripGasStation) {
+                    TripGasStation tripGasStation = (TripGasStation) mTripLocationList.get(i);
+                    stops.add(tripGasStation);
+                }
+
+                tripRoute.setStops(stops);
             }
 
-            if(mTripLocationList.get(i) instanceof TripGasStation){
-                TripGasStation tripGasStation = (TripGasStation) mTripLocationList.get(i);
-                stops.add(tripGasStation);
-            }
-
-
-            tripRoute.setStops(stops);
 
             // Add to the List
             tripRouteList.add(tripRoute);

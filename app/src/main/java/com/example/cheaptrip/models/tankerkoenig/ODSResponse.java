@@ -11,18 +11,23 @@ public class ODSResponse {
     @SerializedName("id")
     @Expose
     private Integer id;
+
     @SerializedName("data")
     @Expose
     private List<Station> data = new ArrayList<Station>();
+
     @SerializedName("timestamp")
     @Expose
     private String timestamp;
+
     @SerializedName("origin")
     @Expose
     private String origin;
+
     @SerializedName("license")
     @Expose
     private String license;
+
     @SerializedName("pipelineId")
     @Expose
     private String pipelineId;

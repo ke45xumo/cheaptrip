@@ -109,7 +109,7 @@
             android:drawableRight="@android:drawable/arrow_down_float"
             android:entries="@array/fuel_type_array"
             android:enabled="true"
-            tools:listitem="@layout/fueltype_item"
+            tools:listitem="@layout/spinner_item_fueltype"
             />
 
     </RelativeLayout>

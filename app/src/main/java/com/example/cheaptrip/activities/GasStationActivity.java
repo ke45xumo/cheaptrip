@@ -27,6 +27,7 @@ import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripRoute;
 import com.example.cheaptrip.models.TripVehicle;
 import com.example.cheaptrip.services.GPSService;
+import com.example.cheaptrip.services.RouteService;
 import com.example.cheaptrip.views.Gauge;
 import com.example.cheaptrip.views.Navigation;
 import com.example.cheaptrip.views.fragments.CalcGasStationFragment;
@@ -34,6 +35,8 @@ import com.example.cheaptrip.views.fragments.CalcMapFragment;
 import com.example.cheaptrip.views.fragments.CalcRouteFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
+
+import org.osmdroid.util.BoundingBox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -254,13 +257,14 @@ public class GasStationActivity extends AppCompatActivity {
         double lat = currentLocation.getLatitdue();
         double lon = currentLocation.getLongitude();
 
-        GasStationForRadiusHandler stationHandler = new GasStationForRadiusHandler(lat,lon, GasStationClient.FuelType.ALL);
+        GasStationForRadiusHandler stationHandler = new GasStationForRadiusHandler(this,lat,lon,5, GasStationClient.FuelType.ALL);
 
         stationHandler.makeAsyncRequest(new RestListener<List<TripGasStation>>() {
             @Override
             public void OnRestSuccess(List<TripGasStation> tripGasStations) {
 
                loadRoutesForStations(tripGasStations);
+               mMapFragment.drawMarkersInRadius(new ArrayList(tripGasStations),true);
             }
 
             @Override
@@ -283,12 +287,16 @@ public class GasStationActivity extends AppCompatActivity {
     private void loadRoutesForStations(List<TripGasStation> tripGasStations){
         // Prepare Arguments
         List<TripLocation> tripLocationList = new ArrayList(tripGasStations);
+        if(tripLocationList == null || tripLocationList.isEmpty()){
+            Log.e("CHEAPTRIP","GasStationActivity-> loadRoutesForStations: Got Empty List from API.");
+            return;
+        }
         tripLocationList.set(0,currentLocation);    // Put on first position
 
         List<Integer> sources = new ArrayList<>();
         sources.add(0);                             // reference first postion as source (= current Location)
 
-        GeoDirectionMatrixHandler geoDirectionMatrixHandler = new GeoDirectionMatrixHandler(tripLocationList,sources,null);
+        GeoDirectionMatrixHandler geoDirectionMatrixHandler = new GeoDirectionMatrixHandler(tripLocationList,sources,null,true);
         geoDirectionMatrixHandler.makeAsyncRequest(new RestListener<List<TripRoute>>() {
             @Override
             public void OnRestSuccess(List<TripRoute> gasStationRoutes) {
@@ -350,7 +358,7 @@ public class GasStationActivity extends AppCompatActivity {
      * @param tripRoute     Selected TripRoute from the list lvRoutes.
      */
     private void fillFragments(TripRoute tripRoute){
-        mMapFragment.updateMap(tripRoute);
+        mMapFragment.updateMap(tripRoute,false);
 
         for(TripLocation tripLocation : tripRoute.getStops()){
             if(tripLocation instanceof TripGasStation){
@@ -361,4 +369,32 @@ public class GasStationActivity extends AppCompatActivity {
         mRouteFragment.updateList(tripRoute);
     }
 
+    /**
+     * Callback function for the filter buttons.
+     * Sorts the list items  by duration, costs and distance
+     * depending on the button that was clicked.
+     *
+     * @param view  Filter button that was clicked by user
+     */
+    public void onSortButtonClicked(View view) {
+        if(gasStationListAdapter == null){
+            Log.e("CHEAPTRIP","Cannot sort list: gasStationListAdapter is null");                return;
+        }
+
+        switch (view.getId()){
+            case R.id.btn_filter_costs:
+                gasStationListAdapter.sortForCosts();
+                break;
+
+            case R.id.btn_filter_distance:
+                gasStationListAdapter.sortForDistance();
+                break;
+
+            case R.id.btn_filter_duration:
+                gasStationListAdapter.sortForDuration();
+                break;
+
+                default: break;
+        }
+    }
 }

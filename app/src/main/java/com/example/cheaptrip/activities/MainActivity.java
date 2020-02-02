@@ -36,7 +36,6 @@ import com.example.cheaptrip.dao.database.VehicleDatabaseClient;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripVehicle;
-import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
 import com.example.cheaptrip.views.Gauge;
 import com.example.cheaptrip.views.Navigation;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -118,11 +117,12 @@ public class MainActivity extends AppCompatActivity {
 
                 btn_carBrand.setText("BMW");
                 btn_carModel.setText("318i");
+                btn_carYear.setText("1991");
                 tripVehicle = new TripVehicle();
                 tripVehicle.setBrand("BMW");
-                tripVehicle.setModel("318i");
-                tripVehicle.setYear("1991");
-                tripVehicle.setFueltype(GasStationClient.FuelType.E10);
+                tripVehicle.setModel("135i Manual 6-spd");
+                tripVehicle.setYear("2010");
+                tripVehicle.setFueltype(GasStationClient.FuelType.E5);
             }
         }
     }
@@ -210,7 +210,6 @@ public class MainActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {
 
             }
-
         });
 
     }
@@ -416,7 +415,7 @@ public class MainActivity extends AppCompatActivity {
              *================================================================================================*/
             default:    break;
         }
-
+        updateVehicleButtons(tripVehicle);
     }
 
     /**
@@ -446,7 +445,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //TODO Implement + create Views
+    /**
+     * This sets the Spinner by getting the fuel type for specific tripVehicle
+     * (filled properties: brand, model , year)
+     *
+     * @param tripVehicle   TripVehicle with populated Entries:
+     *                          * Car Brand
+     *                          * Car Model
+     *                          * Car Year
+     */
     private void setFuelSpinner(TripVehicle tripVehicle){
         List<GasStationClient.FuelType> fuelTypeList = determineFuelType(tripVehicle);
 
@@ -456,7 +463,7 @@ public class MainActivity extends AppCompatActivity {
             choices.add(fuelType.getFuelType());
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,R.layout.fueltype_item,choices);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,R.layout.spinner_item_fueltype,choices);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         spin_carFuel.setAdapter(adapter);
@@ -504,38 +511,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void setBottomNavigation(){
+    private void updateVehicleButtons(TripVehicle tripVehicle){
+        if(tripVehicle == null){
+            btn_carBrand.setText(R.string.car_brand);
 
-        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                Intent intent;
-                CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
-                Activity currActivity = cheapTripApp.getCurrentActivity() ;
+            btn_carModel.setText(R.string.car_model);
+            btn_carModel.setEnabled(false);
 
-                if ( currActivity.getClass().equals(this.getClass())) {
-                    return false;
-                }
+            btn_carYear.setText(R.string.car_year);
+            btn_carYear.setEnabled(false);
+            return;
+        }
 
-                switch (item.getItemId()) {
-                    case R.id.bottom_nav_route:
-                        intent = new Intent(getApplicationContext(), MainActivity.class);
-                        break;
+        if(tripVehicle.getBrand() == null){
+            btn_carBrand.setText(R.string.car_brand);
 
-                    case R.id.bottom_nav_stations:
-                        intent = new Intent(getApplicationContext(), GasStationActivity.class);
-                        startActivity(intent);
-                        break;
-                    /*case R.id.navigation_notifications:
-                        openFragment(NotificationFragment.newInstance("", ""));
-                        return true;*/
-                    default: return false;
-                }
+            btn_carModel.setText(R.string.car_model);
+            btn_carModel.setEnabled(false);
 
+            btn_carYear.setText(R.string.car_year);
+            btn_carYear.setEnabled(false);
+        }
 
-                startActivity(intent);
-                return false;
-            }
-        });
+        if(tripVehicle.getModel() == null){
+            btn_carModel.setText(R.string.car_model);
+
+            btn_carYear.setText(R.string.car_year);
+            btn_carYear.setEnabled(false);
+        }
+
+        if(tripVehicle.getYear() == null){
+            btn_carYear.setText(R.string.car_year);
+
+            spin_carFuel.setAdapter(new ArrayAdapter<>(this,R.layout.spinner_item_fueltype));
+        }
     }
 }

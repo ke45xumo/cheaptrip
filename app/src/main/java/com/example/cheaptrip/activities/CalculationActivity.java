@@ -266,6 +266,9 @@ public class CalculationActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Animates the Tank Gauge until the load is finished (mIsListLoaded = true)
+     */
     private void animateTankIndicator(){
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -304,7 +307,7 @@ public class CalculationActivity extends AppCompatActivity {
      * @param tripRoute     Selected TripRoute from the list lvRoutes.
      */
     private void fillFragments(TripRoute tripRoute){
-        mMapFragment.updateMap(tripRoute);
+        mMapFragment.updateMap(tripRoute,true);
 
         for(TripLocation tripLocation : tripRoute.getStops()){
             if(tripLocation instanceof TripGasStation){
@@ -315,5 +318,32 @@ public class CalculationActivity extends AppCompatActivity {
         mRouteFragment.updateList(tripRoute);
     }
 
+    /**
+     * Callback function for the filter buttons.
+     * Sorts the list items  by duration, costs and distance
+     * depending on the button that was clicked.
+     *
+     * @param view  Filter button that was clicked by user
+     */
+    public void onSortButtonClicked(View view) {
+        if(tripRouteListAdapter == null){
+            Log.e("CHEAPTRIP","Cannot sort list: gasStationListAdapter is null");                return;
+        }
 
+        switch (view.getId()){
+            case R.id.btn_filter_costs:
+                tripRouteListAdapter.sortForCosts();
+                break;
+
+            case R.id.btn_filter_distance:
+                tripRouteListAdapter.sortForDistance();
+                break;
+
+            case R.id.btn_filter_duration:
+                tripRouteListAdapter.sortForDuration();
+                break;
+
+            default: break;
+        }
+    }
 }
