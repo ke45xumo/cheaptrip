@@ -1,5 +1,9 @@
-# cheaptrip
-Repository for CheapTrip
+[![](https://img.shields.io/travis/cmgl/cheaptrip)](https://travis-ci.org/cmgl/cheaptrip)
+[![](https://img.shields.io/github/license/cmgl/cheaptrip)](https://github.com/cmgl/cheaptrip/blob/master/LICENSE.md)
+
+
+# CheapTrip
+The CheapTrip Android app for Advanced Methods of Software Engineering (AMSE) at FAU in winter semester 2019/2020.
 
 ## License
 Copyright (C) 2020 Hannes Fleischer\
