@@ -1,9 +1,10 @@
-[![](https://img.shields.io/travis/cmgl/cheaptrip)](https://travis-ci.org/cmgl/cheaptrip)
-[![](https://img.shields.io/github/license/cmgl/cheaptrip)](https://github.com/cmgl/cheaptrip/blob/master/LICENSE.md)
+![Travis (.org)](https://img.shields.io/travis/cmgl/cheaptrip)
+![GitHub](https://img.shields.io/github/license/cmgl/cheaptrip)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/cmgl/cheaptrip)
 
 
 # CheapTrip
-The CheapTrip Android app for Advanced Methods of Software Engineering (AMSE) at FAU in winter semester 2019/2020.
+The CheapTrip Android app for Advanced Methods of Software Engineering (AMSE) at Friedrich-Alexander Universität Erlangen-Nürnberg in winter semester 2019/2020.
 
 ## License
 Copyright (C) 2020 Hannes Fleischer\
@@ -33,4 +34,4 @@ This application uses the following data sources or service providers:\
 [(C) OpenStreetMap contributors](https://www.openstreetmap.org/) ([ODbL](https://opendatacommons.org/licenses/odbl/))\
 [(C) OpenStreetMap map tiles](https://www.openstreetmap.org/) ([CC-BY-SA-2.0](https://creativecommons.org/licenses/by-sa/2.0/legalcode))\
 [(C) OpenRouteService](https://openrouteservice.org/) ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode))\
-[Photon](https://photon.komoot.de/)
+[Photon](https://photon.komoot.de/) ([see terms of use](https://photon.komoot.de/))
