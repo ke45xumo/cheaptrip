@@ -287,11 +287,14 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         VehicleDatabaseClient dbClient = VehicleDatabase.getDatabase(context).vehicleDatabaseClient();
 
 
-        Double cityMPG = dbClient.getConsumptionCity(tripVehicle.getBrand(),tripVehicle.getModel(),tripVehicle.getYear());
+        /*Double cityMPG = dbClient.getConsumptionCity(tripVehicle.getBrand(),tripVehicle.getModel(),tripVehicle.getYear());
         Double highwayMPG = dbClient.getConsumptionHighway(tripVehicle.getBrand(),tripVehicle.getModel(),tripVehicle.getYear());
 
         double cityKML = convertMPGto100KML(cityMPG);
-        double highwayKML = convertMPGto100KML(highwayMPG);
+        double highwayKML = convertMPGto100KML(highwayMPG);*/
+
+        double cityKML    =  dbClient.getConsumptionCity(tripVehicle.getBrand(),tripVehicle.getModel(),tripVehicle.getYear());
+        double highwayKML =  dbClient.getConsumptionHighway(tripVehicle.getBrand(),tripVehicle.getModel(),tripVehicle.getYear());
 
         tripVehicle.setFuelConsumptionHighway(highwayKML);
         tripVehicle.setFuelConsumptionCity(cityKML);
@@ -331,10 +334,10 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
         /*==========================================================================================
          * Generate the Coordinate List for the POST Body of Matrix Request (ORService)
          *========================================================================================*/
-        List<List<Double>> matrixCoordinateList = new ArrayList<>();
+        List<TripLocation> matrixCoordinateList = new ArrayList<>();
 
-        matrixCoordinateList.add(startLocation.getAsDoubleList());
-        matrixCoordinateList.add(endLocation.getAsDoubleList());
+        matrixCoordinateList.add(startLocation);
+        matrixCoordinateList.add(endLocation);
 
         for(TripGasStation station : stationList) {
             if (station == null) {
@@ -349,7 +352,9 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
             stationCoordinates.add(lon);
             stationCoordinates.add(lat);
 
-            matrixCoordinateList.add(stationCoordinates);
+            TripLocation tripLocation = new TripLocation(lat,lon);
+
+            matrixCoordinateList.add(tripLocation);
         }
         /*==========================================================================================
          * Get TripRoutes with Durations and Distances from ORService API
@@ -409,6 +414,7 @@ public class RouteService extends AsyncTask<TripLocation,Void,Void> {
              * Get GasStation Price
              *=========================================================*/
             Double pricePerLiter = null;
+
             if(fuelType == GasStationClient.FuelType.E5) {
                 pricePerLiter = tripGasStation.getPriceE5();
             }

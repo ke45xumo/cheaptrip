@@ -19,13 +19,12 @@ import java.util.List;
 
 public class LocationListAdapter extends BaseAdapter {
     private Context context;
-    private List<Location> locationList;
+
 
     private List<Location> mDisplayedLocations;    // Values to be displayed
 
     public LocationListAdapter(@NonNull Context context, List<Location> locationList) {
         //super(context, R.layout.selection_list_row);
-        this.locationList = locationList;
         this.mDisplayedLocations = locationList;
 
         this.context = context;

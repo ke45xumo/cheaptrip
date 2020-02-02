@@ -19,9 +19,11 @@ import com.example.cheaptrip.database.GasStationDatabase;
 import com.example.cheaptrip.database.VehicleDatabase;
 import com.example.cheaptrip.handlers.StartupListener;
 import com.example.cheaptrip.handlers.rest.RestListener;
+import com.example.cheaptrip.handlers.rest.station.GasStationHandler;
 import com.example.cheaptrip.handlers.rest.station.GasStationHistoryHandler;
 import com.example.cheaptrip.handlers.rest.station.GasStationHistoryPriceHandler;
 import com.example.cheaptrip.handlers.rest.vehicle.VehicleDataSetHandler;
+import com.example.cheaptrip.models.TripGasStation;
 import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
 import com.example.cheaptrip.models.tankerkoenig.Station;
 import com.example.cheaptrip.services.DatabasePopulationService;
@@ -51,7 +53,21 @@ public class StartUpActivity extends AppCompatActivity {
             }
         });
 
-        databasePopulationService.execute();
+        //databasePopulationService.execute();
+
+        GasStationHandler gasStationHandler = new GasStationHandler();
+        gasStationHandler.makeAsyncRequest(new RestListener<List<TripGasStation>>() {
+            @Override
+            public void OnRestSuccess(List<TripGasStation> tripGasStations) {
+                tripGasStations.get(0);
+            }
+
+            @Override
+            public void OnRestFail() {
+
+            }
+        });
+
 
 
      /*   GasStationHistoryHandler gasStationHistoryHandler = new GasStationHistoryHandler(2019,9,1);

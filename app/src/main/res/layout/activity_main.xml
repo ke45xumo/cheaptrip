@@ -11,6 +11,7 @@
 
     <com.example.cheaptrip.views.Gauge
         android:id="@+id/tank_indicator"
+        android:transitionName="gauge_to_gauge"
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:layout_gravity="center"
@@ -165,7 +166,6 @@
                     android:focusable="false"
                     android:hint="@string/location_start"
 
-                    android:inputType="textPersonName"
                     android:onClick="viewClickHandler"
                     android:selectAllOnFocus="false"
                     android:singleLine="false"
@@ -182,7 +182,6 @@
                     android:ems="10"
                     android:focusable="false"
                     android:hint="@string/location_dest"
-                    android:inputType="textPersonName"
                     android:textColor="#FFFFFF"
                     android:textColorHint="@android:color/primary_text_dark_nodisable"
                     android:onClick="viewClickHandler" />
@@ -230,20 +229,6 @@
         android:onClick="viewClickHandler"
         android:text="@string/btn_find" />
 
-
-
-    <!--  <androidx.viewpager.widget.ViewPager
-          android:id="@+id/view_pager"
-          android:layout_width="match_parent"
-          android:layout_height="0dp"
-          android:layout_weight="1"/>
-
-      <com.google.android.material.bottomnavigation.BottomNavigationView
-          android:id="@+id/bottom_navigation_view"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          app:menu="@menu/menu_bottom_navigation"
-          android:layout_alignParentBottom="true"/>-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:layout_gravity="bottom"
         android:layout_alignParentBottom="true"

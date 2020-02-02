@@ -11,6 +11,7 @@ import android.os.Bundle;
 
 
 import android.util.Pair;
+import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.AdapterView;
@@ -37,6 +38,8 @@ import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripVehicle;
 import com.example.cheaptrip.models.fueleconomy.VehicleDataSet;
 import com.example.cheaptrip.views.Gauge;
+import com.example.cheaptrip.views.Navigation;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
     TripLocation  endLocation;      // Selected End Locaiton ( Destination
 
     TripVehicle tripVehicle;        // Vehicle to be created with the properties (Brand,Model,Year)
+    private BottomNavigationView bottomNavigation;
 
     /**
      * This function gets called on Activity Creation.
@@ -134,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
         Activity currActivity = cheapTripApp.getCurrentActivity() ;
 
-        if ( this .equals(currActivity))
+        if ( this.equals(currActivity))
             cheapTripApp.setCurrentActivity( null ) ;
     }
     /**
@@ -178,7 +182,12 @@ public class MainActivity extends AppCompatActivity {
         edit_end = findViewById(R.id.edit_destination);
 
         gauge = findViewById(R.id.tank_indicator);
+        bottomNavigation = findViewById(R.id.bottomNavigationView);
 
+        Navigation.setBottomNavigation(this,bottomNavigation);
+        /*==============================================
+         * Set Click Listener for Fuel Type
+         *==============================================*/
         spin_carFuel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -203,6 +212,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+
     }
 
     /**
@@ -229,17 +239,16 @@ public class MainActivity extends AppCompatActivity {
              *===================================================================================*/
             case R.id.btn_car_brand:
                 intent = new Intent(this, VehicleBrandActivity.class);
-
+                tripVehicle = new TripVehicle();
                 bundle.putSerializable("vehicle",tripVehicle);
                 intent.putExtras(bundle);
                 requestCode = ACTIVITY_REQ_CODE_BRAND;
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 break;
             /*====================================================================================
              * Clicked the BrandButton
              *====================================================================================*/
             case R.id.btn_car_model:
-                // TODO Check for str_carBrand
-
                 intent = new Intent(this, VehicleModelActivity.class);
                 bundle.putSerializable("vehicle",tripVehicle);
                 intent.putExtras(bundle);
@@ -262,6 +271,7 @@ public class MainActivity extends AppCompatActivity {
                 bundle.putSerializable("vehicle",tripVehicle);
                 intent.putExtras(bundle);
 
+                // Animations
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
 
                     Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.tank_indicator),"image_to_map");
@@ -293,6 +303,15 @@ public class MainActivity extends AppCompatActivity {
              * Clicked the BrandButton
              *====================================================================================*/
             case R.id.btn_find:
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+
+                    Pair<View,String> pairImageMap = Pair.create(findViewById(R.id.tank_indicator),"rel_layout_calc_container");
+                    Pair<View,String> pairEditStart = Pair.create(view,"viewpager_calc");
+                    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,pairEditStart,pairImageMap);
+                    optionsBundle = options.toBundle();
+                }
+
 
                 boolean bIsIncomplete = false;
                 String toastText = "The following Porperties must be set:\n";
@@ -468,24 +487,55 @@ public class MainActivity extends AppCompatActivity {
 
         for(String fuelType : fuelTypes) {
 
-            if(fuelType.equals(GasStationClient.FuelType.E5)){
+            if(fuelType.equals(GasStationClient.FuelType.E5.getFuelType())){
                 fuelTypeList.add(GasStationClient.FuelType.E5);
-
             }
 
-            if(fuelType.equals(GasStationClient.FuelType.E10)){
+            if(fuelType.equals(GasStationClient.FuelType.E10.getFuelType())){
                 fuelTypeList.add(GasStationClient.FuelType.E10);
-
             }
 
-            if(fuelType.equals(GasStationClient.FuelType.DIESEL)){
+            if(fuelType.equals(GasStationClient.FuelType.DIESEL.getFuelType())){
                 fuelTypeList.add(GasStationClient.FuelType.DIESEL);
-
             }
-
 
         }
         return fuelTypeList;
+    }
 
+
+    private void setBottomNavigation(){
+
+        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Intent intent;
+                CheapTripApp cheapTripApp = (CheapTripApp) getApplication();
+                Activity currActivity = cheapTripApp.getCurrentActivity() ;
+
+                if ( currActivity.getClass().equals(this.getClass())) {
+                    return false;
+                }
+
+                switch (item.getItemId()) {
+                    case R.id.bottom_nav_route:
+                        intent = new Intent(getApplicationContext(), MainActivity.class);
+                        break;
+
+                    case R.id.bottom_nav_stations:
+                        intent = new Intent(getApplicationContext(), GasStationActivity.class);
+                        startActivity(intent);
+                        break;
+                    /*case R.id.navigation_notifications:
+                        openFragment(NotificationFragment.newInstance("", ""));
+                        return true;*/
+                    default: return false;
+                }
+
+
+                startActivity(intent);
+                return false;
+            }
+        });
     }
 }

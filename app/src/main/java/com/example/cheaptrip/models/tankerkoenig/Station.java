@@ -74,6 +74,10 @@ public class Station {
     @ColumnInfo(name="DATE")
     private String date;
 
+    @SerializedName("first_active")
+    @Expose
+    private String firstActive;
+
     @SerializedName("openingtimes_json")
     @ColumnInfo(name="OPENING_TIMES")
     private String openingtimes_json;
@@ -204,5 +208,13 @@ public class Station {
 
     public void setOpeningtimes_json(String openingtimes_json) {
         this.openingtimes_json = openingtimes_json;
+    }
+
+    public String getFirstActive() {
+        return firstActive;
+    }
+
+    public void setFirstActive(String firstActive) {
+        this.firstActive = firstActive;
     }
 }

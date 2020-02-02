@@ -5,6 +5,8 @@ import android.util.Log;
 
 import com.example.cheaptrip.dao.rest.ORServiceClient;
 import com.example.cheaptrip.handlers.rest.RestHandler;
+import com.example.cheaptrip.models.TripGasStation;
+import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripRoute;
 import com.example.cheaptrip.models.orservice.GeoMatrixResponse;
 import com.example.cheaptrip.models.orservice.MatrixPostBody;
@@ -22,15 +24,17 @@ public class GeoDirectionMatrixHandler extends RestHandler<List<TripRoute>,GeoMa
     private static String BASE_URL = "https://api.openrouteservice.org/v2/";
     private static ORServiceClient orServiceClient;
 
-    List<List<Double>> coordinates;
+    List<TripLocation> mTripLocationList;
+    private List<Integer> mSources;
 
-    public GeoDirectionMatrixHandler(List<List<Double>> coordinates,List<Integer> sources, List<Integer> destinations) {
+    public GeoDirectionMatrixHandler(List<TripLocation> tripLocationList, List<Integer> sources, List<Integer> destinations) {
         super(BASE_URL);
-        this.coordinates = coordinates;
+        mTripLocationList = tripLocationList;
+        mSources = sources;
 
         orServiceClient = super.getRetrofit().create(ORServiceClient.class);
 
-        String body = prepareBody(coordinates, sources, null);
+        String body = prepareBody(tripLocationList, sources, null);
         Call call = orServiceClient.getMatrix(body);
         super.setCall(call);
 
@@ -45,7 +49,7 @@ public class GeoDirectionMatrixHandler extends RestHandler<List<TripRoute>,GeoMa
             return null;
         }
 
-        List<TripRoute> tripLocationList = new ArrayList<>();
+        List<TripRoute> tripRouteList = new ArrayList<>();
 
         List<List<Double>> distances = geoMatrixResponse.getDistances();
         List<List<Double>> durations = geoMatrixResponse.getDurations();
@@ -93,22 +97,43 @@ public class GeoDirectionMatrixHandler extends RestHandler<List<TripRoute>,GeoMa
          * Init TripRouteObject and pass values to it (Ignore first two entries
          * ( properties between other point and self)
          *=================================================================================*/
-        for(int i = 2 ;i < distanceSumList.size() ; i++){
+        for(int i = distances.size()-1 ;i < distanceSumList.size() ; i++){
             double distance = distanceSumList.get(i);
             double duration = durationSumList.get(i);
 
             TripRoute tripRoute = new TripRoute();
             tripRoute.setDistance(distance);
             tripRoute.setDuration(duration);
+            /*===================================================
+             * Set the tripLocations
+             * (consisting of the sources one of the other locations)
+             *===================================================*/
+            List<TripLocation> stops = new ArrayList<>();
+
+            // Add the intermediate location (=GasStation)
+
+            // Add the sources (Start + End Location)
+            for(int index : mSources){
+                stops.add(mTripLocationList.get(index));
+            }
+
+            if(mTripLocationList.get(i) instanceof TripGasStation){
+                TripGasStation tripGasStation = (TripGasStation) mTripLocationList.get(i);
+                stops.add(tripGasStation);
+            }
+
+
+            tripRoute.setStops(stops);
 
             // Add to the List
-            tripLocationList.add(tripRoute);
+            tripRouteList.add(tripRoute);
         }
 
-        return tripLocationList;
+        return tripRouteList;
     }
 
-    private String prepareBody(List<List<Double>> coordinates,List<Integer> sources, List<Integer> destinations) {
+    private String prepareBody(List<TripLocation> tripLocationList,List<Integer> sources, List<Integer> destinations) {
+        List<List<Double>> coordinates = TripLocation.getAsDoubleList(tripLocationList);
 
         MatrixPostBody postBody = new MatrixPostBody(
                 coordinates,

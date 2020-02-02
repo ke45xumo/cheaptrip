@@ -48,41 +48,41 @@
     </LinearLayout>
 
     <RelativeLayout
+        android:id="@+id/rel_layout_calc_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:background="@drawable/shape_main_background"
-        >
+        android:background="@drawable/shape_main_background">
+
         <ListView
             android:id="@+id/list_routes"
-            android:layout_height="match_parent"
             android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/shape_main_background"
-            android:listSelector="@android:color/darker_gray"
-            />
+            android:listSelector="@android:color/darker_gray" />
 
 
         <com.example.cheaptrip.views.Gauge
-            android:id="@+id/progress_brand"
+            android:id="@+id/progress_gauge"
+            android:transitionName="gauge_to_gauge"
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:layout_gravity="center"
-            android:padding="64dp"
             android:layout_marginTop="100dp"
+            android:padding="64dp"
+            android:visibility="visible"
             app:arcColor="@android:color/white"
             app:arcWidth="2dp"
             app:max="100"
             app:min="-3"
+            app:needle_color="@android:color/holo_red_dark"
             app:progressColor="@color/color_progress"
             app:progressWidth="12dp"
             app:step="1"
             app:textColor="@color/color_text"
             app:textSize="72sp"
-            app:text_enabled="false"
-            app:needle_color="@android:color/holo_red_dark"
-            android:visibility="visible"
-            />
+            app:text_enabled="false" />
 
         <!--<ProgressBar
             android:id="@+id/progress_brand"

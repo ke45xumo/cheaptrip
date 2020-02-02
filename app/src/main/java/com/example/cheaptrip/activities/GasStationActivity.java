@@ -2,59 +2,50 @@ package com.example.cheaptrip.activities;
 
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.cheaptrip.R;
 import com.example.cheaptrip.app.CheapTripApp;
+import com.example.cheaptrip.dao.rest.GasStationClient;
 import com.example.cheaptrip.handlers.rest.RestListener;
+import com.example.cheaptrip.handlers.rest.geo.GeoDirectionMatrixHandler;
 import com.example.cheaptrip.handlers.rest.geo.GeoDirectionsHandler;
-import com.example.cheaptrip.views.Gauge;
-import com.example.cheaptrip.views.Navigation;
-import com.example.cheaptrip.views.fragments.CalcGasStationFragment;
-import com.example.cheaptrip.views.fragments.CalcMapFragment;
-import com.example.cheaptrip.views.fragments.CalcRouteFragment;
-import com.example.cheaptrip.handlers.CalculationListener;
-
+import com.example.cheaptrip.handlers.rest.station.GasStationForRadiusHandler;
 import com.example.cheaptrip.handlers.view.adapters.CalcViewPagerAdapter;
-
-
+import com.example.cheaptrip.handlers.view.adapters.GasStationListAdapter;
 import com.example.cheaptrip.handlers.view.adapters.TripRouteListAdapter;
 import com.example.cheaptrip.models.TripGasStation;
 import com.example.cheaptrip.models.TripLocation;
 import com.example.cheaptrip.models.TripRoute;
 import com.example.cheaptrip.models.TripVehicle;
-
-import com.example.cheaptrip.services.RouteService;
-
+import com.example.cheaptrip.services.GPSService;
+import com.example.cheaptrip.views.Gauge;
+import com.example.cheaptrip.views.Navigation;
+import com.example.cheaptrip.views.fragments.CalcGasStationFragment;
+import com.example.cheaptrip.views.fragments.CalcMapFragment;
+import com.example.cheaptrip.views.fragments.CalcRouteFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 
-
+import java.util.ArrayList;
 import java.util.List;
 
 
-public class CalculationActivity extends AppCompatActivity {
+public class GasStationActivity extends AppCompatActivity {
 
     private ListView lvRoutes;                              // List view for the TripRoutes
-    private TripRouteListAdapter tripRouteListAdapter;      // Adapter for the List of TripRoutes
+    private GasStationListAdapter gasStationListAdapter;      // Adapter for the List of TripRoutes
 
     private Gauge progressBar;                        // Progress bar to be shown on load of
     // the list entries
-
-    TripLocation startLocation;                             // Starting Location
-    TripLocation endLocation;                               // End Location (Destination)
 
     TripVehicle tripVehicle;                                // Vehicle to be used for Calculation
 
@@ -66,6 +57,8 @@ public class CalculationActivity extends AppCompatActivity {
 
     private volatile boolean mIsListLoaded = false;         // will be set as soon the TripRoute List is loaded
     private BottomNavigationView bottomNavigation;
+
+    private TripLocation currentLocation;                   // Location of this Device
 
     /**
      * This function will be called on Activity creation
@@ -83,18 +76,11 @@ public class CalculationActivity extends AppCompatActivity {
          *============================================================*/
         setContentView(R.layout.activity_calculation);
         progressBar = findViewById(R.id.progress_gauge);
-        lvRoutes = findViewById(R.id.list_routes);
         mViewPager = findViewById(R.id.viewpager_calc);
+        lvRoutes = findViewById(R.id.list_routes);
 
         bottomNavigation = findViewById(R.id.bottomNavigationView);
-        bottomNavigation.setSelectedItemId(R.id.bottom_nav_stations);
         Navigation.setBottomNavigation(this,bottomNavigation);
-
-        /*============================================================
-         * Get Data from Intent
-         *============================================================*/
-        startLocation = (TripLocation) getIntent().getSerializableExtra("start");
-        endLocation = (TripLocation) getIntent().getSerializableExtra("end");
 
         tripVehicle = (TripVehicle) getIntent().getSerializableExtra("tripVehicle");
         /*============================================================
@@ -102,7 +88,6 @@ public class CalculationActivity extends AppCompatActivity {
          *============================================================*/
         initFragments();
         initList();
-        startCalculation();
     }
 
     /**
@@ -185,10 +170,7 @@ public class CalculationActivity extends AppCompatActivity {
      *          * per Rest-API request (getting the geoJSON to be drawn to the map)
      * 3) the
      */
-    private void initList(){
-        tripRouteListAdapter = new TripRouteListAdapter(this);
-        lvRoutes.setAdapter(tripRouteListAdapter);
-
+    private void setListListener(){
         lvRoutes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -216,13 +198,12 @@ public class CalculationActivity extends AppCompatActivity {
                      *================================================*/
                     @Override
                     public void OnRestSuccess(TripRoute tripRoute) {
-                        List<TripRoute> tripRouteList = tripRouteListAdapter.getTripRouteList();
+                        List<TripRoute> tripRouteList = gasStationListAdapter.getList();
                         int index = tripRouteList.indexOf(oldTripRoute);
 
                         tripRouteList.set(index,tripRoute);
 
-                        tripRouteListAdapter.setTripRouteList(tripRouteList);
-                        tripRouteListAdapter.notifyDataSetChanged();
+                        gasStationListAdapter.setList(tripRouteList);
 
                         fillFragments(tripRoute);
                     }
@@ -240,30 +221,95 @@ public class CalculationActivity extends AppCompatActivity {
     }
 
     /**
-     * This will be called to get the Lists of Routes with weights:
-     *      * Costs
-     *      * Duration
-     *      * distance
+     * This function will get the Stations nearby
      *
-     * This is done by calling a AsyncTask which callbacks the Inner function calculationDone()
-     * with parameter tripRouteList, containing all Routes with the previous mentioned weights.
-     *
-     * The List Adapter of the ListView will be set and notified for data change
      */
-    private void startCalculation(){
-        RouteService routeService = new RouteService(this, tripVehicle, new CalculationListener() {
+    private void initList(){
+        gasStationListAdapter = new GasStationListAdapter(this);
+        lvRoutes.setAdapter(gasStationListAdapter);
+
+        GPSService gpsService = new GPSService(getApplicationContext());
+
+        if(!gpsService.canGetLocation()){
+            Toast.makeText(this,"GPS Service unavailable",Toast.LENGTH_LONG).show();
+            Log.w("CHEAPTRIP","GasStationActivity->getStations: GPS Service unavailable");
+            return;
+        }
+
+        double lat = gpsService.getLatitude();
+        double lon = gpsService.getLongitude();
+
+        currentLocation = new TripLocation(lat,lon);
+
+        fillList();
+        setListListener();
+    }
+
+    private void fillList(){
+        if(currentLocation == null){
+            Log.e("CHEAPTRIP","GasStationActivity->fillList(): currentLocation si empty: will not fill List");
+            return;
+        }
+
+        double lat = currentLocation.getLatitdue();
+        double lon = currentLocation.getLongitude();
+
+        GasStationForRadiusHandler stationHandler = new GasStationForRadiusHandler(lat,lon, GasStationClient.FuelType.ALL);
+
+        stationHandler.makeAsyncRequest(new RestListener<List<TripGasStation>>() {
             @Override
-            public void onCalculationDone(List<TripRoute> tripRouteList) {
-                tripRouteListAdapter.setTripRouteList(tripRouteList);
-                tripRouteListAdapter.notifyDataSetChanged();
-                progressBar.setVisibility(View.INVISIBLE);
-                mIsListLoaded = true;
+            public void OnRestSuccess(List<TripGasStation> tripGasStations) {
+
+               loadRoutesForStations(tripGasStations);
+            }
+
+            @Override
+            public void OnRestFail() {
+                Log.e("CHEAPTRIP","GasStationActivity->getStations(): REST-Request for getting GasStations nearby failed");
             }
         });
-
-        routeService.execute(startLocation, endLocation);
-
     }
+
+
+    /**
+     * Loads the Routes containing the disances and durations for every GasStation provided by tripGasStation list.
+     * One route consists of the current location and the gas station of the list.
+     *
+     * After the Asynchronious response from the API it will populate the List with the routes
+     * by setting the adapter.
+     *
+     * @param tripGasStations   List of GasStations (locations to calculate routes to the current location)
+     */
+    private void loadRoutesForStations(List<TripGasStation> tripGasStations){
+        // Prepare Arguments
+        List<TripLocation> tripLocationList = new ArrayList(tripGasStations);
+        tripLocationList.set(0,currentLocation);    // Put on first position
+
+        List<Integer> sources = new ArrayList<>();
+        sources.add(0);                             // reference first postion as source (= current Location)
+
+        GeoDirectionMatrixHandler geoDirectionMatrixHandler = new GeoDirectionMatrixHandler(tripLocationList,sources,null);
+        geoDirectionMatrixHandler.makeAsyncRequest(new RestListener<List<TripRoute>>() {
+            @Override
+            public void OnRestSuccess(List<TripRoute> gasStationRoutes) {
+                if(gasStationRoutes == null){
+                    Log.e("CHEAPTRIP","GasStationActivity->getStations(): GeoMatrixHandler returned null");
+                    return;
+                }
+
+                gasStationListAdapter.setList(gasStationRoutes);
+                gasStationListAdapter.notifyDataSetChanged();
+                mIsListLoaded = true;
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void OnRestFail() {
+                Log.e("CHEAPTRIP","GasStationActivity->loadRoutesForStations(): Getting matrix for stations and current location failed.");
+            }
+        });
+    }
+
 
 
     private void animateTankIndicator(){
@@ -314,6 +360,5 @@ public class CalculationActivity extends AppCompatActivity {
 
         mRouteFragment.updateList(tripRoute);
     }
-
 
 }

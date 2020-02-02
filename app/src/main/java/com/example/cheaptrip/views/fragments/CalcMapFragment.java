@@ -126,6 +126,10 @@ public class CalcMapFragment extends Fragment {
 
         GPSService gpsService = new GPSService(getActivity().getApplicationContext());
 
+        if(startLocation == null || endLocation == null){
+            return;
+        }
+
         if (gpsService.canGetLocation()) {
 
             mMapController = mMapView.getController();
