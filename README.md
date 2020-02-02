@@ -18,7 +18,7 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU Affero General Public License along with this program.  If not, see https://opensource.org/licenses/AGPL-3.0.
 
 ## Open Source Notices
-Portions of this application contain the following open source software:\
+Portions of this application contain the following open source software used under the specified license:\
 [Open Data Service (ODS)](https://github.com/jvalue/open-data-service-ms) ([AGPL-3.0](https://opensource.org/licenses/AGPL-3.0))\
 [osmdroid](https://github.com/osmdroid/osmdroid) ([Apache-2.0](https://opensource.org/licenses/Apache-2.0))\
 [Mapnik](https://github.com/mapnik/mapnik) ([LGPL-2.1](https://opensource.org/licenses/LGPL-2.1))\
@@ -28,7 +28,7 @@ Portions of this application contain the following open source software:\
 [Gson](https://github.com/google/gson) ([Apache-2.0](https://opensource.org/licenses/Apache-2.0))\
 [csvquote](https://github.com/dbro/csvquote) ([MIT](https://opensource.org/licenses/MIT))
 
-This application uses the following data sources or service providers:\
+This application uses the following data sources or service providers under the specified license:\
 [FuelEconomy.gov](https://fueleconomy.gov/) ([U.S. Public Domain](https://www.usa.gov/government-works))\
 [Tankerkönig](https://tankerkoenig.de/) ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode))\
 [(C) OpenStreetMap contributors](https://www.openstreetmap.org/) ([ODbL](https://opendatacommons.org/licenses/odbl/))\
