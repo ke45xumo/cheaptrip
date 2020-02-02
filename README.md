@@ -17,7 +17,7 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 You should have received a copy of the GNU Affero General Public License along with this program.  If not, see https://opensource.org/licenses/AGPL-3.0.
 
-## Attributions
+## Open Source Notices
 Portions of this application contain the following open source software:\
 [Open Data Service (ODS)](https://github.com/jvalue/open-data-service-ms) ([AGPL-3.0](https://opensource.org/licenses/AGPL-3.0))\
 [osmdroid](https://github.com/osmdroid/osmdroid) ([Apache-2.0](https://opensource.org/licenses/Apache-2.0))\
@@ -35,3 +35,9 @@ This application uses the following data sources or service providers:\
 [(C) OpenStreetMap map tiles](https://www.openstreetmap.org/) ([CC-BY-SA-2.0](https://creativecommons.org/licenses/by-sa/2.0/legalcode))\
 [(C) OpenRouteService](https://openrouteservice.org/) ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode))\
 [Photon](https://photon.komoot.de/) ([see terms of use](https://photon.komoot.de/))
+
+This application contains the following graphic resources:\
+<a href="https://www.freepik.com/free-vector/blue-road-sign-icon-collection_838735.htm">Blue road sign with gas station</a> by ikaika from freepik.com\
+<a href="https://www.freepik.com/free-vector/location_2900811.htm">Location</a> by rawpixel.com from freepik.com\
+<a href="https://www.freepik.com/free-vector/road-icon-set_839475.htm">Road icon with two flags</a> by ikaika from freepik.com\
+<a href="https://www.flaticon.com/free-icon/gas-station_483497">Gas station</a> by Those Icons from flaticon.com
